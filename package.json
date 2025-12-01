@@ -1,0 +1,17 @@
+{
+  "name": "petec-backend",
+  "version": "1.0.0",
+  "description": "Backend of PETEC app, used for handling data in db.",
+  "main": "app.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
