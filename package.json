@@ -3,15 +3,28 @@
   "version": "1.0.0",
   "description": "Backend of PETEC app, used for handling data in db.",
   "main": "app.ts",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "start": "nodemon src/app.ts",
+    "prod": "node dist/app.js",
+    "inspect": "tsc && node --inspect ./dist/app.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongoose": "^8.20.2",
+    "reflect-metadata": "^0.2.2"
   }
 }
