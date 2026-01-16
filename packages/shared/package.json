@@ -1,0 +1,26 @@
+{
+  "name": "@petec/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/*": {
+      "types": "./src/schemas/*.ts",
+      "default": "./dist/schemas/*.js"
+    },
+    "./dtos/*": {
+      "types": "./src/dtos/*.ts",
+      "default": "./dist/dtos/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+  }
+}
