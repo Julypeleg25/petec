@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rootDir": "src", 
+    "outDir": "dist",
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@schemas/*": ["./src/schemas/*"],
+      "@dtos/*": ["./src/dtos/*"],
+      "@shared/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
