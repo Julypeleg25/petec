@@ -2,7 +2,7 @@ import { ENV } from "@config/config";
 import mongoose from "mongoose";
 
 const connectToDatabase = async () => {
-  const mongoDBUrl = ENV.mongoDBUrl;
+  const mongoDBUrl = ENV.mongoDBUri;
 
   if (!mongoDBUrl) {
     throw new Error("MongoDB connection string is not defined");
