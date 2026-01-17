@@ -1,5 +1,5 @@
 {
-  "name": "@petec/shared",
+  "name": "@booknook/shared",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,6 +21,11 @@
   "scripts": {
     "build": "tsc"
   },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "zod": "^4.3.5"
+  },
   "dependencies": {
+    "tsc": "^2.0.4"
   }
 }
