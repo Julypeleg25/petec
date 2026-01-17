@@ -11,7 +11,9 @@ export interface AppConfig {
   jwtRefreshSecret: string;
   accessTokenExpiresIn: string;
   refreshTokenExpiresIn: string;
-  sessionSecret: string; //check
+  mailjetPublicKey: string;
+  mailjetPrivateKey: string;
+  nodeEnv: string;
 }
 
 const requireEnv = (key: string): string => {
@@ -28,12 +30,13 @@ export const ENV: AppConfig = {
   port: Number(process.env.PORT ?? config.port),
 
   mongoDBUri: process.env.MONGODB_URI ?? config.mongoDBUri,
+  nodeEnv: process.env.FRONTEND_URL ?? "production",
 
   frontendUrl: process.env.FRONTEND_URL ?? config.frontendUrl,
   jwtAccessSecret: requireEnv("JWT_ACCESS_SECRET"),
   jwtRefreshSecret: requireEnv("JWT_REFRESH_SECRET"),
   accessTokenExpiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN ?? "15m",
   refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN ?? "7d",
-
-  sessionSecret: requireEnv("SESSION_SECRET"),
+  mailjetPublicKey: requireEnv("MJ_APIKEY_PUBLIC"),
+  mailjetPrivateKey: requireEnv("MJ_APIKEY_PRIVATE"),
 };
