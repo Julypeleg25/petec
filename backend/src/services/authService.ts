@@ -7,7 +7,7 @@ import {
   setRefreshCookie,
   verifyRefreshToken,
 } from "@utils/authTokens";
-import { EmailData, getEmailData, sendEmail } from "@utils/emailUtils";
+import { getEmailData, sendEmail } from "@utils/emailUtils";
 import { UnauthorizedError } from "@utils/errors";
 import { Request, Response } from "express";
 
