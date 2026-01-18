@@ -1,3 +1,5 @@
+import { UserDto } from "@shared/dtos/user.dto";
+import { LoginInput } from "@shared/types/auth";
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface AuthenticatedUser {
@@ -75,7 +77,7 @@ const userSchema = new Schema<IUser>(
     role: {
       type: Schema.Types.ObjectId,
       ref: "UserRole",
-      required: true,
+      required: [true, "User must have a role"],
     },
 
     refreshToken: {
@@ -105,7 +107,7 @@ const userSchema = new Schema<IUser>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 export const UserModel = mongoose.model<IUser>("User", userSchema);

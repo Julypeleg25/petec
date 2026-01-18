@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { COOKIE } from "@config/constants";
 import { HttpStatusCode } from "axios";
-import AuthService from "@services/authService";
+import AuthService from "@services/auth.service";
 
 class AuthController {
   register = async (req: Request, res: Response, next: NextFunction) => {
@@ -14,9 +14,7 @@ class AuthController {
   };
 
   login = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      console.log(req);
-      
+    try {      
       const result = await AuthService.login(req, res);
       res.status(HttpStatusCode.Ok).json(result);
     } catch (error) {

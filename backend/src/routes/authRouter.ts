@@ -1,4 +1,4 @@
-import AuthController from "@controllers/authController";
+import AuthController from "@controllers/auth.controller";
 import { validateBody } from "@middlewares/reqBodyValidator";
 import {
   LoginSchema,

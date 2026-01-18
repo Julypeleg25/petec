@@ -16,6 +16,7 @@
       "@controllers/*": ["./src/controllers/*"],
       "@db/*": ["./src/db/*"],
       "@routes/*": ["./src/routes/*"],
+      "@mappers/*": ["./src/mappers/*"],
       "@middlewares/*": ["./src/middlewares/*"],
       "@services/*": ["./src/services/*"],
       "@repositories/*": ["./src/repositories/*"],
