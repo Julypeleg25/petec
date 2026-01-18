@@ -17,6 +17,7 @@
       "@db/*": ["./src/db/*"],
       "@routes/*": ["./src/routes/*"],
       "@mappers/*": ["./src/mappers/*"],
+      "@seed/*": ["./src/seed/*"],
       "@middlewares/*": ["./src/middlewares/*"],
       "@services/*": ["./src/services/*"],
       "@repositories/*": ["./src/repositories/*"],

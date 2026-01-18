@@ -1,5 +1,3 @@
-import { UserDto } from "@shared/dtos/user.dto";
-import { LoginInput } from "@shared/types/auth";
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface AuthenticatedUser {
