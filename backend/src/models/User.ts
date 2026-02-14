@@ -1,105 +1,74 @@
-import mongoose, { Schema, Document, Types } from "mongoose";
+import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
+import { Role, UserStatus } from "@petec/shared";
 
-export interface AuthenticatedUser {
-  userId: string;
-  userRole: string;
-  userFullName: string;
+export interface IRefreshToken {
+  tokenHash: string;
+  expiresAt: Date;
+  createdAt: Date;
 }
 
-export interface IUser extends Document {
-  username: string;
+export interface IUser {
+  _id: Types.ObjectId;
   email: string;
-  password: string;
-
-  firstName: string;
-  lastName: string;
-
-  role: Types.ObjectId;
-
-  refreshToken?: string | null;
-
-  createdBy?: Types.ObjectId;
-  updatedBy?: Types.ObjectId;
-
-  isDeleted: boolean;
-
+  passwordHash: string;
+  role: Role;
+  privileges: string[];
+  status: UserStatus;
+  refreshTokens: IRefreshToken[];
+  lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema<IUser>(
-  {
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-      minlength: 3,
-      maxlength: 30,
-      index: true,
-    },
+export type UserDocument = HydratedDocument<IUser>;
 
+const refreshTokenSubSchema = new Schema<IRefreshToken>(
+  {
+    tokenHash: { type: String, required: true },
+    expiresAt: { type: Date, required: true },
+    createdAt: { type: Date, required: true, default: Date.now },
+  },
+  { _id: false },
+);
+
+const userSchema = new Schema<IUser, Model<IUser>>(
+  {
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
       trim: true,
-      match: /\S+@\S+\.\S+/,
       index: true,
     },
-
-    password: {
+    passwordHash: {
       type: String,
       required: true,
-      minlength: 8,
-      maxlength: 150,
       select: false,
     },
-
-    firstName: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 30,
-    },
-
-    lastName: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 30,
-    },
-
     role: {
-      type: Schema.Types.ObjectId,
-      ref: "UserRole",
-      required: [true, "User must have a role"],
-    },
-
-    refreshToken: {
       type: String,
-      default: null,
+      enum: Object.values(Role),
+      required: true,
+      index: true,
+    },
+    privileges: {
+      type: [String],
+      default: [],
+    },
+    status: {
+      type: String,
+      enum: Object.values(UserStatus),
+      default: UserStatus.ACTIVE,
+      index: true,
+    },
+    refreshTokens: {
+      type: [refreshTokenSubSchema],
+      default: [],
       select: false,
     },
-
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-
-    updatedBy: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      default: null,
-    },
-
-    isDeleted: {
-      type: Boolean,
-      default: false,
-      index: true,
+    lastLogin: {
+      type: Date,
     },
   },
   {
