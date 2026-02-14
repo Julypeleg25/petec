@@ -1,0 +1,17 @@
+{
+  "name": "petec-migration-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "seed:pgsql": "node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo $MONGODB_URI --db $MONGODB_DB",
+    "seed:pgsql:dry": "node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo $MONGODB_URI --db $MONGODB_DB --dry",
+    "seed:snippet": "node seed_from_sql_snippet.js --mongo $MONGODB_URI --db $MONGODB_DB",
+    "indexes": "node create_indexes.js --mongo $MONGODB_URI --db $MONGODB_DB",
+    "notifications:sample": "node compute_case_notifications.js --mongo $MONGODB_URI --db $MONGODB_DB --hours 12"
+  },
+  "dependencies": {
+    "mongodb": "^6.9.0",
+    "dotenv": "^16.4.5"
+  }
+}
