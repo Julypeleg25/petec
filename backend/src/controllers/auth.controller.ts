@@ -1,64 +1,74 @@
 import { Request, Response, NextFunction } from "express";
-import { COOKIE } from "@config/constants";
-import { HttpStatusCode } from "axios";
-import AuthService from "@services/auth.service";
+import { authService } from "@services/auth.service";
+import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
+import { COOKIE_NAMES } from "@petec/shared";
+import type { RegisterDTO, LoginDTO, ForgotPasswordDTO, ResetPasswordDTO } from "@petec/shared";
 
-class AuthController {
-  register = async (req: Request, res: Response, next: NextFunction) => {
+export class AuthController {
+  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = await AuthService.register(req);
-      res.status(HttpStatusCode.Created).json(user);
-    } catch (error) {
-      next(error);
+      const { email, password, role, privileges } = req.body as RegisterDTO;
+      const result = await authService.register(email, password, role, privileges);
+      sendCreated(res, result);
+    } catch (err) {
+      next(err);
     }
   };
 
-  login = async (req: Request, res: Response, next: NextFunction) => {
-    try {      
-      const result = await AuthService.login(req, res);
-      res.status(HttpStatusCode.Ok).json(result);
-    } catch (error) {
-      next(error);
+  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { email, password } = req.body as LoginDTO;
+      const result = await authService.login(email, password, res);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
     }
   };
 
-  refresh = async (req: Request, res: Response, next: NextFunction) => {
+  async refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const refreshToken = req.cookies[COOKIE.REFRESH];
-      const result = await AuthService.refresh(refreshToken, res);
-      res.status(HttpStatusCode.Ok).json(result);
-    } catch (error) {
-      next(error);
+      const token = req.cookies?.[COOKIE_NAMES.REFRESH] as string | undefined;
+      if (!token) {
+        res.status(401).json({ success: false, message: "No refresh token" });
+        return;
+      }
+      const result = await authService.refresh(token, res);
+      sendSuccess(res, result);
+    } catch (err) {
+      next(err);
     }
   };
 
-  logout = async (req: Request, res: Response, next: NextFunction) => {
+  async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const refreshToken = req.cookies[COOKIE.REFRESH];
-      await AuthService.logout(res, refreshToken);
-      res.status(HttpStatusCode.Ok).json({ success: true });
-    } catch (error) {
-      next(error);
+      const userId = (req as Request & { user: { userId: string } }).user.userId;
+      const token = req.cookies?.[COOKIE_NAMES.REFRESH] as string | undefined;
+      await authService.logout(userId, token, res);
+      sendNoContent(res);
+    } catch (err) {
+      next(err);
     }
   };
 
-  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await AuthService.forgotPassword(req.body.email);
-      res.sendStatus(HttpStatusCode.Ok);
-    } catch (error) {
-      next(error);
+      const { email } = req.body as ForgotPasswordDTO;
+      await authService.forgotPassword(email);
+      sendSuccess(res, { message: "If the email exists, a reset link has been sent" });
+    } catch (err) {
+      next(err);
     }
   };
 
-  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await AuthService.resetPassword(req.body);
-      res.status(HttpStatusCode.Ok).json(result);
-    } catch (error) {
-      next(error);
+      const { token, password } = req.body as ResetPasswordDTO;
+      await authService.resetPassword(token, password);
+      sendNoContent(res);
+    } catch (err) {
+      next(err);
     }
   };
 }
 
-export default new AuthController();
+export const authController = new AuthController();
