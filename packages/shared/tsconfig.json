@@ -3,15 +3,15 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "rootDir": "src", 
+    "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
-    "baseUrl": ".",
-    "paths": {
-      "@schemas/*": ["./src/schemas/*"],
-      "@dtos/*": ["./src/dtos/*"],
-      "@shared/*": ["./src/*"]
-    }
+    "strict": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*"]
 }
