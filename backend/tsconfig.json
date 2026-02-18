@@ -27,7 +27,7 @@
       "@utils/*": ["./src/utils/*"],
       "@config/*": ["./src/config/*"],
       "@petec/shared": ["../packages/shared/src/index.ts"],
-      "@shared/*": ["../packages/shared/src/*"],
+      "@shared/*": ["../packages/shared/src/*"]
     }
   },
   "include": ["src/**/*", "../packages/shared/**/*"],

@@ -42,7 +42,13 @@ const createLookupWithAnimalTypeSchema = (): Schema<ILookupWithAnimalType> =>
 
 export interface IMedicine extends IBaseLookup {
   categoryId?: Types.ObjectId;
-  defaultUnit?: string;
+  measureUnitId?: Types.ObjectId;
+  dosageFrequencyId?: Types.ObjectId;
+  routeOfAdministrationId?: Types.ObjectId;
+  rangeMin?: number;
+  rangeMax?: number;
+  totalDose?: number;
+  comments?: string;
 }
 
 export type MedicineDocument = HydratedDocument<IMedicine>;
@@ -52,7 +58,13 @@ const medicineSchema = new Schema<IMedicine>(
     name: { type: String, required: true, trim: true, index: true },
     isActive: { type: Boolean, default: true, index: true },
     categoryId: { type: Schema.Types.ObjectId, ref: "MedicineCategory", index: true },
-    defaultUnit: { type: String },
+    measureUnitId: { type: Schema.Types.ObjectId, ref: "MeasureUnitType" },
+    dosageFrequencyId: { type: Schema.Types.ObjectId, ref: "DosageFrequency" },
+    routeOfAdministrationId: { type: Schema.Types.ObjectId, ref: "RouteOfAdministration" },
+    rangeMin: { type: Number },
+    rangeMax: { type: Number },
+    totalDose: { type: Number },
+    comments: { type: String },
   },
   { timestamps: true, versionKey: false },
 );
