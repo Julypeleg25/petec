@@ -14,3 +14,7 @@ Dry run (no changes in DB):
 ```bash
 node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --dry
 ```
+
+
+## V4 note
+This bundle updates the converter to match the actual column names in your PETEC-SCRIPT.pgsql dump (e.g. created_by, frequency_id, procedure_id, quoted case table) and uses robust Postgres date parsing.
