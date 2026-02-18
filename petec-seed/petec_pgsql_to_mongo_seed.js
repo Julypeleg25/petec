@@ -1,5 +1,11 @@
 /**
- * PETEC pg_dump (.pgsql, COPY format) -> MongoDB Seeder (Petec V2 schema, NO legacy/raw fields stored)
+ * PETEC pg_dump (.pgsql, COPY format) -> MongoDB Seeder (Petec V2 schema)
+ *
+ * Goals:
+ * - Use the NEW Petec V2 document design
+ * - Preserve ALL business data from the dump by mapping every legacy column into a V2 field
+ *   (no raw row blobs, but we DO include additional V2 fields where the dump has data)
+ * - Robust date parsing for Postgres date/timestamp formats
  *
  * Usage:
  *   node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo mongodb://localhost:27017 --db petec_v2
@@ -12,7 +18,8 @@
  */
 const fs = require("fs");
 const readline = require("readline");
-const { ObjectId } = require("mongodb");
+const crypto = require("crypto");
+const { MongoClient, ObjectId } = require("mongodb");
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -54,9 +61,37 @@ function toNumber(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
+
+/**
+ * Robust Postgres date/timestamp parser.
+ * Supports:
+ * - YYYY-MM-DD
+ * - YYYY-MM-DD HH:mm:ss
+ * - YYYY-MM-DD HH:mm:ss.SSSSSS
+ * - ISO strings
+ */
 function toDate(v) {
   if (v == null) return null;
-  const d = new Date(v);
+  const s = String(v).trim();
+  if (!s) return null;
+
+  // Date only
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const d = new Date(s + "T00:00:00.000Z");
+    return Number.isFinite(d.getTime()) ? d : null;
+  }
+
+  // Timestamp without TZ: "YYYY-MM-DD HH:mm:ss[.fraction]"
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(\.\d{1,6})?$/);
+  if (m) {
+    const frac = (m[3] || ".000").slice(1);
+    const ms = (frac + "000").slice(0, 3); // micros -> ms
+    const d = new Date(`${m[1]}T${m[2]}.${ms}Z`);
+    return Number.isFinite(d.getTime()) ? d : null;
+  }
+
+  // Fallback to JS parse (ISO w/ TZ etc)
+  const d = new Date(s);
   return Number.isFinite(d.getTime()) ? d : null;
 }
 
@@ -66,9 +101,7 @@ function normalizeTableName(schema, table) {
 }
 
 function newObjectIdString() {
-  // 24 hex chars like Mongo ObjectId (not time-ordered, but valid for seeding).
-  const bytes = require("crypto").randomBytes(12);
-  return bytes.toString("hex");
+  return crypto.randomBytes(12).toString("hex"); // 24 hex
 }
 
 function makeIdMap() {
@@ -107,7 +140,7 @@ async function parsePgDumpCopyBlocks(inputPath) {
       if (m) {
         const schema = m[1];
         const table = m[2];
-        const cols = m[3].split(",").map((s) => s.trim());
+        const cols = m[3].split(",").map((s) => s.trim().replace(/^"|"$/g, ""));
         const key = normalizeTableName(schema, table);
         tables[key] = tables[key] || { cols, rows: [] };
         current = { key, cols };
@@ -130,6 +163,7 @@ function buildV2Docs(tables) {
   const idMap = makeIdMap();
   const getRows = (t) => (tables[t]?.rows || []);
 
+  // Legacy tables (actual names from your dump)
   const T = {
     patient: "petec.patient",
     case: "petec.case",
@@ -146,10 +180,12 @@ function buildV2Docs(tables) {
     cdd_procs: "petec.case_daily_details_procedures",
     cdd_food: "petec.case_daily_details_food_extras",
     cdd_exams: "petec.case_daily_details_examinations",
+
     case_meds: "petec.case_medicines",
     case_procs: "petec.case_procedures",
     case_food: "petec.case_food_extras",
     case_exams: "petec.case_examinations",
+
     // lookups
     animal_type: "petec.animal_type",
     race_type: "petec.race_type",
@@ -168,6 +204,7 @@ function buildV2Docs(tables) {
     medicine_category: "petec.medicine_category",
     roa: "petec.route_of_administration",
     animal_vitals: "petec.animal_vitals",
+
     user_role: "petec.user_role",
     user_privilege: "petec.user_privilege",
     role_priv: "petec.user_role_user_privilege",
@@ -203,7 +240,7 @@ function buildV2Docs(tables) {
     patient_document_types: [],
   };
 
-  // Lookups
+  // Lookups (ensure we keep createdAt from dump)
   const lookupMap = [
     [T.animal_type, "animal_types"],
     [T.race_type, "race_types"],
@@ -233,30 +270,28 @@ function buildV2Docs(tables) {
         _id: idMap.get(legacyTable, legacyId),
         legacyId: legacyId != null ? Number(legacyId) : undefined,
         name: r.name ?? r.title ?? r.value ?? r.type ?? r.description ?? null,
+        description: r.description ?? undefined,
         isActive: r.is_active != null ? (toBool(r.is_active) ?? true) : true,
         createdAt: toDate(r.created_at) ?? undefined,
         updatedAt: toDate(r.updated_at) ?? undefined,
       };
-      if (legacyTable === T.race_type || legacyTable === T.animal_vitals) {
+      if (legacyTable === T.race_type) {
         if (r.animal_type_id != null) doc.animalTypeId = idMap.get(T.animal_type, r.animal_type_id);
       }
       if (legacyTable === T.medicine) {
         if (r.medicine_category_id != null) doc.categoryId = idMap.get(T.medicine_category, r.medicine_category_id);
       }
       if (legacyTable === T.animal_vitals) {
-        // keep fields used for notifications ranges if present
+        if (r.animal_id != null) doc.animalTypeId = idMap.get(T.animal_type, r.animal_id);
         if (r.vitals_type != null) doc.vitalsType = r.vitals_type; // 'T','P','R'
         if (r.range_min != null) doc.rangeMin = toNumber(r.range_min) ?? r.range_min;
         if (r.range_max != null) doc.rangeMax = toNumber(r.range_max) ?? r.range_max;
-      }
-      if (legacyTable === T.roa) {
-        if (r.description != null) doc.description = r.description;
       }
       return doc;
     });
   }
 
-  // Users
+  // Users (dump: created_by etc naming)
   const roleById = new Map(getRows(T.user_role).map((rr) => [String(rr.id), rr]));
   const privById = new Map(getRows(T.user_privilege).map((pp) => [String(pp.id), pp]));
   const privsByRoleId = new Map();
@@ -274,16 +309,17 @@ function buildV2Docs(tables) {
     const doc = {
       _id: idMap.get(T.user, legacyId),
       legacyId: legacyId != null ? Number(legacyId) : undefined,
-      email: r.email ?? (r.username ? `${r.username}@local` : null),
+      username: r.username ?? undefined,
+      firstName: r.first_name ?? undefined,
+      lastName: r.last_name ?? undefined,
+      email: r.email ?? (r.username ? `${r.username}@local` : `user_${legacyId}@local`),
       passwordHash: r.password ?? r.password_hash ?? null,
       role: "ASSISTANT",
       privileges: [],
       status: toBool(r.is_active) === false ? "INACTIVE" : "ACTIVE",
-      lastLogin: toDate(r.last_login) ?? undefined,
-      refreshTokens: [],
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
-      __legacyRoleId: r.user_role_id ?? r.role_id ?? null,
+      __legacyRoleId: r.role_id ?? r.user_role_id ?? null,
     };
     out.users.push(doc);
   }
@@ -303,7 +339,7 @@ function buildV2Docs(tables) {
     delete u.__legacyRoleId;
   }
 
-  // Patients
+  // Patients (dump contains many refs; keep them)
   for (const r of getRows(T.patient)) {
     const legacyId = r.id;
     out.patients.push({
@@ -311,10 +347,20 @@ function buildV2Docs(tables) {
       legacyId: legacyId != null ? Number(legacyId) : undefined,
       name: r.name ?? null,
       owner: {
-        name: r.owner_name ?? r.ownername ?? null,
-        phone: r.owner_phone_number ?? r.ownerphonenumber ?? null,
+        name: r.owner_name ?? null,
+        phone: r.owner_phone_number ?? null,
       },
-      photoName: r.photo_name ?? r.photoname ?? null,
+      photoName: r.photo_name ?? null,
+      refs: {
+        animalTypeId: r.animal_id != null ? idMap.get(T.animal_type, r.animal_id) : undefined,
+        genderTypeId: r.gender_id != null ? idMap.get(T.gender_type, r.gender_id) : undefined,
+        raceTypeId: r.race_id != null ? idMap.get(T.race_type, r.race_id) : undefined,
+        animalColorId: r.animal_color_id != null ? idMap.get(T.animal_color, r.animal_color_id) : undefined,
+        foodTypeId: r.food_type_id != null ? idMap.get(T.food_type, r.food_type_id) : undefined,
+        insuranceTypeId: r.insurance_id != null ? idMap.get(T.insurance_type, r.insurance_id) : undefined,
+      },
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
     });
@@ -329,15 +375,20 @@ function buildV2Docs(tables) {
       legacyCaseId: legacyCaseId != null ? String(legacyCaseId) : undefined,
       patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : null,
       masterCaseId: null,
-      createdByUserId: r.created_by_id != null ? idMap.get(T.user, r.created_by_id) : undefined,
+
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
       doctorUserId: r.doctor_id != null ? idMap.get(T.user, r.doctor_id) : undefined,
       nurseUserId: r.nurse_id != null ? idMap.get(T.user, r.nurse_id) : undefined,
-      releasedByUserId: r.released_by_id != null ? idMap.get(T.user, r.released_by_id) : undefined,
+      releasedByUserId: r.released_by != null ? idMap.get(T.user, r.released_by) : undefined,
+
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
       releaseDate: toDate(r.release_date) ?? undefined,
+
       isArchived: toBool(r.is_archived) ?? false,
       isDeleted: toBool(r.is_deleted) ?? false,
+
       admission: {
         hospitalizationReason: r.hospitalization_reason ?? null,
         referringDoctor: r.referring_doctor ?? null,
@@ -367,19 +418,15 @@ function buildV2Docs(tables) {
         nextInspectionDate: toDate(r.next_inspection_date) ?? undefined,
         stitchesRemovalDate: toDate(r.stitches_removal_date) ?? undefined,
       },
-      refs: {
-        animalTypeId: r.animal_type_id != null ? idMap.get(T.animal_type, r.animal_type_id) : undefined,
-        genderTypeId: r.gender_type_id != null ? idMap.get(T.gender_type, r.gender_type_id) : undefined,
-        raceTypeId: r.race_type_id != null ? idMap.get(T.race_type, r.race_type_id) : undefined,
-        animalColorId: r.animal_color_id != null ? idMap.get(T.animal_color, r.animal_color_id) : undefined,
-        insuranceTypeId: r.insurance_type_id != null ? idMap.get(T.insurance_type, r.insurance_type_id) : undefined,
-        foodTypeId: r.food_type_id != null ? idMap.get(T.food_type, r.food_type_id) : undefined,
-      },
+      // IMPORTANT: in this dump, most patient taxonomy is on PATIENT, not case. Keep case refs only if you add them later.
+      refs: {},
       comments: r.comments ?? null,
       dailyPlan: {
         comments: r.daily_plan_comments ?? null,
         updatedAt: toDate(r.daily_plan_comments_created_at) ?? undefined,
       },
+
+      // V2 structure
       planned: { medicines: [], procedures: [], foodExtras: [], examinations: [] },
       caseDetailsGrid: [],
     };
@@ -411,67 +458,90 @@ function buildV2Docs(tables) {
     }
   }
 
-  // Planned tables
+  // CASE planned items live in case_* tables in this dump.
+  // Build them as "planned.*" on the Case, then daily grid references them.
+  const caseMedicineById = new Map();
   for (const r of getRows(T.case_meds)) {
     const c = caseDocByLegacyId.get(String(r.case_id));
     if (!c) continue;
-    c.planned.medicines.push({
+    const item = {
+      _id: idMap.get(T.case_meds, r.id),
       medicineId: r.medicine_id != null ? idMap.get(T.medicine, r.medicine_id) : undefined,
-      dosageText: r.dosage ?? r.dose_text ?? null,
       doseAmount: r.dose_amount ?? null,
-      measureUnitTypeId: r.measure_unit_types_id != null ? idMap.get(T.measure_unit, r.measure_unit_types_id) : undefined,
-      dosageFrequencyId: r.dosage_frequency_id != null ? idMap.get(T.dosage_frequency, r.dosage_frequency_id) : undefined,
+      dosageText: r.dosage ?? null, // not present in this dump; keep for forward compatibility
+      dosageFrequencyId: r.frequency_id != null ? idMap.get(T.dosage_frequency, r.frequency_id) : undefined,
       routeOfAdministrationId: r.route_of_administration_id != null ? idMap.get(T.roa, r.route_of_administration_id) : undefined,
-      startDate: toDate(r.start_date) ?? undefined,
-      endDate: toDate(r.end_date) ?? undefined,
-      isActive: toBool(r.is_active) ?? true,
-      notes: r.comments ?? r.note ?? null,
-    });
+      isMedicine: r.is_medicine != null ? toBool(r.is_medicine) : undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
+    };
+    c.planned.medicines.push(item);
+    caseMedicineById.set(String(r.id), item);
   }
+
+  const caseProcedureById = new Map();
   for (const r of getRows(T.case_procs)) {
     const c = caseDocByLegacyId.get(String(r.case_id));
     if (!c) continue;
-    c.planned.procedures.push({
-      procedureTypeId: r.procedure_type_id != null ? idMap.get(T.procedure_type, r.procedure_type_id) : undefined,
-      plannedProcedureText: r.planned_procedure ?? null,
-      scheduledFor: toDate(r.date) ?? undefined,
-      priority: r.priority ?? undefined,
-      status: r.status ?? "PLANNED",
-      notes: r.comments ?? null,
-    });
+    const item = {
+      _id: idMap.get(T.case_procs, r.id),
+      procedureTypeId: r.procedure_id != null ? idMap.get(T.procedure_type, r.procedure_id) : undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
+    };
+    c.planned.procedures.push(item);
+    caseProcedureById.set(String(r.id), item);
   }
+
+  const caseFoodById = new Map();
   for (const r of getRows(T.case_food)) {
     const c = caseDocByLegacyId.get(String(r.case_id));
     if (!c) continue;
-    c.planned.foodExtras.push({
-      foodExtraTypeId: r.food_extra_type_id != null ? idMap.get(T.food_extra_type, r.food_extra_type_id) : undefined,
-      amount: r.amount ?? null,
-      measureUnitTypeId: r.measure_unit_types_id != null ? idMap.get(T.measure_unit, r.measure_unit_types_id) : undefined,
-      frequencyId: r.dosage_frequency_id != null ? idMap.get(T.dosage_frequency, r.dosage_frequency_id) : undefined,
-      notes: r.comments ?? null,
-    });
+    const item = {
+      _id: idMap.get(T.case_food, r.id),
+      foodExtraTypeId: r.food_extra_id != null ? idMap.get(T.food_extra_type, r.food_extra_id) : undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
+    };
+    c.planned.foodExtras.push(item);
+    caseFoodById.set(String(r.id), item);
   }
+
+  const caseExamById = new Map();
   for (const r of getRows(T.case_exams)) {
     const c = caseDocByLegacyId.get(String(r.case_id));
     if (!c) continue;
-    c.planned.examinations.push({
-      examinationTypeId: r.examination_type_id != null ? idMap.get(T.examination_type, r.examination_type_id) : undefined,
-      scheduledFor: toDate(r.date) ?? undefined,
-      status: r.status ?? "PLANNED",
-      notes: r.comments ?? null,
-    });
+    const item = {
+      _id: idMap.get(T.case_exams, r.id),
+      examinationTypeId: r.examination_id != null ? idMap.get(T.examination_type, r.examination_id) : undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
+    };
+    c.planned.examinations.push(item);
+    caseExamById.set(String(r.id), item);
   }
 
-  // Daily grid
+  // Daily grid rows
   const dailyById = new Map();
   for (const r of getRows(T.case_daily_details)) {
     const c = caseDocByLegacyId.get(String(r.case_id));
     if (!c) continue;
+
     const row = {
       _id: idMap.get(T.case_daily_details, r.id),
-      index: toNumber(r.index) ?? undefined,
-      date: toDate(r.date) ?? null,
+      date: toDate(r.date),
       time: r.time ?? null,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+
       vitals: {
         temp: toNumber(r.temp) ?? undefined,
         tempIsRequired: toBool(r.temp_is_required) ?? undefined,
@@ -483,6 +553,7 @@ function buildV2Docs(tables) {
         respirationIsRequired: toBool(r.respiration_is_required) ?? undefined,
         respirationIsEditable: toBool(r.respiration_is_editable) ?? undefined,
       },
+
       urine: {
         urineTypeId: r.urine_type_id != null ? idMap.get(T.urine_type, r.urine_type_id) : undefined,
         comments: r.urine_comments ?? null,
@@ -495,6 +566,7 @@ function buildV2Docs(tables) {
         isRequired: toBool(r.feces_is_required) ?? undefined,
         isEditable: toBool(r.feces_is_editable) ?? undefined,
       },
+
       boxClean: {
         value: toBool(r.is_box_clean) ?? undefined,
         isRequired: toBool(r.is_box_clean_is_required) ?? undefined,
@@ -505,76 +577,98 @@ function buildV2Docs(tables) {
         isRequired: toBool(r.is_release_is_required) ?? undefined,
         isEditable: toBool(r.is_release_is_editable) ?? undefined,
       },
-      // optional fields seen in your SQL view
+
       walkTrip: r.is_walk_trip != null ? { value: toBool(r.is_walk_trip), isRequired: toBool(r.is_walk_trip_is_required) ?? undefined, isEditable: toBool(r.is_walk_trip_is_editable) ?? undefined } : undefined,
       puke: r.is_puke != null ? { value: toBool(r.is_puke), comments: r.puke_comments ?? null, isRequired: toBool(r.puke_is_required) ?? undefined, isEditable: toBool(r.puke_is_editable) ?? undefined } : undefined,
-      weigh: r.weigh != null ? { value: toNumber(r.weigh) ?? r.weigh, isRequired: toBool(r.weigh_is_required) ?? undefined, isEditable: toBool(r.weigh_is_editable) ?? undefined } : undefined,
+      weigh: r.weigh != null ? { value: toNumber(r.weigh) ?? undefined, isRequired: toBool(r.weigh_is_required) ?? undefined, isEditable: toBool(r.weigh_is_editable) ?? undefined } : undefined,
       foodAndWater: r.food_and_water != null ? { value: r.food_and_water, isRequired: toBool(r.food_and_water_is_required) ?? undefined, isEditable: toBool(r.food_and_water_is_editable) ?? undefined } : undefined,
       comments: r.comments != null ? { value: r.comments, isRequired: toBool(r.comments_is_required) ?? undefined, isEditable: toBool(r.comments_is_editable) ?? undefined } : undefined,
       ownerUpdate: r.owner_update != null ? { value: r.owner_update, isRequired: toBool(r.owner_update_is_required) ?? undefined, isEditable: toBool(r.owner_update_is_editable) ?? undefined } : undefined,
 
-      fluids: [],
+      // Daily items are derived from their CASE planned tables via the *_id links
       medicines: [],
       procedures: [],
       examinations: [],
       foodExtras: [],
+
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
     };
+
     c.caseDetailsGrid.push(row);
     dailyById.set(String(r.id), row);
   }
 
+  // Daily medicines: link to case_medicines
   for (const r of getRows(T.cdd_meds)) {
     const row = dailyById.get(String(r.case_daily_details_id));
     if (!row) continue;
+    const base = caseMedicineById.get(String(r.case_medicines_id));
     row.medicines.push({
-      medicineId: r.medicine_id != null ? idMap.get(T.medicine, r.medicine_id) : undefined,
-      doseAmount: r.dose_amount ?? null,
-      dosageText: r.dosage ?? null,
-      measureUnitTypeId: r.measure_unit_types_id != null ? idMap.get(T.measure_unit, r.measure_unit_types_id) : undefined,
-      dosageFrequencyId: r.dosage_frequency_id != null ? idMap.get(T.dosage_frequency, r.dosage_frequency_id) : undefined,
-      routeOfAdministrationId: r.route_of_administration_id != null ? idMap.get(T.roa, r.route_of_administration_id) : undefined,
+      caseMedicineId: base?._id,
+      medicineId: base?.medicineId,
+      doseAmount: base?.doseAmount ?? null,
+      dosageFrequencyId: base?.dosageFrequencyId,
+      routeOfAdministrationId: base?.routeOfAdministrationId,
       isGiven: toBool(r.is_given) ?? undefined,
       isRequired: toBool(r.is_required) ?? undefined,
       isEditable: toBool(r.is_editable) ?? undefined,
       comment: r.comment ?? null,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
   for (const r of getRows(T.cdd_procs)) {
     const row = dailyById.get(String(r.case_daily_details_id));
     if (!row) continue;
+    const base = caseProcedureById.get(String(r.case_procedures_id));
     row.procedures.push({
-      procedureTypeId: r.procedure_type_id != null ? idMap.get(T.procedure_type, r.procedure_type_id) : undefined,
+      caseProcedureId: base?._id,
+      procedureTypeId: base?.procedureTypeId,
       isGiven: toBool(r.is_given) ?? undefined,
       isRequired: toBool(r.is_required) ?? undefined,
       isEditable: toBool(r.is_editable) ?? undefined,
       comment: r.comment ?? null,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
   for (const r of getRows(T.cdd_food)) {
     const row = dailyById.get(String(r.case_daily_details_id));
     if (!row) continue;
+    const base = caseFoodById.get(String(r.case_food_extras_id));
     row.foodExtras.push({
-      foodExtraTypeId: r.food_extra_type_id != null ? idMap.get(T.food_extra_type, r.food_extra_type_id) : undefined,
-      measureUnitTypeId: r.measure_unit_types_id != null ? idMap.get(T.measure_unit, r.measure_unit_types_id) : undefined,
-      doseAmount: r.dose_amount ?? r.amount ?? null,
+      caseFoodExtraId: base?._id,
+      foodExtraTypeId: base?.foodExtraTypeId,
       isGiven: toBool(r.is_given) ?? undefined,
       isRequired: toBool(r.is_required) ?? undefined,
       isEditable: toBool(r.is_editable) ?? undefined,
       comment: r.comment ?? null,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
   for (const r of getRows(T.cdd_exams)) {
     const row = dailyById.get(String(r.case_daily_details_id));
     if (!row) continue;
+    const base = caseExamById.get(String(r.case_examinations_id));
     row.examinations.push({
-      examinationTypeId: r.examination_type_id != null ? idMap.get(T.examination_type, r.examination_type_id) : undefined,
-      isGiven: toBool(r.is_given) ?? undefined,
+      caseExaminationId: base?._id,
+      examinationTypeId: base?.examinationTypeId,
       isRequired: toBool(r.is_required) ?? undefined,
       isEditable: toBool(r.is_editable) ?? undefined,
-      value: r.value ?? undefined,
+      value: r.value ?? null,
       comment: r.comment ?? null,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
+      updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
 
@@ -585,7 +679,7 @@ function buildV2Docs(tables) {
       caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
       ownerName: r.owner_name ?? null,
       name: r.name ?? null,
-      date: toDate(r.date) ?? r.date ?? null,
+      date: toDate(r.date) ?? null,
       signature: r.signature ?? null,
       plannedProcedure: r.planned_procedure ?? null,
       priceEstimate: r.price_estimate ?? null,
@@ -598,81 +692,103 @@ function buildV2Docs(tables) {
       generalComments: r.general_comments ?? null,
       distortionComments: r.distortion_comments ?? null,
       medicationsSensitiveComments: r.medications_sensitive_comments ?? null,
-      createdByUserId: r.created_by_id != null ? idMap.get(T.user, r.created_by_id) : undefined,
-      updatedByUserId: r.updated_by_id != null ? idMap.get(T.user, r.updated_by_id) : undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
 
-  // Documents
+  // Documents (dump: only case_id + type + document_name)
   for (const r of getRows(T.patient_document)) {
+    const caseId = r.case_id != null ? idMap.get(T.case, r.case_id) : undefined;
+    // infer patientId from case
+    let patientId = undefined;
+    if (r.case_id != null) {
+      const c = caseDocByLegacyId.get(String(r.case_id));
+      patientId = c?.patientId ?? undefined;
+    }
     out.patient_documents.push({
       _id: idMap.get(T.patient_document, r.id),
-      patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : undefined,
-      caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
-      patientDocumentTypeId: r.patient_document_type_id != null ? idMap.get(T.patient_document_type, r.patient_document_type_id) : undefined,
-      fileName: r.file_name ?? r.name ?? null,
-      storageKey: r.path ?? r.storage_key ?? r.file_path ?? null,
-      uploadedByUserId: r.created_by_id != null ? idMap.get(T.user, r.created_by_id) : undefined,
-      uploadedAt: toDate(r.uploaded_at) ?? toDate(r.created_at) ?? new Date(),
+      patientId,
+      caseId,
+      patientDocumentTypeId: r.patient_document_type != null ? idMap.get(T.patient_document_type, r.patient_document_type) : undefined,
+      fileName: r.document_name ?? null,
+      storageKey: r.document_name ?? null,
+      uploadedByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      uploadedAt: toDate(r.created_at) ?? undefined,
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
 
-  // Patient medicines
+  // Patient medicines (dump: frequency_id, created_by, no endDate)
   for (const r of getRows(T.patient_medicine)) {
+    // infer patientId from case if needed
+    let patientId = undefined;
+    if (r.case_id != null) {
+      const c = caseDocByLegacyId.get(String(r.case_id));
+      patientId = c?.patientId ?? undefined;
+    }
     out.patient_medicines.push({
       _id: idMap.get(T.patient_medicine, r.id),
-      patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : undefined,
+      patientId,
       caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
       medicineId: r.medicine_id != null ? idMap.get(T.medicine, r.medicine_id) : undefined,
-      dosageFrequencyId: r.dosage_frequency_id != null ? idMap.get(T.dosage_frequency, r.dosage_frequency_id) : undefined,
+      dosageFrequencyId: r.frequency_id != null ? idMap.get(T.dosage_frequency, r.frequency_id) : undefined,
       routeOfAdministrationId: r.route_of_administration_id != null ? idMap.get(T.roa, r.route_of_administration_id) : undefined,
-      measureUnitTypeId: r.measure_unit_types_id != null ? idMap.get(T.measure_unit, r.measure_unit_types_id) : undefined,
       doseAmount: r.dose_amount ?? null,
-      notes: r.comments ?? r.note ?? null,
-      startDate: toDate(r.start_date) ?? undefined,
-      endDate: toDate(r.end_date) ?? undefined,
-      isActive: toBool(r.is_active) ?? undefined,
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
       createdAt: toDate(r.created_at) ?? undefined,
-      updatedAt: toDate(r.updated_at) ?? undefined,
     });
   }
 
-  // Audit logs
+  // Audit logs (dump has patient_id/case_id)
   for (const r of getRows(T.audit)) {
     out.audit_logs.push({
       _id: idMap.get(T.audit, r.id),
       subject: r.subject ?? null,
       description: r.description ?? null,
-      entityType: r.entity_type ?? r.table_name ?? "unknown",
-      entityId: r.entity_id ?? r.row_id ?? null,
-      performedByUserId: r.created_by_id != null ? idMap.get(T.user, r.created_by_id) : undefined,
-      createdAt: toDate(r.created_at) ?? new Date(),
+      patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : undefined,
+      caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
+      performedByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      createdAt: toDate(r.created_at) ?? undefined,
     });
+  }
+
+  // Validation: warn if expected tables are empty
+  const expected = [
+    [T.patient, "patients"],
+    [T.case, "cases"],
+    [T.case_daily_details, "case_daily_details"],
+  ];
+  for (const [tbl, label] of expected) {
+    if ((tables[tbl]?.rows?.length ?? 0) === 0) {
+      console.warn(`WARNING: legacy table ${tbl} has 0 rows. ${label} may be empty.`);
+    }
   }
 
   return out;
 }
 
-
 function toObjectIdDeep(value, ObjectId) {
   if (value == null) return value;
+  if (value instanceof Date) return value;
+
   if (typeof value === "string" && /^[a-f0-9]{24}$/.test(value)) return new ObjectId(value);
   if (Array.isArray(value)) return value.map((v) => toObjectIdDeep(v, ObjectId));
+
   if (typeof value === "object") {
     const out = {};
     for (const [k, v] of Object.entries(value)) out[k] = toObjectIdDeep(v, ObjectId);
     return out;
   }
+
   return value;
 }
 
 async function insertAll(client, dbName, docsByCollection) {
   const db = client.db(dbName);
-
   const order = [
     "animal_types","animal_colors","gender_types","insurance_types","food_types","food_extra_types","examination_types",
     "feces_types","urine_types","dosage_frequencies","measure_unit_types","procedure_types","medicine_categories","medicines",
@@ -703,7 +819,7 @@ async function main() {
   console.log("Parsing pg_dump COPY blocks...");
   const tables = await parsePgDumpCopyBlocks(args.input);
 
-  console.log("Building Petec V2 documents...");
+  console.log("Building Petec V2 documents (V4 full-fidelity mapping)...");
   const docsByCollection = buildV2Docs(tables);
 
   const counts = Object.fromEntries(Object.entries(docsByCollection).map(([k,v]) => [k, (v?.length ?? 0)]));
@@ -717,7 +833,6 @@ async function main() {
   }
 
   console.log("Connecting to MongoDB...");
-  const { MongoClient, ObjectId } = require("mongodb");
   const client = new MongoClient(args.mongo, { maxPoolSize: 10 });
   await client.connect();
   try {
