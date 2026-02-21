@@ -1,34 +1,52 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodSchema } from "zod";
+import { z, ZodSchema, type ZodIssue } from "zod";
 import { ValidationError } from "@utils/errors";
-import type { ValidateSchemas } from "@utils/types";
-import { logger } from "@utils/logger";
+import type { ValidateSchemas } from "@utils/validation.types";
+import type { ApiErrorDetails } from "@petec/shared";
+
+const toStrictSchema = (schema: ZodSchema): ZodSchema => {
+    if (schema instanceof z.ZodObject) {
+        return schema.strict();
+    }
+    return schema;
+};
+
+const toDetails = (issues: readonly ZodIssue[]): ApiErrorDetails => {
+    const details: Record<string, string[]> = {};
+    for (const issue of issues) {
+        const key = issue.path.length > 0 ? issue.path.join(".") : "_root";
+        if (!details[key]) {
+            details[key] = [];
+        }
+        details[key].push(issue.message);
+    }
+    return details;
+};
 
 export const validate = (schemas: ValidateSchemas) =>
-    (req: Request, _res: Response, next: NextFunction): void => {
-        logger.info("Validating request", { schemas });
+    (req: Request, res: Response, next: NextFunction): void => {
         if (schemas.body) {
-            const result = schemas.body.safeParse(req.body);
+            const result = toStrictSchema(schemas.body).safeParse(req.body);
             if (!result.success) {
-                throw new ValidationError("Validation failed", result.error.issues);
+                throw new ValidationError("Validation failed", toDetails(result.error.issues));
             }
             req.body = result.data;
         }
 
         if (schemas.query) {
-            const result = schemas.query.safeParse(req.query);
+            const result = toStrictSchema(schemas.query).safeParse(req.query);
             if (!result.success) {
-                throw new ValidationError("Query validation failed", result.error.issues);
+                throw new ValidationError("Query validation failed", toDetails(result.error.issues));
             }
-            req.query = result.data as Record<string, string>;
+            req.query = result.data as Request["query"];
         }
 
         if (schemas.params) {
-            const result = schemas.params.safeParse(req.params);
+            const result = toStrictSchema(schemas.params).safeParse(req.params);
             if (!result.success) {
-                throw new ValidationError("Params validation failed", result.error.issues);
+                throw new ValidationError("Params validation failed", toDetails(result.error.issues));
             }
-            req.params = result.data as Record<string, string>;
+            req.params = result.data as Request["params"];
         }
 
         next();
