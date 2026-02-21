@@ -1,0 +1,137 @@
+:root {
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-main: #f4781d;
+  --input-border-color: var(--color-main);
+  --color-soft-box-shadow: #e4e4e4;
+  --btn-color-text: white;
+  --text-color: white;
+  --btn-background-color: var(--color-main);
+  --color-light-grey: #f3f3f3;
+  --color-dark-grey: #e7e7e7;
+  --color-scroll-bar: #f3f3f3;
+  --color-scroll-bar-hover: #e2e2e2;
+  --header-height: 150px;
+  --table-pagination-height: 50px;
+  --color-alerts: rgb(211, 2, 2);
+  --color-alerts-blue: rgb(16, 16, 196);
+}
+
+.btn {
+  border-radius: 20px;
+  padding: 0.35em 0.7em;
+  font-size: 1rem;
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+  border: none;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.btn:disabled {
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+  cursor: not-allowed !important;
+}
+
+.navbar .btn:disabled {
+  cursor: auto !important;
+}
+
+.btn-round {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  padding: 0.5em;
+}
+
+.btn-icon-only {
+  border: none !important;
+}
+
+.btn-icon-only:hover {
+  cursor: pointer;
+  background-color: var(--color-white) !important;
+  color: var(--color-main) !important;
+}
+
+.btn-active,
+.header-navbar .btn-active:hover {
+  color: var(--btn-background-color);
+  background-color: var(--btn-color-text);
+  border: 3px solid var(--btn-background-color);
+}
+
+.btn-active:hover {
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+}
+
+.btn-large {
+  width: 75%;
+}
+
+.btn-medium {
+  width: 50%;
+}
+
+.btn-small {
+  width: 25%;
+}
+
+.btn:hover {
+  cursor: pointer;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+}
+
+.form-label {
+  font-size: 1.4em;
+  text-decoration: underline;
+  text-align: right;
+  width: 100%;
+  display: block;
+  color: var(--color-main);
+  font-weight: 600;
+}
+
+input,
+textarea {
+  direction: rtl;
+}
+
+textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+textarea::-webkit-resizer,
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+/* ---- custom scrollbar ---- */
+
+::-webkit-scrollbar {
+  width: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-scroll-bar);
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scroll-bar-hover);
+}
+
+@media screen and (max-width: 600px) {
+  .btn {
+    font-size: 0.8rem;
+  }
+}
