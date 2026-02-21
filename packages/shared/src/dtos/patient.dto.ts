@@ -269,6 +269,9 @@ export const UpdateDailyPlanDTOSchema = z.object({
 });
 export type UpdateDailyPlanDTO = z.infer<typeof UpdateDailyPlanDTOSchema>;
 
+export const UpdateDailyPlanRequestDTOSchema = z.record(z.string(), UpdateDailyPlanDTOSchema);
+export type UpdateDailyPlanRequestDTO = z.infer<typeof UpdateDailyPlanRequestDTOSchema>;
+
 export const UploadDocumentDTOSchema = z.object({
     patientId: objectIdSchema,
     caseId: objectIdSchema.optional(),
@@ -291,6 +294,82 @@ export const ArchivePatientDTOSchema = z.object({
     caseId: objectIdSchema,
 });
 export type ArchivePatientDTO = z.infer<typeof ArchivePatientDTOSchema>;
+
+export const CaseDetailsResponseDTOSchema = z.object({
+    caseDetails: z.array(z.array(caseDetailsRowSchema)),
+    patientInfo: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
+});
+export type CaseDetailsResponseDTO = z.infer<typeof CaseDetailsResponseDTOSchema>;
+
+export const ReleaseMedicineDisplayDTOSchema = z.object({
+    value: z.string(),
+    text: z.string(),
+    measureUnitId: z.union([z.string(), z.number()]),
+    measureUnitText: z.string(),
+    frequencyId: z.union([z.string(), z.number()]),
+    frequencyText: z.string(),
+    doseAmount: z.number(),
+    medicineRouteId: z.union([z.string(), z.number()]),
+    medicineRouteText: z.string(),
+    rangeMax: z.number(),
+    rangeMin: z.number(),
+    totalDose: z.number(),
+    comments: z.string(),
+    defaultMedicineRouteId: z.union([z.string(), z.number(), z.null()]),
+    defaultFrequencyId: z.union([z.string(), z.number(), z.null()]),
+});
+export type ReleaseMedicineDisplayDTO = z.infer<typeof ReleaseMedicineDisplayDTOSchema>;
+
+export const ReleasePatientDataResponseDTOSchema = z.object({
+    releaseDate: z.string().nullable(),
+    stitchesRemovalDate: z.string().nullable(),
+    nextInspectionDate: z.string().nullable(),
+    medicines: z.array(ReleaseMedicineDisplayDTOSchema),
+});
+export type ReleasePatientDataResponseDTO = z.infer<typeof ReleasePatientDataResponseDTOSchema>;
+
+export const DailyPlanDetailDTOSchema = z.object({
+    case_id: z.string(),
+    master_case_id: z.string(),
+    name: z.string(),
+    owner_name: z.string(),
+    owner_phone_number: z.string(),
+    hospitalization_reason: z.string(),
+    daily_plan_comments: z.string(),
+    caseExaminations: z.array(z.object({ name: z.string(), value: z.string(), date: z.string() })),
+    caseProcedures: z.array(z.object({ name: z.string(), value: z.boolean(), date: z.string() })),
+    ownerUpdate: z.array(z.object({ value: z.string(), date: z.string() })),
+    releaseMedicines: z.array(z.object({ value: z.boolean(), date: z.string() })),
+});
+export type DailyPlanDetailDTO = z.infer<typeof DailyPlanDetailDTOSchema>;
+export const DailyPlanDetailListResponseDTOSchema = z.array(DailyPlanDetailDTOSchema);
+export type DailyPlanDetailListResponseDTO = z.infer<typeof DailyPlanDetailListResponseDTOSchema>;
+
+export const PatientCardRowDTOSchema = z.object({
+    _id: z.string().or(objectIdSchema),
+    masterCaseId: z.string().or(objectIdSchema).optional(),
+    patientId: z.object({
+        name: z.string(),
+        owner: z.object({
+            name: z.string(),
+            phone: z.string(),
+        }),
+        photoName: z.string().optional(),
+    }),
+    admission: z.object({
+        hospitalizationReason: z.string().optional(),
+    }).optional(),
+    flags: z.object({
+        isAggressive: z.boolean().optional(),
+        isEscapePotential: z.boolean().optional(),
+        isAllergic: z.boolean().optional(),
+        isRiskAnesthesia: z.boolean().optional(),
+        isHeartMurmur: z.boolean().optional(),
+        isAMB: z.boolean().optional(),
+    }).optional(),
+    numOfAlerts: z.number().optional().default(0),
+});
+export type PatientCardRowDTO = z.infer<typeof PatientCardRowDTOSchema>;
 
 export {
     caseDetailsRowSchema,

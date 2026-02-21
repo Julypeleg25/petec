@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { Role } from "../constants/index";
-import { PASSWORD_POLICY } from "../constants/index";
+import { PASSWORD_POLICY, Role, ROLES_TUPLE } from "../constants";
 
 const passwordSchema = z.string()
   .min(PASSWORD_POLICY.MIN_LENGTH, `Password must be at least ${PASSWORD_POLICY.MIN_LENGTH} characters`)
@@ -19,15 +18,16 @@ const passwordSchema = z.string()
   );
 
 export const RegisterDTOSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters").trim(),
   email: z.email().trim().toLowerCase(),
   password: passwordSchema,
-  role: z.enum(Role).default(Role.DOCTOR),
+  role: z.enum(ROLES_TUPLE).default(Role.DOCTOR),
   privileges: z.array(z.string()).optional(),
 });
 export type RegisterDTO = z.infer<typeof RegisterDTOSchema>;
 
 export const LoginDTOSchema = z.object({
-  email: z.email().trim().toLowerCase(),
+  username: z.string().min(1, "Username is required").trim(),
   password: z.string().min(1, "Password is required"),
 });
 export type LoginDTO = z.infer<typeof LoginDTOSchema>;
@@ -52,6 +52,7 @@ export const LoginResponseSchema = z.object({
   accessToken: z.string(),
   user: z.object({
     id: z.string(),
+    username: z.string(),
     email: z.string(),
     role: z.string(),
     privileges: z.array(z.string()),
@@ -64,3 +65,11 @@ export const RefreshResponseSchema = z.object({
   accessToken: z.string(),
 });
 export type RefreshResponseDTO = z.infer<typeof RefreshResponseSchema>;
+
+export const ForgotPasswordMessageSchema = z.object({
+  message: z.string(),
+});
+export type ForgotPasswordMessageDTO = z.infer<typeof ForgotPasswordMessageSchema>;
+
+export const UserRolesResponseSchema = z.array(z.string());
+export type UserRolesResponseDTO = z.infer<typeof UserRolesResponseSchema>;
