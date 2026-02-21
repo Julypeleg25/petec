@@ -1,0 +1,73 @@
+.PatientDocuments {
+  width: 90%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.patient-documents-label {
+  text-align: center;
+  margin-bottom: 0.8em;
+  margin-top: 1em;
+}
+
+.upload-patient-documents-section form {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-patient-documents-image-btn {
+  margin-top: 0.7em;
+  width: fit-content;
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+.view-patient-documents-section {
+  margin-top: 1em;
+  border: 3px solid var(--color-main);
+  border-radius: 10px;
+  padding: 1em;
+  height: 60%;
+}
+
+.patient-documents-no-images {
+  font-size: 1.5rem;
+  text-align: center;
+  width: 100%;
+  font-weight: 500;
+}
+
+.patient-documents {
+  overflow-y: scroll;
+  max-height: 100%;
+}
+
+.patient-documents-container {
+  position: relative;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  width: 100%;
+  align-items: center;
+}
+
+.patient-document-delete-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 1em;
+  margin-right: 3.5em;
+  padding: 0.3em;
+  width: 40px;
+  height: 40px;
+}
+
+.patient-document {
+  width: 90%;
+  margin: 0 auto;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 1.5em;
+}
