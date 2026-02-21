@@ -10,8 +10,8 @@ const mapUserToResponse = (user: UserDocument): UserResponseDTO => ({
     privileges: user.privileges,
     status: user.status,
     lastLogin: user.lastLogin?.toISOString(),
-    createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
+    createdAt: user.createdAt?.toISOString(),
+    updatedAt: user.updatedAt?.toISOString(),
 });
 
 export class UserService {
