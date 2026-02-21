@@ -1,26 +1,6 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import { Role, UserStatus } from "@petec/shared";
-
-export interface IRefreshToken {
-  tokenHash: string;
-  expiresAt: Date;
-  createdAt: Date;
-}
-
-export interface IUser {
-  _id: Types.ObjectId;
-  email: string;
-  passwordHash: string;
-  role: Role;
-  privileges: string[];
-  status: UserStatus;
-  refreshTokens: IRefreshToken[];
-  lastLogin?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type UserDocument = HydratedDocument<IUser>;
+import type { IRefreshToken, IUser } from "./User.types";
 
 const refreshTokenSubSchema = new Schema<IRefreshToken>(
   {
@@ -33,6 +13,13 @@ const refreshTokenSubSchema = new Schema<IRefreshToken>(
 
 const userSchema = new Schema<IUser, Model<IUser>>(
   {
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      index: true,
+    },
     email: {
       type: String,
       required: true,
@@ -78,3 +65,5 @@ const userSchema = new Schema<IUser, Model<IUser>>(
 );
 
 export const UserModel = mongoose.model<IUser>("User", userSchema);
+
+export type { IRefreshToken, IUser, UserDocument } from "./User.types";

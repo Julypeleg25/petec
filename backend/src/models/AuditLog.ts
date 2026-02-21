@@ -1,16 +1,5 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IAuditLog {
-  _id: Types.ObjectId;
-  subject?: string;
-  description?: string;
-  entityType: string;
-  entityId: string;
-  performedByUserId?: Types.ObjectId;
-  createdAt: Date;
-}
-
-export type AuditLogDocument = HydratedDocument<IAuditLog>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { IAuditLog } from "./AuditLog.types";
 
 const auditLogSchema = new Schema<IAuditLog, Model<IAuditLog>>(
   {
@@ -30,3 +19,5 @@ auditLogSchema.index({ entityType: 1, entityId: 1, createdAt: 1 });
 auditLogSchema.index({ createdAt: 1 });
 
 export const AuditLogModel = mongoose.model<IAuditLog>("AuditLog", auditLogSchema);
+
+export type { IAuditLog, AuditLogDocument } from "./AuditLog.types";

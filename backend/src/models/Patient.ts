@@ -1,20 +1,5 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IPatientOwner {
-  name: string;
-  phone: string;
-}
-
-export interface IPatient {
-  _id: Types.ObjectId;
-  name: string;
-  owner: IPatientOwner;
-  photoName?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type PatientDocument = HydratedDocument<IPatient>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { IPatient, IPatientOwner } from "./Patient.types";
 
 const ownerSubSchema = new Schema<IPatientOwner>(
   {
@@ -49,3 +34,5 @@ const patientSchema = new Schema<IPatient, Model<IPatient>>(
 patientSchema.index({ "owner.phone": 1 });
 
 export const PatientModel = mongoose.model<IPatient>("Patient", patientSchema);
+
+export type { IPatient, IPatientOwner, PatientDocument } from "./Patient.types";

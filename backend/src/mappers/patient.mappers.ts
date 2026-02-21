@@ -2,28 +2,16 @@ import { Types } from "mongoose";
 import { toObjectId, toOptionalObjectId } from "@utils/objectId.utils";
 import type { NewPatientDTO, EditPatientDTO, ReleasePatientDTO, UploadDocumentDTO } from "@petec/shared";
 import type { ICase } from "@models/Case";
-
-
-interface PatientCreateData {
-    name: string;
-    owner: { name: string; phone: string };
-}
-
-interface CaseRefsData {
-    animalTypeId?: Types.ObjectId;
-    genderTypeId?: Types.ObjectId;
-    raceTypeId?: Types.ObjectId;
-    animalColorId?: Types.ObjectId;
-    insuranceTypeId?: Types.ObjectId;
-    foodTypeId?: Types.ObjectId;
-}
-
-interface PlannedItemData {
-    medicines: Array<{ medicineId: Types.ObjectId; isActive?: boolean;[key: string]: unknown }>;
-    procedures: Array<{ procedureTypeId: Types.ObjectId;[key: string]: unknown }>;
-    foodExtras: Array<{ foodExtraTypeId: Types.ObjectId;[key: string]: unknown }>;
-    examinations: Array<{ examinationTypeId: Types.ObjectId;[key: string]: unknown }>;
-}
+import type {
+    CaseRefsData,
+    PlannedItemData,
+    CaseCreateData,
+    PatientCreateData,
+    PatientUpdateData,
+    CaseUpdateData,
+    ReleaseMedicineData,
+    UploadDocumentData,
+} from "@mappers/patient.mappers.types";
 
 export const mapRefsToObjectIds = (refs: NonNullable<NewPatientDTO["refs"]>): CaseRefsData => {
     const result: CaseRefsData = {};
@@ -49,8 +37,11 @@ export const mapPlannedItems = (planned: NonNullable<NewPatientDTO["planned"]>):
         procedureTypeId: toObjectId(p.procedureTypeId),
     })),
     foodExtras: (planned.foodExtras ?? []).map((f) => ({
-        ...f,
         foodExtraTypeId: toObjectId(f.foodExtraTypeId),
+        amount: f.amount,
+        measureUnitTypeId: toOptionalObjectId(f.measureUnitTypeId),
+        frequencyId: f.frequencyId,
+        notes: f.notes,
     })),
     examinations: (planned.examinations ?? []).map((e) => ({
         ...e,
@@ -71,13 +62,12 @@ export const mapNewPatientDtoToCaseData = (
     patientId: Types.ObjectId,
     masterCaseId: Types.ObjectId,
     userId: string,
-): Record<string, unknown> => {
-    const caseData: Record<string, unknown> = {
+): CaseCreateData => {
+    const caseData: CaseCreateData = {
         patientId,
         masterCaseId,
         createdByUserId: toObjectId(userId),
     };
-
     if (dto.doctorUserId) caseData.doctorUserId = toObjectId(dto.doctorUserId);
     if (dto.nurseUserId) caseData.nurseUserId = toObjectId(dto.nurseUserId);
     if (dto.admission) caseData.admission = dto.admission;
@@ -88,12 +78,11 @@ export const mapNewPatientDtoToCaseData = (
     if (dto.dailyPlan) caseData.dailyPlan = dto.dailyPlan;
     if (dto.refs) caseData.refs = mapRefsToObjectIds(dto.refs);
     if (dto.planned) caseData.planned = mapPlannedItems(dto.planned);
-
     return caseData;
 };
 
-export const mapEditDtoToPatientUpdate = (dto: EditPatientDTO): Record<string, unknown> => {
-    const update: Record<string, unknown> = {};
+export const mapEditDtoToPatientUpdate = (dto: EditPatientDTO): PatientUpdateData => {
+    const update: PatientUpdateData = {};
     if (dto.name) update.name = dto.name;
     if (dto.owner) update.owner = dto.owner;
     if (dto.photoName !== undefined) update.photoName = dto.photoName;
@@ -103,9 +92,8 @@ export const mapEditDtoToPatientUpdate = (dto: EditPatientDTO): Record<string, u
 export const mapEditDtoToCaseUpdate = (
     dto: EditPatientDTO,
     existingCase: ICase,
-): Record<string, unknown> => {
-    const update: Record<string, unknown> = {};
-
+): CaseUpdateData => {
+    const update: CaseUpdateData = {};
     if (dto.admission) update.admission = { ...existingCase.admission, ...dto.admission };
     if (dto.patientSnapshot) update.patientSnapshot = { ...existingCase.patientSnapshot, ...dto.patientSnapshot };
     if (dto.flags) update.flags = { ...existingCase.flags, ...dto.flags };
@@ -114,20 +102,12 @@ export const mapEditDtoToCaseUpdate = (
     if (dto.nurseUserId) update.nurseUserId = toObjectId(dto.nurseUserId);
     if (dto.comments !== undefined) update.comments = dto.comments;
     if (dto.dailyPlan) update.dailyPlan = { ...existingCase.dailyPlan, ...dto.dailyPlan, updatedAt: new Date() };
-
     if (dto.refs) {
         const updatedRefs = mapRefsToObjectIds(dto.refs);
         update.refs = { ...existingCase.refs, ...updatedRefs };
     }
-
-    if (dto.planned) {
-        update.planned = mapPlannedItems(dto.planned);
-    }
-
-    if (dto.caseDetails) {
-        update.caseDetailsGrid = dto.caseDetails.flat();
-    }
-
+    if (dto.planned) update.planned = mapPlannedItems(dto.planned);
+    if (dto.caseDetails) update.caseDetailsGrid = dto.caseDetails.flat() as object[];
     return update;
 };
 
@@ -135,8 +115,8 @@ export const mapReleaseMedicineToData = (
     med: ReleasePatientDTO["medicines"][number],
     patientId: Types.ObjectId,
     caseId: Types.ObjectId,
-): Record<string, unknown> => {
-    const data: Record<string, unknown> = {
+): ReleaseMedicineData => {
+    const data: ReleaseMedicineData = {
         patientId,
         caseId,
         medicineId: toObjectId(med.medicineId),
@@ -156,8 +136,8 @@ export const mapUploadDocumentToData = (
     storageKey: string,
     fileName: string,
     userId: string,
-): Record<string, unknown> => {
-    const data: Record<string, unknown> = {
+): UploadDocumentData => {
+    const data: UploadDocumentData = {
         patientId: toObjectId(dto.patientId),
         patientDocumentTypeId: toObjectId(dto.patientDocumentTypeId),
         storageKey,
@@ -165,8 +145,6 @@ export const mapUploadDocumentToData = (
         uploadedByUserId: toObjectId(userId),
         uploadedAt: new Date(),
     };
-    if (dto.caseId) {
-        data.caseId = toObjectId(dto.caseId);
-    }
+    if (dto.caseId) data.caseId = toObjectId(dto.caseId);
     return data;
 };
