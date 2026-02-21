@@ -11,7 +11,7 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1),
   NODE_ENV: z.enum(NODE_ENV_VALUES).default("development"),
   FRONTEND_URL: z.string().min(1),
-  MAIL_ADMIN: z.string().email().optional(),
+  MAIL_ADMIN: z.email().optional(),
 
   JWT_ACCESS_SECRET: z.string().min(10),
   JWT_REFRESH_SECRET: z.string().min(10),

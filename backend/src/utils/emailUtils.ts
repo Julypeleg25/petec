@@ -1,11 +1,5 @@
 import { logger } from "@utils/logger";
-
-export interface SendEmailOptions {
-    to: string;
-    subject: string;
-    html: string;
-    from?: string;
-}
+import type { SendEmailOptions } from "@utils/emailUtils.types";
 
 export const sendEmail = async (options: SendEmailOptions): Promise<void> => {
   logger.info("Email send requested", {
