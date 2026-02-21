@@ -22,15 +22,21 @@ const ENTITY_TYPE_USER = "User";
 const AUDIT_SUBJECT_AUTH = "Authentication";
 
 export class AuthService {
-  async register(email: string, password: string, role: Role, privileges?: string[]): Promise<RegisterResponseDTO> {
-    const existing = await userRepository.findByEmail(email);
-    if (existing) {
+  async register(username: string, email: string, password: string, role: Role, privileges?: string[]): Promise<RegisterResponseDTO> {
+    const existingEmail = await userRepository.findByEmail(email);
+    if (existingEmail) {
       throw new ConflictError("A user with this email already exists");
+    }
+
+    const existingUsername = await userRepository.findByUsername(username);
+    if (existingUsername) {
+      throw new ConflictError("A user with this username already exists");
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     const user = await userRepository.create({
+      username,
       email: email.toLowerCase(),
       passwordHash,
       role,
@@ -39,7 +45,7 @@ export class AuthService {
 
     await auditRepository.log(
       AUDIT_SUBJECT_AUTH,
-      `User registered: ${email}`,
+      `User registered: ${username} (${email})`,
       ENTITY_TYPE_USER,
       user._id.toString(),
     );
@@ -51,11 +57,11 @@ export class AuthService {
     };
   };
 
-  async login(email: string, password: string, res: Response): Promise<LoginResponseDTO> {
-    const user = await userRepository.findByEmailWithPassword(email);
+  async login(username: string, password: string, res: Response): Promise<LoginResponseDTO> {
+    const user = await userRepository.findByUsernameWithPassword(username);
 
     if (!user) {
-      throw new AuthError("Invalid email or password");
+      throw new AuthError("Invalid username or password");
     }
 
     if (user.status !== "ACTIVE") {
@@ -64,7 +70,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new AuthError("Invalid email or password");
+      throw new AuthError("Invalid username or password");
     }
 
     const tokenPayload = {
@@ -90,7 +96,7 @@ export class AuthService {
 
     await auditRepository.log(
       AUDIT_SUBJECT_AUTH,
-      `User logged in: ${email}`,
+      `User logged in: ${username}`,
       ENTITY_TYPE_USER,
       user._id.toString(),
       user._id,
@@ -100,6 +106,7 @@ export class AuthService {
       accessToken,
       user: {
         id: user._id.toString(),
+        username: user.username,
         email: user.email,
         role: user.role,
         privileges: user.privileges,
