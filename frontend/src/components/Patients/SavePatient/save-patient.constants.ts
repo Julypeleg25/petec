@@ -1,0 +1,32 @@
+import { SYSTEM_TYPE_NAMES } from "@petec/shared";
+
+export const SAVE_PATIENT_ROUTES = {
+  PATIENTS_LIST: "/patients/patientsList",
+} as const;
+
+export const SAVE_PATIENT_ELEMENT_IDS = {
+  TABLE_HOUR_SELECT: "table-hour-select",
+  PAINT_BUTTON: "paintButton",
+  SET_EDITABLE_FIELDS_BUTTON: "setEditableFieldsButton",
+} as const;
+
+export const SAVE_PATIENT_DEFAULTS = {
+  EMPTY_VALUE: "",
+  CASE_DATE_FALLBACK: "-1",
+  INITIAL_PATIENT_ID: -1,
+  HOUR_PADDING_LENGTH: 1,
+  MAX_PARENT_HOPS: 10,
+  CATHETER_REPLACEMENT_DAYS_THRESHOLD: 3,
+  PDF_FILE_NAME: "output.pdf",
+  PDF_MIME_TYPE: "application/pdf",
+  DEFAULT_PATIENT_IMAGE: "assets/images/default-patient-image.jpg",
+  NEW_PATIENT_PATH_SEGMENT: "newPatient",
+} as const;
+
+export const SAVE_PATIENT_SYSTEM_TYPE_NAMES = {
+  GENDER: SYSTEM_TYPE_NAMES.GENDER_TYPES,
+  ANIMAL: SYSTEM_TYPE_NAMES.ANIMAL_TYPES,
+  ANIMAL_COLOR: SYSTEM_TYPE_NAMES.ANIMAL_COLORS,
+  INSURANCE: SYSTEM_TYPE_NAMES.INSURANCE_TYPES,
+  FOOD: SYSTEM_TYPE_NAMES.FOOD_TYPES,
+} as const;
