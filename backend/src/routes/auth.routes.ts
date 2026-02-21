@@ -17,5 +17,6 @@ router.post("/refresh", authController.refresh);
 router.post("/logout", authenticate, authController.logout);
 router.post("/forgot-password", validateBody(ForgotPasswordDTOSchema), authController.forgotPassword);
 router.post("/reset-password", validateBody(ResetPasswordDTOSchema), authController.resetPassword);
+router.get("/userRoles", authenticate, requireAdmin, authController.getUserRoles);
 
 export default router;
