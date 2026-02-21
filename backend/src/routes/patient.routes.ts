@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { patientController } from "@controllers/patient.controller";
 import { authenticate, requirePermission } from "@middlewares/auth.middleware";
-import { validateBody } from "@middlewares/validate";
+import { validateBody, validateParams } from "@middlewares/validate";
 import { upload } from "@middlewares/upload";
 import { Permission } from "@petec/shared";
 import {
@@ -10,6 +10,12 @@ import {
     ReleasePatientDTOSchema,
     ArchivePatientDTOSchema,
     DeletePatientCaseDTOSchema,
+    CreateAnesthesiaProcedureFormDTOSchema,
+    UploadDocumentDTOSchema,
+    UpdateDailyPlanRequestDTOSchema,
+    CaseIdParamsDTOSchema,
+    PatientIdParamsDTOSchema,
+    DocumentIdParamsDTOSchema,
 } from "@petec/shared";
 
 const router = Router();
@@ -33,6 +39,7 @@ router.put(
 router.get(
     "/case/details/:caseId",
     requirePermission(Permission.READ_CASE),
+    validateParams(CaseIdParamsDTOSchema),
     patientController.getCaseDetails,
 );
 
@@ -46,6 +53,7 @@ router.post(
 router.get(
     "/case/release/:caseId",
     requirePermission(Permission.READ_CASE),
+    validateParams(CaseIdParamsDTOSchema),
     patientController.getReleasePatientData,
 );
 
@@ -66,6 +74,7 @@ router.delete(
 router.get(
     "/documents/:patientId",
     requirePermission(Permission.READ_PATIENT),
+    validateParams(PatientIdParamsDTOSchema),
     patientController.getDocuments,
 );
 
@@ -73,37 +82,57 @@ router.post(
     "/documents/upload",
     requirePermission(Permission.MANAGE_DOCUMENTS),
     upload.single("file"),
+    validateBody(UploadDocumentDTOSchema),
     patientController.uploadDocument,
 );
 
 router.delete(
-    "/documents/:id",
+    "/documents/:documentId",
     requirePermission(Permission.MANAGE_DOCUMENTS),
+    validateParams(DocumentIdParamsDTOSchema),
     patientController.deleteDocument,
 );
 
 router.get(
     "/case/anesthesia/:caseId",
     requirePermission(Permission.READ_CASE),
+    validateParams(CaseIdParamsDTOSchema),
     patientController.getAnesthesiaForm,
 );
 
 router.post(
     "/case/anesthesia/:caseId",
     requirePermission(Permission.WRITE_CASE),
+    validateParams(CaseIdParamsDTOSchema),
+    validateBody(CreateAnesthesiaProcedureFormDTOSchema),
     patientController.upsertAnesthesiaForm,
-);
-
-router.get(
-    "/case/charts/:caseId",
-    requirePermission(Permission.READ_CASE),
-    patientController.getChartsData,
 );
 
 router.get(
     "/case/export/:caseId",
     requirePermission(Permission.READ_CASE),
+    validateParams(CaseIdParamsDTOSchema),
     patientController.exportCase,
+);
+
+router.get(
+    "/case/charts/:caseId",
+    requirePermission(Permission.READ_CASE),
+    validateParams(CaseIdParamsDTOSchema),
+    patientController.getChartsData,
+);
+
+router.get(
+    "/dailyPlan",
+    requirePermission(Permission.READ_CASE),
+    patientController.getDailyPlan,
+);
+
+router.put(
+    "/dailyPlan",
+    requirePermission(Permission.WRITE_CASE),
+    validateBody(UpdateDailyPlanRequestDTOSchema),
+    patientController.updateDailyPlan,
 );
 
 export default router;

@@ -22,12 +22,16 @@ import type {
   CreatePatientResponseDTO,
   PatientDocumentResponseDTO,
   ChartsDataResponseDTO,
+  DailyPlanDetailDTO,
+  UpdateDailyPlanRequestDTO,
   CreateAnesthesiaProcedureFormDTO,
 } from "@petec/shared";
 import type { ICase } from "@models/Case";
 import type { IAnesthesiaForm } from "@models/AnesthesiaForm";
 import type { IPatientDocument } from "@models/PatientDocument";
 import type { IPatientMedicine } from "@models/PatientMedicine";
+import { ObjectId, Types } from "mongoose";
+import { toObjectId } from "@utils/objectId.utils";
 
 const ENTITY_TYPE_PATIENT = "Patient";
 const ENTITY_TYPE_CASE = "Case";
@@ -44,7 +48,7 @@ export class PatientService {
     });
 
     const caseData = mapNewPatientDtoToCaseData(dto, patient._id, masterCase._id, userId);
-    const newCase = await caseRepository.create(caseData as Partial<ICase>);
+    const newCase = await caseRepository.create(caseData);
     await masterCaseRepository.addCaseId(masterCase._id, newCase._id);
 
     await auditRepository.log(
@@ -227,11 +231,11 @@ export class PatientService {
     userId: string,
   ): Promise<IAnesthesiaForm> {
     const { caseId: _dtoCaseId, ...formFields } = data;
-    const formData: Record<string, unknown> = {
+    const formData: Partial<IAnesthesiaForm> & { updatedByUserId: Types.ObjectId } = {
       ...formFields,
-      updatedByUserId: new (await import("mongoose")).Types.ObjectId(userId),
+      updatedByUserId: toObjectId(userId),
     };
-    const form = await anesthesiaFormRepository.upsertByCaseId(caseId, formData as Partial<IAnesthesiaForm>);
+    const form = await anesthesiaFormRepository.upsertByCaseId(caseId, formData);
 
     await auditRepository.log(
       AUDIT_SUBJECT_PATIENT,
@@ -254,7 +258,88 @@ export class PatientService {
     if (!caseDoc) {
       throw new NotFoundError("Case not found");
     }
-    return { caseDetailsGrid: caseDoc.caseDetailsGrid };
+
+    const rows = caseDoc.caseDetailsGrid ?? [];
+    const mapPoints = (
+      pick: (row: (typeof rows)[number]) => number | undefined,
+      label: string,
+    ): ChartsDataResponseDTO["temperature"] =>
+      rows
+        .map((row, index) => {
+          const value = pick(row);
+          if (typeof value !== "number") {
+            return null;
+          }
+          const name = row.time
+            ? `${row.date || label}-${row.time}`
+            : `${row.date || label}-${String(index + 1)}`;
+          return { name, value };
+        })
+        .filter((point): point is { name: string; value: number } => point !== null);
+
+    const weight =
+      typeof caseDoc.patientSnapshot?.weightKg === "number"
+        ? [{ name: "weight", value: caseDoc.patientSnapshot.weightKg }]
+        : [];
+
+    return {
+      temperature: mapPoints((row) => row.temperature, "temperature"),
+      pulse: mapPoints((row) => row.pulse, "pulse"),
+      respiration: mapPoints((row) => row.respiration, "respiration"),
+      weight,
+    };
+  };
+
+  async getDailyPlan(): Promise<DailyPlanDetailDTO[]> {
+    const cases = await caseRepository.findMany(
+      { isDeleted: false, isArchived: false },
+      { sort: { createdAt: -1 }, populate: "patientId" },
+    );
+
+    return cases.map((caseDoc) => {
+      const patient = caseDoc.patientId as unknown as { name?: string; owner?: { name?: string; phone?: string } };
+      const plannedExaminations = caseDoc.planned?.examinations ?? [];
+      const plannedProcedures = caseDoc.planned?.procedures ?? [];
+
+      return {
+        case_id: caseDoc._id.toString(),
+        master_case_id: caseDoc.masterCaseId?.toString() ?? caseDoc._id.toString(),
+        name: patient?.name ?? "",
+        owner_name: patient?.owner?.name ?? "",
+        owner_phone_number: patient?.owner?.phone ?? "",
+        hospitalization_reason: caseDoc.admission?.hospitalizationReason ?? "",
+        daily_plan_comments: caseDoc.dailyPlan?.comments ?? "",
+        caseExaminations: plannedExaminations.map((exam) => ({
+          name: exam.examinationTypeId?.toString() ?? "",
+          value: exam.status ?? "",
+          date: exam.scheduledFor ? exam.scheduledFor.toISOString() : "",
+        })),
+        caseProcedures: plannedProcedures.map((procedure) => ({
+          name: procedure.plannedProcedureText ?? procedure.procedureTypeId?.toString() ?? "",
+          value: procedure.status === "done",
+          date: procedure.scheduledFor ? procedure.scheduledFor.toISOString() : "",
+        })),
+        ownerUpdate: [],
+        releaseMedicines: [],
+      };
+    });
+  };
+
+  async updateDailyPlan(payload: UpdateDailyPlanRequestDTO): Promise<void> {
+    const updates = Object.values(payload);
+
+    await Promise.all(
+      updates.map(async ({ caseId, comments }) => {
+        await caseRepository.updateById(caseId, {
+          $set: {
+            dailyPlan: {
+              comments,
+              updatedAt: new Date(),
+            },
+          },
+        });
+      }),
+    );
   };
 
   async exportPatientCase(caseId: string): Promise<ICase> {
