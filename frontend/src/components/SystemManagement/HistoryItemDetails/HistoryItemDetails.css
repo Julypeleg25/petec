@@ -1,0 +1,39 @@
+.HistoryItemDetails {
+  width: 95%;
+  margin: 0.8em auto;
+  height: 100%;
+}
+
+.history-form-container {
+  width: 90%;
+  margin: 1em auto;
+  max-width: 500px;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 1em;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+  box-sizing: border-box;
+}
+
+.history-form {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+}
+
+.history-form-container .form-input-container,
+.history-form-container .form-select {
+  margin: 0;
+}
+
+.history-form-title {
+  font-size: 1.5rem;
+  text-decoration: underline;
+  color: var(--color-main);
+  margin-bottom: 0;
+}
