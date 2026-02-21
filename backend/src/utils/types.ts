@@ -1,16 +1,12 @@
-import type { IBaseLookup, ILookupWithAnimalType, IMedicine } from "@models/Lookups";
-import type { ZodSchema } from "zod";
+import type { IBaseLookup, ILookupWithAnimalType, IMedicine } from "@models/Lookups.types";
 
-export type MongoFilter = Record<string, unknown>;
+type MongoFilterPrimitive = string | number | boolean | null | Date;
+export interface MongoFilter {
+  [key: string]: MongoFilterPrimitive | MongoFilter | readonly MongoFilterPrimitive[] | readonly MongoFilter[];
+}
 
 export type BaseLookup = IBaseLookup | ILookupWithAnimalType | IMedicine;
 
 export type SortDirection = 1 | -1;
 
 export type SortRecord = Record<string, SortDirection>;
-
-export interface ValidateSchemas {
-    body?: ZodSchema;
-    query?: ZodSchema;
-    params?: ZodSchema;
-}
