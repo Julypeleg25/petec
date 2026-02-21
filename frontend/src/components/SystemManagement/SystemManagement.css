@@ -1,0 +1,89 @@
+.systemManagement {
+  height: 100%;
+}
+
+.system-management-main {
+  height: 85%;
+}
+
+.system-management-navbar {
+  justify-content: flex-end;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  padding-top: 1em;
+  width: 100%;
+}
+
+.system-management-navbar button {
+  margin-right: 1em;
+}
+
+.system-management-users-table {
+  width: 95%;
+  margin: 1.5em auto;
+  height: 100%;
+}
+
+.system-management-system-types-table,
+.system-management-history-table {
+  width: 95%;
+  margin: 1.5em auto;
+  height: 95%;
+}
+
+.system-management-system-types-table .form-select {
+  margin-right: 0.5em;
+  margin-top: 0;
+  margin-bottom: 1em;
+  justify-content: flex-end;
+}
+
+.save-entity-form-container {
+  width: 90%;
+  margin: 1em auto;
+  max-width: 500px;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 1em;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+  box-sizing: border-box;
+}
+
+.save-entity-form {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+}
+
+.save-entity-form .form-input-container,
+.save-entity-form .form-select {
+  margin: 1em;
+}
+
+.save-entity-form-title {
+  font-size: 1.5rem;
+  text-decoration: underline;
+  color: var(--color-main);
+  margin-bottom: 0;
+}
+
+.save-entity-form-btn {
+  margin: 1.5em auto;
+}
+
+
+.system-management-main .back-btn {
+  float: right;
+  margin: 1em;
+}
+
+.save-system-type-form {
+  width: 95%;
+  margin: 0.8em auto;
+  height: 100%;
+}

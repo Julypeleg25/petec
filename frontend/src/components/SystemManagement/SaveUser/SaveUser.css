@@ -1,0 +1,10 @@
+.SaveUser {
+  width: 95%;
+  margin: 0.8em auto;
+  height: 100%;
+}
+
+.save-user-form-container .form-input-container,
+.save-user-form-container .form-select {
+  margin: 0;
+}
