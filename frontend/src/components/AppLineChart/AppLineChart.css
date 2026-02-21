@@ -1,0 +1,28 @@
+.AppLineChart {
+  text-align: center;
+  min-width: 500px;
+}
+
+.app-line-chart-label {
+  font-size: 1.2rem;
+  color: var(--color-main);
+  font-weight: 500;
+}
+
+.app-line-chart {
+  margin-bottom: 1em;
+  height: 90%;
+}
+
+.app-line-chart-empty {
+  border: 2px dashed var(--color-main);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+  height: 85%;
+  margin: 0.5em auto;
+  font-size: 1.3rem;
+  color: var(--color-main);
+}

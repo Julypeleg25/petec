@@ -1,0 +1,46 @@
+.save-anesthesia-procedure-form-container {
+  overflow-y: scroll;
+  height: 80%;
+}
+
+.anesthesia-procedure-form-text {
+  direction: rtl;
+  text-align: right;
+  font-size: 1.2rem;
+}
+
+.save-anesthesia-procedure-form .form-input-container {
+  margin: 0;
+}
+
+.save-anesthesia-procedure-form .form-checkbox-container {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.save-anesthesia-procedure-form .form-checkbox-container input {
+  margin-right: 1em;
+}
+
+.anesthesia-procedure-form-price-details {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 1em;
+}
+
+.anesthesia-procedure-signature-label {
+  text-align: right;
+  width: 90%;
+  margin: 0.5em auto;
+  font-size: 1.1rem;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: space-between;
+}
+
+.anesthesia-procedure-signature {
+  border: 3px solid var(--color-main);
+  border-radius: 10px;
+}

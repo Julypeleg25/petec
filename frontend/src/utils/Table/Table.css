@@ -1,0 +1,119 @@
+.mtc-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  border: 0.5px solid rgb(231, 231, 231);
+  padding: 0.2em 0;
+  width: 100%;
+}
+
+.mtc-table-cell span {
+  padding-right: 0.4em;
+}
+
+.mtc-table-header {
+  font-size: 0.9rem;
+  padding: 0.2em 0;
+  color: #5e5e5e;
+  border: 0.5px solid rgb(231, 231, 231);
+  background-color: rgb(243, 243, 243);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  position: relative;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+}
+
+.mtc-table-header:first-child {
+  border-radius: 0 5px 0 0;
+}
+
+.mtc-table-header:last-child {
+  border-radius: 5px 0 0 0;
+}
+
+.mtc-table-header .table-resizer {
+  z-index: 3;
+  margin-left: 0;
+  left: -10px;
+}
+
+.mtc-table-body-table-row {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+}
+
+.mtc-table-body-table-row:hover {
+  background-color: rgb(243, 243, 243);
+  cursor: pointer;
+}
+
+.mtc-table-section-container {
+  height: 100%;
+  position: relative;
+}
+
+.mtc-table-section-container .sl-spinner3 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.mtc-no-data-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  justify-content: center;
+}
+
+.mtc-table {
+  height: 100%;
+  display: grid;
+  width: 100%;
+  overflow-x: scroll;
+  direction: rtl;
+  grid-template-rows: max-content;
+  border-radius: 5px 5px 0 0;
+}
+
+.mtc-table thead {
+  display: block;
+}
+
+.mtc-table thead tr {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+}
+
+.mtc-table thead tr th {
+  flex-grow: 1;
+}
+
+.mtc-table tbody {
+  display: block;
+  overflow-y: scroll;
+  scrollbar-width: none;
+}
+
+.mtc-table-body-table-row:last-child td:last-child {
+  border-radius: 0 0 5px 0;
+}
+
+.mtc-table-body-table-row:last-child td:first-child {
+  border-radius: 0 0 0 5px;
+}
+
+.table-btn-container {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: row-reverse;
+}

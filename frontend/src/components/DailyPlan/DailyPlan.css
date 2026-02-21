@@ -1,0 +1,140 @@
+.DailyPlan {
+  width: 90%;
+  height: 95%;
+  margin: 0.5em auto;
+  font-size: 1.1rem;
+  padding: 0.5em 1em;
+}
+
+.daily-plan-table {
+  width: 100%;
+  height: 97%;
+  overflow: scroll;
+  position: relative;
+  padding: 0 0.5em;
+  direction: rtl;
+}
+
+.daily-plan-table-header {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  border: 3px solid var(--color-main);
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  background-color: var(--color-white);
+  min-width: fit-content;
+  box-sizing: border-box;
+}
+
+.daily-plan-table-body {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--color-main);
+  border-top: none;
+  border-bottom: none;
+  min-width: fit-content;
+  box-sizing: border-box;
+}
+
+.daily-plan-table-header-cell,
+.daily-plan-table-body-cell {
+  border-right: 3px solid var(--color-main);
+  flex: 1;
+  min-width: 160px;
+  text-align: center;
+  font-weight: 1.1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em 0.1em;
+  box-sizing: border-box;
+}
+
+.daily-plan-table-body-cell {
+  font-weight: 400;
+  flex-direction: column;
+  word-break: word-break;
+  justify-content: flex-start;
+}
+
+.daily-plan-table-header-cell-large,
+.daily-plan-table-body-cell-large {
+  flex-grow: 1.5;
+}
+
+.daily-plan-table-header > .daily-plan-table-header-cell:first-child {
+  border-right: none;
+}
+
+.daily-plan-table-body-row {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 3px solid var(--color-main);
+  height: fit-content;
+  box-sizing: border-box;
+}
+
+.daily-plan-table-body-row > .daily-plan-table-body-cell:first-child {
+  border-right: none;
+}
+
+.daily-plan-table-body-cell-examinations,
+.daily-plan-table-body-cell-owner-update,
+.daily-plan-table-body-cell-medicines {
+  width: 95%;
+  margin: 0.1em auto;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  align-items: flex-start;
+}
+
+.daily-plan-table-body-cell-medicines > span:first-child {
+  padding-right: 0.6em;
+}
+
+.daily-plan-table-body-cell-examinations > span:last-child,
+.daily-plan-table-body-cell-owner-update > span:last-child {
+  font-size: 0.9rem;
+  padding-right: 1.1em;
+}
+
+.daily-plan-table-body-cell-examinations > span:nth-child(2) {
+  font-size: 1rem;
+  padding-right: 1em;
+}
+
+.daily-plan-table-body-cell-medicines > span:last-child {
+  padding-right: 1em;
+}
+
+.daily-plan-table-body-cell-examinations > span b,
+.daily-plan-table-body-cell-medicines > span b,
+.daily-plan-table-body-cell-owner-update > span b {
+  font-weight: 500;
+}
+
+.daily-plan-table-body-cell-number {
+  display: flex;
+  gap: 0.2em;
+  word-break: break-all;
+}
+
+.daily-plan-table-body-cell-number .form-checkbox-container {
+  width: fit-content;
+  margin: 0;
+  margin-right: 0.2em;
+}
+
+.save-daily-plan-btn {
+  float: right;
+  width: fit-content;
+  margin-bottom: 0.7em;
+}

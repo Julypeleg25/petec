@@ -1,0 +1,70 @@
+.SelectOptionsPicker {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  flex-direction: column;
+}
+
+.add-option-btn,
+.delete-option-btn,
+.confirm-option-btn {
+  width: 40px;
+  border: none;
+  background-color: var(--btn-background-color);
+  cursor: pointer;
+  padding: 0.3em;
+  border-radius: 5px;
+  color: var(--btn-color-text);
+  font-weight: 600;
+  font-size: 1rem;
+  border: 3px solid var(--btn-background-color);
+  margin: 0 0.25em;
+  height: 40px;
+}
+
+.option-picker-selected-options {
+  direction: rtl;
+  width: 80%;
+  margin: 1em 0.3em auto;
+  text-align: left;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+  padding: 1em;
+}
+
+.option-picker-selected-options-cell {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: row-reverse;
+  font-size: 1.4em;
+  align-items: center;
+  margin-top: 0.6em;
+}
+
+.option-picker-selected-options-cell button {
+  margin-right: 1.5em;
+}
+
+.options-inputs-container {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: space-evenly;
+  align-items: center;
+  margin-bottom: 0.5em;
+  margin-right: 0.7em;
+  min-width: 300px;
+  padding-top: 1.5em;
+}
+
+.options-inputs-container > div {
+  width: 70%;
+}
+
+.confirm-option-btn {
+  width: 70px;
+  margin-top: 0.5em;
+}
