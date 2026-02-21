@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdSchema } from "../utils/index";
+import { objectIdSchema } from "../utils";
 
 export const CreateAnesthesiaProcedureFormDTOSchema = z.object({
     caseId: objectIdSchema,
