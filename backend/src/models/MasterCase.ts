@@ -1,14 +1,5 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IMasterCase {
-    _id: Types.ObjectId;
-    patientId?: Types.ObjectId;
-    caseIds: Types.ObjectId[];
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export type MasterCaseDocument = HydratedDocument<IMasterCase>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { IMasterCase } from "./MasterCase.types";
 
 const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
     {
@@ -30,3 +21,5 @@ const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
 );
 
 export const MasterCaseModel = mongoose.model<IMasterCase>("MasterCase", masterCaseSchema);
+
+export type { IMasterCase, MasterCaseDocument } from "./MasterCase.types";

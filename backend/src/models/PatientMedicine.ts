@@ -1,23 +1,5 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IPatientMedicine {
-    _id: Types.ObjectId;
-    patientId: Types.ObjectId;
-    caseId?: Types.ObjectId;
-    medicineId: Types.ObjectId;
-    dosageFrequencyId?: Types.ObjectId;
-    routeOfAdministrationId?: Types.ObjectId;
-    measureUnitTypeId?: Types.ObjectId;
-    doseAmount?: number | string;
-    notes?: string;
-    startDate?: Date;
-    endDate?: Date;
-    isActive?: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export type PatientMedicineDocument = HydratedDocument<IPatientMedicine>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { IPatientMedicine } from "./PatientMedicine.types";
 
 const patientMedicineSchema = new Schema<IPatientMedicine, Model<IPatientMedicine>>(
     {
@@ -58,3 +40,5 @@ export const PatientMedicineModel = mongoose.model<IPatientMedicine>(
     "PatientMedicine",
     patientMedicineSchema,
 );
+
+export type { IPatientMedicine, PatientMedicineDocument } from "./PatientMedicine.types";

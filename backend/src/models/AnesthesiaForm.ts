@@ -1,30 +1,5 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IAnesthesiaForm {
-    _id: Types.ObjectId;
-    caseId: Types.ObjectId;
-    ownerName?: string;
-    name?: string;
-    date?: Date;
-    signature?: string;
-    plannedProcedure?: string;
-    priceEstimate?: string | number;
-    isFastSinceMidnight?: boolean;
-    isDistortionHistory?: boolean;
-    isMedicationsSensitive?: boolean;
-    isNeedToMarkEar?: boolean;
-    isSterilization?: boolean;
-    isPriceIncludesReleaseMedications?: boolean;
-    generalComments?: string;
-    distortionComments?: string;
-    medicationsSensitiveComments?: string;
-    createdByUserId?: Types.ObjectId;
-    updatedByUserId?: Types.ObjectId;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export type AnesthesiaFormDocument = HydratedDocument<IAnesthesiaForm>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { IAnesthesiaForm } from "./AnesthesiaForm.types";
 
 const anesthesiaFormSchema = new Schema<IAnesthesiaForm, Model<IAnesthesiaForm>>(
     {
@@ -63,3 +38,5 @@ export const AnesthesiaFormModel = mongoose.model<IAnesthesiaForm>(
     "AnesthesiaForm",
     anesthesiaFormSchema,
 );
+
+export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm.types";
