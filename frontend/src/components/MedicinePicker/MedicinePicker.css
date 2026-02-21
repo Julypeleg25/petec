@@ -1,0 +1,103 @@
+.MedicinePicker {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  flex-direction: column;
+  min-width: 420px;
+}
+
+.add-medicine-btn,
+.delete-medicine-btn,
+.edit-medicine-btn,
+.confirm-medicine-btn {
+  width: 40px;
+  border: none;
+  background-color: var(--btn-background-color);
+  cursor: pointer;
+  padding: 0.3em;
+  border-radius: 5px;
+  color: var(--btn-color-text);
+  font-weight: 600;
+  font-size: 1rem;
+  border: 3px solid var(--btn-background-color);
+  margin: 0 0.25em;
+  height: 40px;
+}
+
+.edit-medicine-btn {
+  margin-right: 0.2em !important;
+}
+
+.case-details-medicine-pop-up-btn:hover {
+  color: var(--btn-background-color);
+  background-color: var(--btn-color-text);
+  border: 3px solid var(--btn-background-color);
+}
+
+.medicine-inputs-container {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: space-evenly;
+  align-items: center;
+  margin-bottom: 0.5em;
+  margin-right: 0.7em;
+  flex-direction: row-reverse;
+}
+
+.medicine-inputs-container > div {
+  width: 35%;
+  align-self: flex-start;
+}
+
+.medicine-inputs-container > div > .form-textarea-container {
+  width: 100%;
+  direction: ltr;
+}
+
+.medicine-picker-selected-medicines {
+  direction: rtl;
+  width: 90%;
+  margin: 1em 0.3em auto;
+  text-align: left;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+  padding: 1em;
+  overflow-y: scroll;
+  max-height: 300px;
+}
+
+.medicine-picker-selected-medicines-cell {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: row-reverse;
+  font-size: 1.4em;
+  align-items: center;
+  margin-top: 0.6em;
+}
+
+.medicine-picker-selected-medicines-cell button {
+  margin-right: 1em;
+}
+
+.confirm-medicine-btn {
+  width: 70px;
+  margin-top: 0.5em;
+}
+
+.amount-not-recommended {
+  background-color: var(--color-alerts);
+  color: var(--color-white);
+}
+
+.selected-medicine-name {
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.table-selected-medicine-name {
+  font-weight: 700;
+}
