@@ -1,0 +1,334 @@
+.SavePatient {
+  width: 100%;
+  height: 95%;
+  margin: 1em 0;
+}
+
+.new-patient-form-container,
+.edit-patient-form-container {
+  height: 95%;
+  width: 90%;
+  margin: 1em auto;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 1em;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+}
+
+.new-patient-form-container {
+  max-width: 1200px;
+}
+
+.edit-patient-form-container {
+  margin: 0 auto;
+  padding: 0 1em;
+  height: 100%;
+  overflow-y: scroll;
+  width: 95%;
+}
+
+.new-patient-form-title {
+  font-size: 1.5rem;
+  text-decoration: underline;
+  color: var(--color-main);
+  margin-bottom: 1em;
+  align-self: flex-end;
+  margin-right: 1.5em;
+}
+
+.new-patient-form-btn {
+  margin: 1em auto 0 !important;
+}
+
+.new-patient-form {
+  overflow-y: scroll;
+}
+
+.new-patient-form,
+.edit-patient-form {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.new-patient-form .form-select,
+.edit-patient-form .form-select {
+  margin: 0;
+}
+
+.new-patient-form-data-section {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap; /* Safari */
+  width: 100%;
+}
+
+.new-patient-form-image-section {
+  width: 30%;
+  margin-right: 1em;
+  min-width: 300px;
+  margin-bottom: 1em;
+}
+
+.edit-patient-form-image-section {
+  width: 15%;
+  margin-right: 1em;
+  min-width: 300px;
+  margin-bottom: 1em;
+}
+
+.new-patient-form-info-section,
+.edit-patient-form-info-section {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  width: 65%;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap; /* Safari */
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+}
+
+.edit-patient-form-info-section {
+  width: 80%;
+  justify-content: flex-start;
+  column-gap: 1em;
+}
+
+.new-patient-form-info-section > .form-input-container,
+.new-patient-form-info-section > .form-select,
+.new-patient-form-info-section > .form-textarea-container,
+.new-patient-form-info-section > .form-checkbox-container {
+  width: 45%;
+}
+
+.edit-patient-form-info-section > .form-input-container,
+.edit-patient-form-info-section > .form-select,
+.edit-patient-form-info-section > .form-textarea-container,
+.edit-patient-form-info-section > .form-checkbox-container {
+  width: 15%;
+  min-width: 150px;
+}
+
+.edit-patient-form-checkboxes,
+.new-patient-form-checkboxes {
+  width: 100%;
+  min-width: 150px;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  gap: 0.5em;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap; /* Safari */
+}
+
+.edit-patient-form-checkboxes .form-checkbox-container,
+.new-patient-form-checkboxes .form-checkbox-container {
+  width: auto;
+}
+
+.edit-patient-btns-container {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  flex-direction: row-reverse;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.edit-patient-btns-container button {
+  margin: 0.8em 0.8em 0.8em 0;
+  max-width: 100px;
+}
+
+.release-info-btn {
+  max-width: 130px !important;
+}
+
+.delete-patient-btn {
+  width: 50px !important;
+  margin-right: auto !important;
+}
+
+.export-case-details-btn,
+.release-info-btn,
+.patient-documents-case-details-btn,
+.patient-charts-case-details-btn {
+  min-width: 130px;
+}
+
+.patient-archive-case-details-btn {
+  min-width: 140px;
+}
+
+.case-daily-details-date-picker {
+  width: 100%;
+}
+
+.case-daily-details-date-picker .form-select {
+  float: right;
+  flex-direction: row-reverse;
+}
+
+.case-daily-details-date-picker .form-select label {
+  margin-right: 0;
+  margin-left: 0.5em;
+}
+
+.paint-button {
+  width: 170px;
+}
+
+.add-new-case-daily-details-btn {
+  width: 40px;
+}
+
+.above-daily-details-table-section {
+  width: 100%;
+  margin-top: 1em;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap-reverse;
+}
+
+.above-daily-details-table-section > div {
+  margin-right: 1.5em;
+}
+
+.daily-details-table-fields-info {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4em;
+  border: 3px solid var(--color-main);
+  padding: 0.5em 1em;
+  border-radius: 20px;
+  align-self: flex-start;
+  margin-bottom: 0.4em;
+}
+
+.daily-details-table-fields-info > div {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  gap: 1em;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+.daily-details-table-fields-info-field {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: flex-end;
+}
+
+.daily-details-table-fields-info-field label {
+  margin-left: 0.2em;
+  font-weight: 500;
+}
+
+.daily-details-btns-container {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+}
+
+.daily-details-btns {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  margin-top: 1em;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  -webkit-flex-wrap: wrap; /* Safari */
+  align-items: center;
+  gap: 1em;
+}
+
+.daily-details-save-btn {
+  width: 80px;
+}
+
+.archive-confirmation-modal {
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2em;
+}
+
+.child-cases-container {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: flex-end;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.child-cases-container .child-case:last-child {
+  margin-right: 1.5em;
+}
+
+.child-case {
+  width: 70px;
+  height: 80px;
+  border-radius: 10px;
+  border: 2px solid var(--color-light-grey);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.3em;
+}
+
+.child-case-disabled:hover {
+  cursor: not-allowed !important;
+  border: 2px solid var(--color-light-grey) !important;
+}
+
+.child-case:hover {
+  cursor: pointer;
+  border: 2px solid var(--color-main);
+}
+
+.child-case-img {
+  width: 70px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 7px 7px 0 0;
+}
+
+.patient-age-inputs {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 2%;
+}
+
+@media screen and (max-width: 1700px) {
+  .edit-patient-form-info-section > .form-input-container,
+  .edit-patient-form-info-section > .form-select,
+  .edit-patient-form-info-section > .form-textarea-container,
+  .edit-patient-form-info-section > .form-checkbox-container {
+    width: 45%;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .edit-patient-form-info-section > .form-input-container,
+  .edit-patient-form-info-section > .form-select,
+  .edit-patient-form-info-section > .form-textarea-container,
+  .edit-patient-form-info-section > .form-checkbox-container {
+    width: 100%;
+  }
+}
