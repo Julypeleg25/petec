@@ -1,0 +1,45 @@
+.form-select {
+  width: 80%;
+  margin: 0 auto;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.5em;
+  text-align: right;
+}
+
+.form-select-icon {
+  margin-right: 0.5em;
+}
+
+.form-select > select {
+  outline: none;
+  border-radius: 20px;
+  border: 3px solid var(--input-border-color);
+  padding: 0.4em 2em;
+  width: 100%;
+  font-size: 1.1rem;
+  text-align: right;
+  -webkit-appearance: none;
+  appearance: none;
+  -moz-appearance: none;
+  background-image: url("https://www.svgrepo.com/show/80156/down-arrow.svg");
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+  background-position: calc(100% - 14px);
+  padding-left: 0.1em;
+}
+
+.form-select-label {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+  font-size: 1.1rem;
+  align-self: flex-end;
+}
+
+option {
+  direction: rtl;
+}

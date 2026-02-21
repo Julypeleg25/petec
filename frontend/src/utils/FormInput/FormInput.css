@@ -1,0 +1,54 @@
+.form-input-container {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: 80%;
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: right;
+}
+
+.form-input-label {
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+  font-size: 1.1rem;
+}
+
+.form-input-icon {
+  margin-left: 0.5em;
+}
+
+.form-input > input {
+  text-align: right;
+  outline: none;
+  border: none;
+  width: 100%;
+  border: 3px solid var(--input-border-color);
+  font-size: 1rem;
+  padding: 0.5em 0.7em;
+  border-radius: 20px;
+}
+
+.form-input-link {
+  position: absolute;
+  left: 0;
+  width: 35px;
+}
+
+.show-password-icon {
+  position: absolute;
+  left: 0;
+  margin-left: 1em;
+  cursor: pointer;
+}

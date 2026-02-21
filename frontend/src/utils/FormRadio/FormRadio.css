@@ -1,0 +1,23 @@
+.form-radio-container {
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: 80%;
+}
+
+.form-radio {
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+  font-size: 1.1rem;
+}
+
+.form-radio input[type="radio"] {
+  margin-left: 0.3em;
+}
+
+.form-radio label {
+  margin-left: 0.5em;
+  font-size: 1.1rem;
+}

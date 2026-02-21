@@ -1,0 +1,17 @@
+.form-checkbox-container {
+  width: 80%;
+  text-align: right;
+  display: flex;
+  display: -webkit-flex; /* Safari */
+  justify-content: flex-end;
+  margin-top: 0.8em;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+  font-size: 1.1rem;
+}
+
+.form-checkbox-container input {
+  width: 20px;
+  height: 20px;
+  margin-left: 0.8em;
+}
