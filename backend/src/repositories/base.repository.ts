@@ -1,6 +1,4 @@
-import { Model, UpdateQuery, QueryOptions, HydratedDocument, Types } from "mongoose";
-
-type Filter<T> = Record<string, unknown> & Partial<T>;
+import { Model, UpdateQuery, QueryOptions, HydratedDocument, Types, QueryFilter } from "mongoose";
 
 export class BaseRepository<T> {
     protected readonly model: Model<T>;
@@ -9,20 +7,20 @@ export class BaseRepository<T> {
         this.model = model;
     }
 
-    async create(data: Partial<T> | Record<string, unknown>): Promise<HydratedDocument<T>> {
-        return this.model.create(data as Partial<T>);
+    async create(data: Partial<T>): Promise<HydratedDocument<T>> {
+        return this.model.create(data);
     }
 
     async findById(id: string | Types.ObjectId): Promise<HydratedDocument<T> | null> {
         return this.model.findById(id).exec();
     }
 
-    async findOne(filter: Filter<T>): Promise<HydratedDocument<T> | null> {
+    async findOne(filter: QueryFilter<T>): Promise<HydratedDocument<T> | null> {
         return this.model.findOne(filter).exec();
     }
 
     async findMany(
-        filter: Filter<T> | Record<string, unknown> = {},
+        filter: QueryFilter<T> = {} as QueryFilter<T>,
         options: {
             sort?: Record<string, 1 | -1>;
             skip?: number;
@@ -47,20 +45,20 @@ export class BaseRepository<T> {
         return query.exec();
     }
 
-    async countDocuments(filter: Filter<T> | Record<string, unknown> = {}): Promise<number> {
+    async countDocuments(filter: QueryFilter<T> = {} as QueryFilter<T>): Promise<number> {
         return this.model.countDocuments(filter).exec();
     }
 
     async updateById(
         id: string | Types.ObjectId,
-        update: UpdateQuery<T> | Record<string, unknown>,
+        update: UpdateQuery<T>,
         options?: QueryOptions<T>,
     ): Promise<HydratedDocument<T> | null> {
         return this.model.findByIdAndUpdate(id, update, { new: true, ...options }).exec();
     }
 
     async updateOne(
-        filter: Filter<T>,
+        filter: QueryFilter<T>,
         update: UpdateQuery<T>,
         options?: QueryOptions<T>,
     ): Promise<HydratedDocument<T> | null> {
@@ -71,12 +69,12 @@ export class BaseRepository<T> {
         return this.model.findByIdAndDelete(id).exec();
     }
 
-    async deleteMany(filter: Filter<T> | Record<string, unknown>): Promise<number> {
+    async deleteMany(filter: QueryFilter<T>): Promise<number> {
         const result = await this.model.deleteMany(filter).exec();
         return result.deletedCount ?? 0;
     }
 
-    async exists(filter: Filter<T>): Promise<boolean> {
+    async exists(filter: QueryFilter<T>): Promise<boolean> {
         const doc = await this.model.exists(filter).exec();
         return doc !== null;
     }

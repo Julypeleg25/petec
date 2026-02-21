@@ -13,6 +13,14 @@ export class UserRepository extends BaseRepository<IUser> {
     return this.model.findOne({ email: email.toLowerCase() }).exec();
   }
 
+  async findByUsername(username: string): Promise<UserDocument | null> {
+    return this.model.findOne({ username }).exec();
+  }
+
+  async findByUsernameWithPassword(username: string): Promise<UserDocument | null> {
+    return this.model.findOne({ username }).select("+passwordHash").exec();
+  }
+
   async findByEmailWithPassword(email: string): Promise<UserDocument | null> {
     return this.model.findOne({ email: email.toLowerCase() }).select("+passwordHash").exec();
   }
