@@ -2,14 +2,14 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import rateLimit from "express-rate-limit";
 
 import { ENV } from "@config/config";
-import { ROUTES, RATE_LIMIT, JSON_BODY_LIMIT, HttpStatus } from "@petec/shared";
+import { ROUTES, JSON_BODY_LIMIT, HealthResponseDTOSchema } from "@petec/shared";
 import { requestId } from "@middlewares/requestId";
 import { requestLogger } from "@middlewares/requestLogger";
 import { errorHandler } from "@middlewares/errorsHandler";
 import { notFound } from "@middlewares/notFound.middleware";
+import { sendSuccess } from "@utils/apiResponse";
 
 import authRoutes from "@routes/auth.routes";
 import patientRoutes from "@routes/patient.routes";
@@ -25,13 +25,6 @@ app.use(requestLogger);
 
 app.use(helmet());
 
-const authLimiter = rateLimit({
-  windowMs: RATE_LIMIT.AUTH_WINDOW_MS,
-  max: RATE_LIMIT.AUTH_MAX_REQUESTS,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 app.use(cors({
   origin: ENV.frontendUrl,
   credentials: true,
@@ -44,10 +37,10 @@ app.use(express.json({ limit: JSON_BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true }));
 
 app.get(ROUTES.HEALTH, (_req, res) => {
-  res.status(HttpStatus.OK).json({ success: true, data: { status: "healthy" } });
+  sendSuccess(res, { status: "healthy" }, HealthResponseDTOSchema);
 });
 
-app.use(ROUTES.AUTH, authLimiter, authRoutes);
+app.use(ROUTES.AUTH, authRoutes);
 app.use(ROUTES.PATIENT, patientRoutes);
 app.use(ROUTES.ADMIN, adminRoutes);
 app.use(ROUTES.TABLE, tableRoutes);
