@@ -1,14 +1,12 @@
-import mongoose, { Schema, Types, HydratedDocument, Model } from "mongoose";
-
-export interface IBaseLookup {
-  _id: Types.ObjectId;
-  name: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type BaseLookupDocument = HydratedDocument<IBaseLookup>;
+import mongoose, { Schema, Model } from "mongoose";
+import type { SystemTypeName } from "@petec/shared";
+import type {
+  IAnimalVitals,
+  IBaseLookup,
+  ILookupWithAnimalType,
+  IMedicine,
+  IMedicineCategory,
+} from "./Lookups.types";
 
 const createLookupSchema = (): Schema<IBaseLookup> =>
   new Schema<IBaseLookup>(
@@ -18,12 +16,6 @@ const createLookupSchema = (): Schema<IBaseLookup> =>
     },
     { timestamps: true, versionKey: false },
   );
-
-export interface ILookupWithAnimalType extends IBaseLookup {
-  animalTypeId: Types.ObjectId;
-}
-
-export type LookupWithAnimalTypeDocument = HydratedDocument<ILookupWithAnimalType>;
 
 const createLookupWithAnimalTypeSchema = (): Schema<ILookupWithAnimalType> =>
   new Schema<ILookupWithAnimalType>(
@@ -39,19 +31,6 @@ const createLookupWithAnimalTypeSchema = (): Schema<ILookupWithAnimalType> =>
     },
     { timestamps: true, versionKey: false },
   );
-
-export interface IMedicine extends IBaseLookup {
-  categoryId?: Types.ObjectId;
-  measureUnitId?: Types.ObjectId;
-  dosageFrequencyId?: Types.ObjectId;
-  routeOfAdministrationId?: Types.ObjectId;
-  rangeMin?: number;
-  rangeMax?: number;
-  totalDose?: number;
-  comments?: string;
-}
-
-export type MedicineDocument = HydratedDocument<IMedicine>;
 
 const medicineSchema = new Schema<IMedicine>(
   {
@@ -69,13 +48,28 @@ const medicineSchema = new Schema<IMedicine>(
   { timestamps: true, versionKey: false },
 );
 
-export interface IMedicineCategory extends IBaseLookup { }
-export type MedicineCategoryDocument = HydratedDocument<IMedicineCategory>;
-
 export const AnimalTypeModel = mongoose.model<IBaseLookup>("AnimalType", createLookupSchema());
 export const RaceTypeModel = mongoose.model<ILookupWithAnimalType>("RaceType", createLookupWithAnimalTypeSchema());
 export const AnimalColorModel = mongoose.model<IBaseLookup>("AnimalColor", createLookupSchema());
-export const AnimalVitalsModel = mongoose.model<ILookupWithAnimalType>("AnimalVitals", createLookupWithAnimalTypeSchema());
+
+const animalVitalsSchema = new Schema<IAnimalVitals>(
+  {
+    name: { type: String, required: true, trim: true },
+    isActive: { type: Boolean, default: true, index: true },
+    animalTypeId: {
+      type: Schema.Types.ObjectId,
+      ref: "AnimalType",
+      required: true,
+      index: true,
+    },
+    minValue: { type: Number },
+    maxValue: { type: Number },
+    unit: { type: String, trim: true },
+  },
+  { timestamps: true, versionKey: false },
+);
+
+export const AnimalVitalsModel = mongoose.model<IAnimalVitals>("AnimalVitals", animalVitalsSchema);
 export const GenderTypeModel = mongoose.model<IBaseLookup>("GenderType", createLookupSchema());
 export const InsuranceTypeModel = mongoose.model<IBaseLookup>("InsuranceType", createLookupSchema());
 export const FoodTypeModel = mongoose.model<IBaseLookup>("FoodType", createLookupSchema());
@@ -90,8 +84,6 @@ export const MedicineModel = mongoose.model<IMedicine>("Medicine", medicineSchem
 export const MedicineCategoryModel = mongoose.model<IMedicineCategory>("MedicineCategory", createLookupSchema());
 export const RouteOfAdministrationModel = mongoose.model<IBaseLookup>("RouteOfAdministration", createLookupSchema());
 export const PatientDocumentTypeModel = mongoose.model<IBaseLookup>("PatientDocumentType", createLookupSchema());
-
-import type { SystemTypeName } from "@petec/shared";
 
 export const SYSTEM_TYPE_MODEL_MAP: Record<SystemTypeName, Model<IBaseLookup | ILookupWithAnimalType | IMedicine>> = {
   animal_types: AnimalTypeModel,
@@ -113,3 +105,16 @@ export const SYSTEM_TYPE_MODEL_MAP: Record<SystemTypeName, Model<IBaseLookup | I
   routes_of_administration: RouteOfAdministrationModel,
   patient_document_types: PatientDocumentTypeModel,
 };
+
+export type {
+  IAnimalVitals,
+  IBaseLookup,
+  ILookupWithAnimalType,
+  IMedicine,
+  IMedicineCategory,
+  AnimalVitalsDocument,
+  BaseLookupDocument,
+  LookupWithAnimalTypeDocument,
+  MedicineDocument,
+  MedicineCategoryDocument,
+} from "./Lookups.types";

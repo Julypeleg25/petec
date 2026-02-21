@@ -1,8 +1,8 @@
 export { UserModel } from "./User";
-export type { IUser, IRefreshToken, UserDocument } from "./User";
+export type { IUser, IRefreshToken, UserDocument } from "./User.types";
 
 export { PatientModel } from "./Patient";
-export type { IPatient, IPatientOwner, PatientDocument } from "./Patient";
+export type { IPatient, IPatientOwner, PatientDocument } from "./Patient.types";
 
 export { CaseModel } from "./Case";
 export type {
@@ -18,19 +18,19 @@ export type {
 } from "./Case";
 
 export { MasterCaseModel } from "./MasterCase";
-export type { IMasterCase, MasterCaseDocument } from "./MasterCase";
+export type { IMasterCase, MasterCaseDocument } from "./MasterCase.types";
 
 export { AnesthesiaFormModel } from "./AnesthesiaForm";
-export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm";
+export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm.types";
 
 export { PatientDocumentModel } from "./PatientDocument";
-export type { IPatientDocument, PatientDocumentDocument } from "./PatientDocument";
+export type { IPatientDocument, PatientDocumentDocument } from "./PatientDocument.types";
 
 export { PatientMedicineModel } from "./PatientMedicine";
-export type { IPatientMedicine, PatientMedicineDocument } from "./PatientMedicine";
+export type { IPatientMedicine, PatientMedicineDocument } from "./PatientMedicine.types";
 
 export { AuditLogModel } from "./AuditLog";
-export type { IAuditLog, AuditLogDocument } from "./AuditLog";
+export type { IAuditLog, AuditLogDocument } from "./AuditLog.types";
 
 export {
     AnimalTypeModel,
@@ -62,4 +62,4 @@ export type {
     LookupWithAnimalTypeDocument,
     MedicineDocument,
     MedicineCategoryDocument,
-} from "./Lookups";
+} from "./Lookups.types";
