@@ -1,7 +1,7 @@
 import { Model, HydratedDocument, Types } from "mongoose";
 
 import { SYSTEM_TYPE_MODEL_MAP } from "@models/Lookups";
-import type { SystemTypeName } from "@petec/shared";
+import { SORT_DIRECTIONS, SortOrders, type SortOrder, type SystemTypeName } from "@petec/shared";
 import type { BaseLookup, MongoFilter } from "@utils/types";
 
 export class SystemTypesRepository {
@@ -67,21 +67,19 @@ export class SystemTypesRepository {
         page: number,
         limit: number,
         sortBy: string,
-        sortOrder: "asc" | "desc",
+        sortOrder: SortOrder,
     ): Promise<BaseLookup[]> {
         const model = this.getModel(typeName);
         const skip = (page - 1) * limit;
-        const sortDirection = sortOrder === "asc" ? 1 : -1;
+        const sortDirection = sortOrder === SortOrders.ASC ? SORT_DIRECTIONS.ASC : SORT_DIRECTIONS.DESC;
 
-        const docs = await model
+        return model
             .find(filter)
             .sort({ [sortBy]: sortDirection })
             .skip(skip)
             .limit(limit)
-            .lean()
+            .lean<BaseLookup[]>()
             .exec();
-
-        return docs as unknown as BaseLookup[];
     };
 }
 
