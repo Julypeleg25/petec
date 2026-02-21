@@ -1,50 +1,36 @@
-import { Request, Response, NextFunction } from "express";
-import { AppError, HttpStatus } from "@petec/shared";
-import { ZodError } from "zod";
+import type { ErrorRequestHandler } from "express";
+import { AppError, ErrorCode, HttpStatus, ValidationError } from "@petec/shared";
 import { sendError } from "@utils/apiResponse";
 import { logger } from "@utils/logger";
+import { maskSensitiveData } from "@utils/sanitizer";
+import { ENV } from "@config/config";
 
-export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-): void => {
-  if (err instanceof AppError) {
-    sendError(res, err.statusCode, err.message, err.details);
-    return;
-  }
+const isAppError = (value: Error): value is AppError => value instanceof AppError;
 
-  if (err instanceof ZodError) {
-    sendError(
-      res,
-      HttpStatus.BAD_REQUEST,
-      "Validation failed",
-      err.issues,
-    );
-    return;
-  }
+export const errorHandler: ErrorRequestHandler = (error, req, res, next): void => {
+    void next;
+    const requestId = req.requestId;
+    const path = req.originalUrl;
+    const method = req.method;
+    const details = error instanceof ValidationError ? error.details : undefined;
+    const statusCode = isAppError(error) ? error.statusCode : HttpStatus.INTERNAL_SERVER_ERROR;
+    const errorCode = isAppError(error) ? error.code : ErrorCode.INTERNAL_ERROR;
+    const message = isAppError(error) ? error.message : "Internal Server Error";
 
-  if (err instanceof SyntaxError && "body" in err) {
-    sendError(
-      res,
-      HttpStatus.BAD_REQUEST,
-      "Malformed JSON in request body",
-    );
-    return;
-  }
+    logger.error("request_failed", {
+        requestId,
+        path,
+        method,
+        statusCode,
+        errorCode,
+        errorMessage: message,
+        ...(details !== undefined ? { details: maskSensitiveData(details) } : {}),
+        stack: ENV.isProduction ? undefined : error.stack,
+    });
 
-  logger.error("Unhandled error", {
-    requestId: req.requestId,
-    method: req.method,
-    path: req.path,
-    error: err.message,
-    stack: err.stack,
-  });
+    const responseMessage = statusCode >= HttpStatus.INTERNAL_SERVER_ERROR && ENV.isProduction
+        ? "Internal Server Error"
+        : message;
 
-  sendError(
-    res,
-    HttpStatus.INTERNAL_SERVER_ERROR,
-    "An unexpected error occurred",
-  );
+    sendError(res, statusCode, responseMessage, errorCode, details, requestId);
 };

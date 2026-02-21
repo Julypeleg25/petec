@@ -10,15 +10,16 @@ const LOG_LEVELS = {
 } as const;
 
 const logFormat = winston.format.combine(
-    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.timestamp({ format: "HH:mm:ss" }),
     winston.format.errors({ stack: true }),
     ENV.isProduction
         ? winston.format.json()
         : winston.format.combine(
             winston.format.colorize(),
             winston.format.printf(({ timestamp, level, message, ...meta }) => {
-                const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : "";
-                return `${String(timestamp)} [${level}]: ${String(message)}${metaStr}`;
+                const hasMeta = Object.keys(meta).length > 0;
+                const metaStr = hasMeta ? `\n${JSON.stringify(meta, null, 2)}` : "";
+                return `[${timestamp}] ${level}: ${message}${metaStr}`;
             }),
         ),
 );
