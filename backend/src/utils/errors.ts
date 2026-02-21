@@ -1,1 +1,1 @@
-export { AppError, NotFoundError, ValidationError, AuthError, ForbiddenError, ConflictError, TooManyRequestsError, InternalServerError, BadRequestError } from "@petec/shared";
+export { AppError, NotFoundError, ValidationError, AuthError, ForbiddenError, ConflictError, InternalServerError, BadRequestError } from "@petec/shared";
