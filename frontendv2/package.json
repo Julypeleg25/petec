@@ -1,0 +1,19 @@
+{
+  "name": "petec-frontend",
+  "version": "1.0.0",
+  "main": "app.ts",
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "vite build --config vite.config.ts",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit -p tsconfig.app.json"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "vite-tsconfig-paths": "^6.0.3"
+  }
+}
