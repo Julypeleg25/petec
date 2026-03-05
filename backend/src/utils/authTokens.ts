@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { ENV } from "@config/config";
 import { TOKEN_EXPIRY, COOKIE_OPTIONS, COOKIE_NAMES } from "@petec/shared";
-import type { TokenPayload } from "@petec/shared";
+import type { TokenPayload, ResetPasswordTokenPayload } from "@petec/shared";
 import type { Response, CookieOptions } from "express";
 
 export const generateAccessToken = (payload: Omit<TokenPayload, "iat" | "exp">): string => {
@@ -30,8 +30,8 @@ export const generateResetPasswordToken = (userId: string): string => {
   });
 };
 
-export const verifyResetPasswordToken = (token: string): { userId: string } => {
-  return jwt.verify(token, ENV.jwtResetPasswordSecret) as { userId: string };
+export const verifyResetPasswordToken = (token: string): ResetPasswordTokenPayload => {
+  return jwt.verify(token, ENV.jwtResetPasswordSecret) as ResetPasswordTokenPayload;
 };
 
 export const setRefreshCookie = (res: Response, token: string): void => {

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from "mongoose";
-import { Role, UserStatus } from "@petec/shared";
+import { roles, UserStatus } from "@petec/shared";
 import type { IRefreshToken, IUser } from "./User.types";
 
 const refreshTokenSubSchema = new Schema<IRefreshToken>(
@@ -20,6 +20,16 @@ const userSchema = new Schema<IUser, Model<IUser>>(
       trim: true,
       index: true,
     },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -35,7 +45,7 @@ const userSchema = new Schema<IUser, Model<IUser>>(
     },
     role: {
       type: String,
-      enum: Object.values(Role),
+      enum: Object.values(roles),
       required: true,
       index: true,
     },
@@ -47,6 +57,11 @@ const userSchema = new Schema<IUser, Model<IUser>>(
       type: String,
       enum: Object.values(UserStatus),
       default: UserStatus.ACTIVE,
+      index: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
       index: true,
     },
     refreshTokens: {

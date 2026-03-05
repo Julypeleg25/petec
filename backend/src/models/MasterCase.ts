@@ -3,11 +3,6 @@ import type { IMasterCase } from "./MasterCase.types";
 
 const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
     {
-        patientId: {
-            type: Schema.Types.ObjectId,
-            ref: "Patient",
-            index: true,
-        },
         caseIds: {
             type: [{ type: Schema.Types.ObjectId, ref: "Case" }],
             default: [],
