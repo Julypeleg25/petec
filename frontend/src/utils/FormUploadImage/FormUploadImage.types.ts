@@ -3,6 +3,6 @@ export interface FormUploadImageProps {
     isLarge?: boolean;
     isDefault?: boolean;
     currentImage?: string;
-    setSelectedFile: React.Dispatch<React.SetStateAction<File | Blob | null>>;
+    setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
     disabled?: boolean;
 }

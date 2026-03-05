@@ -1,7 +1,9 @@
 import type { Response } from "express";
 import { z } from "zod";
-import { ErrorCode, HttpStatus, InternalServerError } from "@petec/shared";
+import { HttpStatus, InternalServerError } from "@petec/shared";
 import type { ApiErrorDetails } from "@petec/shared";
+import { logger } from "@config/logger";
+import { formatZodIssuesForLog } from "@utils/zodError.utils";
 
 export type ApiError = Readonly<{
   code: string;
@@ -22,10 +24,83 @@ export type ApiFailure = Readonly<{
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
 
-const validateResponse = <TSchema extends z.ZodType, TData>(schema: TSchema, data: TData): z.output<TSchema> => {
+type LogSummaryScalar = string | number | boolean | null | undefined;
+type LogSummaryValue = LogSummaryScalar | LogSummaryObject | LogSummaryValue[];
+type LogSummaryObject = { [key: string]: LogSummaryValue };
+type LogSummarySource = LogSummaryObject | LogSummaryValue[] | null | undefined;
+
+const LOG_SUMMARY_ID_KEYS = [
+  "id",
+  "_id",
+  "caseId",
+  "masterCaseId",
+  "patientId",
+  "documentId",
+  "userId",
+] as const;
+
+const isLogSummaryObject = (value: LogSummarySource): value is LogSummaryObject =>
+  value !== null && value !== undefined && typeof value === "object" && !Array.isArray(value);
+
+const pickSummaryId = (data: LogSummarySource): string | undefined => {
+  if (!isLogSummaryObject(data)) return undefined;
+
+  for (const key of LOG_SUMMARY_ID_KEYS) {
+    const value = data[key];
+    if (typeof value === "string" && value.length > 0) return value;
+    if (typeof value === "number") return String(value);
+  }
+
+  return undefined;
+};
+
+const pickSummaryLength = (data: LogSummarySource): number | undefined => {
+  if (Array.isArray(data)) return data.length;
+  if (!isLogSummaryObject(data)) return undefined;
+
+  const items = data.items;
+  if (Array.isArray(items)) return items.length;
+
+  return undefined;
+};
+
+const setResponseLogSummary = (
+  res: Response,
+  data: LogSummarySource,
+  note?: string,
+): void => {
+  const id = pickSummaryId(data);
+  const length = pickSummaryLength(data);
+
+  if (id === undefined && length === undefined && note === undefined) {
+    return;
+  }
+
+  res.locals.logSummary = {
+    ...(id !== undefined ? { id } : {}),
+    ...(length !== undefined ? { length } : {}),
+    ...(note !== undefined ? { note } : {}),
+  };
+};
+
+const validateResponse = <TSchema extends z.ZodType, TData>(
+  res: Response,
+  schema: TSchema,
+  data: TData,
+): z.output<TSchema> => {
   const parsed = schema.safeParse(data);
 
   if (!parsed.success) {
+    const req = res.req;
+    const path = req.originalUrl.split("?")[0] || req.originalUrl;
+    const formattedIssues = formatZodIssuesForLog(parsed.error.issues);
+
+    logger.error("Response validation failed", {
+      request_id: req.requestId,
+      method: req.method,
+      path,
+      ...formattedIssues,
+    });
     throw new InternalServerError("Response validation failed");
   }
 
@@ -37,7 +112,8 @@ export const sendSuccess = <TSchema extends z.ZodType, TData>(
   data: TData,
   schema: TSchema,
 ): void => {
-  const validated = validateResponse(schema, data);
+  const validated = validateResponse(res, schema, data);
+  setResponseLogSummary(res, validated as LogSummarySource);
   res.status(HttpStatus.OK).json({ success: true, data: validated } satisfies ApiSuccess<z.output<TSchema>>);
 };
 
@@ -46,11 +122,13 @@ export const sendCreated = <TSchema extends z.ZodType, TData>(
   data: TData,
   schema: TSchema,
 ): void => {
-  const validated = validateResponse(schema, data);
+  const validated = validateResponse(res, schema, data);
+  setResponseLogSummary(res, validated as LogSummarySource, "created");
   res.status(HttpStatus.CREATED).json({ success: true, data: validated } satisfies ApiSuccess<z.output<TSchema>>);
 };
 
 export const sendNoContent = (res: Response): void => {
+  setResponseLogSummary(res, undefined, "no-content");
   res.status(HttpStatus.NO_CONTENT).send();
 };
 
@@ -58,11 +136,17 @@ export const sendError = (
   res: Response,
   statusCode: number,
   message: string,
-  code: string,
+  code: string = "INTERNAL_ERROR",
   details?: ApiErrorDetails,
   requestId?: string,
 ): void => {
-  const errorPayload = {
+  setResponseLogSummary(
+    res,
+    details !== undefined ? { items: Object.keys(details) } : undefined,
+    "error",
+  );
+
+  const errorPayload: ApiError = {
     code,
     message,
     ...(details !== undefined ? { details } : {}),
@@ -79,7 +163,7 @@ export const sendInternalServerError = (res: Response, requestId?: string): void
     res,
     HttpStatus.INTERNAL_SERVER_ERROR,
     "An unexpected error occurred",
-    ErrorCode.INTERNAL_ERROR,
+    "INTERNAL_ERROR",
     undefined,
     requestId,
   );

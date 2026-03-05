@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./FormSelect.css";
 
-import { SelectOptionObj, FormSelectProps } from "./FormSelect.types";
+import { FormSelectProps } from "./FormSelect.types";
 
 export const getSelectedText = (id: string) => {
   const element = document.getElementById(id) as HTMLSelectElement;
@@ -23,15 +23,53 @@ function FormSelect({
   isDescOrder = false,
   isOrdered = true,
 }: FormSelectProps) {
-  const [selectElements, setSelectElements] = useState(elements);
+  const [selectElements, setSelectElements] = useState(elements ?? []);
+  const [internalOptionState, setInternalOptionState] = useState(
+    optionState ?? "",
+  );
 
   useEffect(() => {
+    if (optionState !== undefined) {
+      setInternalOptionState(optionState);
+    }
+  }, [optionState]);
+
+  useEffect(() => {
+    if (elements) {
+      setSelectElements(elements);
+    }
+  }, [elements]);
+
+  useEffect(() => {
+    let isMounted = true;
     if (getElementsFunc) {
       getElementsFunc().then((elements) => {
-        setSelectElements(elements);
+        if (isMounted) {
+          setSelectElements(elements);
+        }
+      }).catch(() => {
+        // handled by interceptor
       });
     }
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [getElementsFunc]);
+
+  const sortedElements = useMemo(() => {
+    const sourceElements = elements ?? selectElements;
+    return [...sourceElements].sort((a, b) => {
+      if (!isOrdered) return 0;
+      const textA = a?.text || "";
+      const textB = b?.text || "";
+      return isDescOrder
+        ? textB.localeCompare(textA)
+        : textA.localeCompare(textB);
+    });
+  }, [elements, isDescOrder, isOrdered, selectElements]);
+
+  const selectedValue =
+    optionState !== undefined ? optionState : internalOptionState;
 
   return (
     <div className="form-select" style={{ width: width }}>
@@ -43,8 +81,11 @@ function FormSelect({
       )}
       <select
         id={selectId}
-        value={optionState}
+        value={selectedValue}
         onChange={(e) => {
+          if (optionState === undefined) {
+            setInternalOptionState(e.target.value);
+          }
           if (setOptionState) setOptionState(e.target.value);
           if (afterSelect)
             afterSelect(e.target.value, e.target.selectedOptions[0].innerText);
@@ -52,40 +93,14 @@ function FormSelect({
         required={isRequired}
         disabled={disabled}
       >
-        <option value={""} disabled={isRequired} selected></option>
-        {elements
-          ? elements
-              .sort((a: any, b: any) => {
-                if (!isOrdered) return 0;
-                const textA = a?.text || "";
-                const textB = b?.text || "";
-                return isDescOrder
-                  ? textB.localeCompare(textA)
-                  : textA.localeCompare(textB);
-              })
-              .map((element, i) => {
-                return (
-                  <option key={i} value={element.value}>
-                    {element.text}
-                  </option>
-                );
-              })
-          : selectElements
-              ?.sort((a: any, b: any) => {
-                if (!isOrdered) return 0;
-                const textA = a?.text || "";
-                const textB = b?.text || "";
-                return isDescOrder
-                  ? textB.localeCompare(textA)
-                  : textA.localeCompare(textB);
-              })
-              .map((element, i) => {
-                return (
-                  <option key={i} value={element.value}>
-                    {element.text}
-                  </option>
-                );
-              })}
+        <option value={""} disabled={isRequired}></option>
+        {sortedElements.map((element, i) => {
+          return (
+            <option key={i} value={element.value}>
+              {element.text}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
