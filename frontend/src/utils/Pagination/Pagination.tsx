@@ -2,7 +2,8 @@ import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { MdLastPage, MdFirstPage } from "react-icons/md";
 import { ImLoop2 } from "react-icons/im";
 import { IPaginationProps } from "./Pagination.types";
-import { usePagination } from "./usePagination";
+import { usePagination } from "./hooks/usePagination";
+import { getTotalPages } from "./Pagination.utils";
 import { RowData } from "../TableGenerator/TableGenerator.types";
 import "./Pagination.css";
 
@@ -50,20 +51,32 @@ function Pagination<T extends RowData = RowData>({
     setLoading,
   });
 
+  const totalPages = getTotalPages(dataSize, rowsPerPage);
+  const hasRows = dataSize > 0;
+  const rangeStart = hasRows ? (currentPage - 1) * rowsPerPage + 1 : 0;
+  const rangeEnd = hasRows ? Math.min(currentPage * rowsPerPage, dataSize) : 0;
+
+  const handlePageInputSubmit = (rawValue: string) => {
+    const value = Number.parseInt(rawValue, 10);
+    if (isNaN(value) || value > totalPages || value < 1) {
+      setPageSearch(currentPage);
+      return;
+    }
+
+    if (currentPage !== value) {
+      handlePageNumberSearch(value - 1).then(() => {
+        setLoading(false);
+      });
+    }
+  };
+
   return (
     <div
       id="Pagination"
       className={`Pagination ${dataSize === 0 ? "pagination-disabled" : ""}`}
     >
       <div className="pagination-pages-numbers">
-        {dataSize > 0 &&
-          (currentPage === 1 ? 1 : (currentPage - 1) * rowsPerPage) +
-            " - " +
-            (currentPage * rowsPerPage > dataSize
-              ? dataSize
-              : currentPage * rowsPerPage) +
-            " of " +
-            dataSize}
+        {`${rangeStart} - ${rangeEnd} of ${dataSize < 0 ? 0 : dataSize}`}
       </div>
       <div className="pagination-btn-container">
         <button
@@ -91,52 +104,29 @@ function Pagination<T extends RowData = RowData>({
           <IoIosArrowBack size={25} />
         </button>
         <div className="pagination-current-page">
-          <span>
+          <span className="pagination-current-page-content">
             <input
+              type="number"
+              min={1}
+              max={totalPages}
+              aria-label="Page number"
               value={pageSearch}
               className="search-page-input"
               onChange={(e) => {
-                const val = parseInt(e.target.value);
+                const val = Number.parseInt(e.target.value, 10);
                 if (!isNaN(val)) setPageSearch(val);
               }}
               onBlur={(e) => {
-                const lastPage =
-                  dataSize === -1 || Math.ceil(dataSize / rowsPerPage) === 0
-                    ? 1
-                    : Math.ceil(dataSize / rowsPerPage);
-                const value = parseInt(e.target.value);
-                if (isNaN(value) || value > lastPage || value < 1) {
-                  setPageSearch(currentPage);
-                  return;
-                }
-                if (currentPage !== value) {
-                  handlePageNumberSearch(value - 1).then(() => {
-                    setLoading(false);
-                  });
-                }
+                handlePageInputSubmit(e.target.value);
               }}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter") {
-                  const lastPage =
-                    dataSize === -1 || Math.ceil(dataSize / rowsPerPage) === 0
-                      ? 1
-                      : Math.ceil(dataSize / rowsPerPage);
-                  const value = parseInt(e.currentTarget.value);
-                  if (isNaN(value) || value > lastPage || value < 1) {
-                    setPageSearch(currentPage);
-                    return;
-                  }
-                  handlePageNumberSearch(value - 1).then(() => {
-                    setLoading(false);
-                  });
+                  handlePageInputSubmit(e.currentTarget.value);
                 }
               }}
             />
             <span>
-              of{" "}
-              {dataSize === -1 || Math.ceil(dataSize / rowsPerPage) === 0
-                ? 1
-                : Math.ceil(dataSize / rowsPerPage)}
+              of {totalPages}
             </span>
           </span>
         </div>

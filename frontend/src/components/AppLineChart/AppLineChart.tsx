@@ -1,7 +1,6 @@
 import "./AppLineChart.css";
 import {
   CartesianGrid,
-  LabelProps,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -9,7 +8,14 @@ import {
   YAxis,
 } from "recharts";
 
-import { AppLineChartProps } from "./AppLineChart.types";
+import type { LabelProps } from "recharts";
+
+interface AppLineChartProps {
+  data: { name: string; value: number }[];
+  className?: string;
+  label?: string;
+  CustomXAxisLabel?: React.FC<LabelProps>;
+}
 
 function AppLineChart({ data, className, label, CustomXAxisLabel }: AppLineChartProps) {
   const renderCustomizedLabel = (props: { x?: number; y?: number; offset?: number; value?: string | number }) => {

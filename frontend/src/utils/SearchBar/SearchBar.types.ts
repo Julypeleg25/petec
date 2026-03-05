@@ -1,7 +1,6 @@
 export interface SearchBarProps {
     placeholder?: string;
-    state?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setState?: React.SetStateAction<any>;
-    onEnter?: (e: any) => void;
+    state?: string | null;
+    setState?: (val: string) => void;
+    onEnter?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }

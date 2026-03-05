@@ -3,13 +3,17 @@ import Patients from "../Patients/Patients";
 import SystemManagement from "../SystemManagement/SystemManagement";
 import "./MainPage.css";
 
-import { IMainPageProps } from "./MainPage.types";
+interface MainPageProps {
+  type: string;
+  systemManagementType?: string;
+  patientsNavType?: string;
+}
 
 function MainPage({
   type,
   systemManagementType,
   patientsNavType,
-}: IMainPageProps) {
+}: MainPageProps) {
   return (
     <div className="main-page">
       <Header type={type} />
