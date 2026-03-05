@@ -3,9 +3,13 @@ import "./SystemManagement.css";
 import UsersTab from "./UsersTab/UsersTab";
 import SystemTypesTab from "./SystemTypesTab/SystemTypesTab";
 import HistoryTab from "./HistoryTab/HistoryTab";
-import { AppRoutes } from "../../config/app-routes";
-import { ISystemManagementProps } from "./SystemManagement.types";
-function SystemManagement({ type = "users" }: ISystemManagementProps) {
+import { AppRoutes } from "../../config/appRoutes";
+
+interface SystemManagementProps {
+  type?: string;
+}
+
+function SystemManagement({ type = "users" }: SystemManagementProps) {
   const navigate = useNavigate();
 
   return (

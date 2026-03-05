@@ -1,33 +1,5 @@
-.SaveMedicine {
-  width: 95%;
-  margin: 0.8em auto;
-  height: 100%;
-}
+@import "../SystemTypeForm/SystemTypeForm.css";
 
-.SaveMedicine .save-entity-form .form-input-container,
-.SaveMedicine .save-entity-form .form-select {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.SaveMedicine .save-entity-form-container {
-  max-height: 90%;
-  max-width: 800px;
-}
-
-.SaveMedicine .save-entity-form {
-  overflow-y: scroll;
-  max-height: 100%;
-  flex-wrap: wrap;
-  width: 90%;
-  flex-direction: row-reverse;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 0.5em;
-}
-
-.SaveMedicine .save-entity-form .form-input-container,
-.SaveMedicine .save-entity-form .form-select,
-.SaveMedicine .save-entity-form .form-textarea-container {
-  width: 35%;
+.SaveMedicine__comments-group {
+  grid-column: 1 / -1;
 }

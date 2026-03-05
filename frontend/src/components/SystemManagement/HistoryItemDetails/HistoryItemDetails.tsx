@@ -2,10 +2,28 @@ import { FaArrowRight } from "react-icons/fa";
 import FormInput from "../../../utils/FormInput/FormInput";
 import "./HistoryItemDetails.css";
 import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
+import type { RowData } from "../../../utils/TableGenerator/TableGenerator.types";
+import { getCaseSerialPrefix } from "../../../utils/caseSerial.utils";
 
-import { IProps } from "./HistoryItemDetails.types";
+export interface HistoryItem extends RowData {
+  subject: string;
+  description: string;
+  created_at: string;
+  created_by_name: string;
+  case_id?: string;
+  case_serial_id?: string;
+  patient_name?: string;
+}
 
-function HistoryItemDetails({ historyObj, setShowHistoryDetails }: IProps) {
+interface HistoryItemDetailsProps {
+  historyObj: HistoryItem;
+  setShowHistoryDetails: (show: boolean) => void;
+}
+
+function HistoryItemDetails({
+  historyObj,
+  setShowHistoryDetails,
+}: HistoryItemDetailsProps) {
   return (
     <div className="HistoryItemDetails">
       <button
@@ -42,7 +60,7 @@ function HistoryItemDetails({ historyObj, setShowHistoryDetails }: IProps) {
           />
           <FormInput
             labelText=":מספר תיק"
-            state={historyObj.case_id ? historyObj.case_id.split("-")[0] : ""}
+            state={getCaseSerialPrefix(historyObj.case_serial_id)}
             disabled={true}
           />
           <FormInput

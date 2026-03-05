@@ -1,222 +1,155 @@
-import type { SimpleSystemTypeDTO } from "@petec/shared";
-import { useEffect, useState } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import { useEffect, useMemo } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import toast from "react-hot-toast";
+import {
+  buildSystemTypeFormSchema,
+} from "@petec/shared";
 import {
   useCreateSystemType,
   useUpdateSystemType,
-} from "../../../features/system-management/system-types.hooks";
-import { useSystemTypes } from "../../../features/system-management/system-types.hooks";
-import type { CreatePayload } from "../../../features/system-management/system-types.hooks";
+  type CreatePayload,
+} from "../../../features/system-management/hooks/useSystemTypes";
+import type { RowData } from "../../../utils/TableGenerator/TableGenerator.types";
+import { getSharedResolver } from "../../../utils/form";
 import "./SystemTypeForm.css";
 
-import { SYSTEM_TYPE_CONFIG } from "./SystemTypeForm.config";
-import type {
-  DynamicSelectField,
-  StaticSelectField,
-  SystemTypeFormProps,
-} from "./SystemTypeForm.types";
+import { SYSTEM_TYPE_CONFIG, type SystemTypeFormKey } from "./SystemTypeForm.config";
+import {
+  buildSystemTypeInitialValues,
+  buildSystemTypePayload,
+  resolveSystemTypeRowId,
+} from "./SystemTypeForm.utils";
+import { SystemTypeEditorShell } from "../shared/SystemTypeEditorShell/SystemTypeEditorShell";
+import { getSystemTypeRowName } from "../shared/systemTypeRow.utils";
 
-// ─── DynamicSelect sub-component ─────────────────────────────────────────────
+import { SystemTypeField } from "./components/SystemTypeField";
 
-function DynamicSelectInput({
-  field,
-  value,
-  onChange,
-  disabled,
-}: {
-  field: DynamicSelectField;
-  value: string;
-  onChange: (val: string) => void;
-  disabled?: boolean;
-}) {
-  const { data: options = [] } = useSystemTypes(field.sourceTypeName);
-
-  return (
-    <div className="form-group" dir="rtl">
-      <label>{field.label}</label>
-      <select
-        value={value}
-        required={field.required}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">בחר...</option>
-        {(options as SimpleSystemTypeDTO[]).map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
+interface SystemTypeFormProps {
+  systemTypeKey: SystemTypeFormKey;
+  systemTypeObj?: RowData;
+  onClose: () => void;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+type SystemTypeFormValues = Record<string, string>;
+
+type SystemTypeFormContentProps = {
+  config: (typeof SYSTEM_TYPE_CONFIG)[keyof typeof SYSTEM_TYPE_CONFIG];
+  systemTypeObj?: RowData;
+  onClose: () => void;
+};
+
+function SystemTypeFormContent({
+  config,
+  systemTypeObj,
+  onClose,
+}: SystemTypeFormContentProps) {
+  const editId = resolveSystemTypeRowId(systemTypeObj);
+  const isEdit = editId.trim().length > 0;
+  const currentItemName = getSystemTypeRowName(systemTypeObj);
+
+  const createMutation = useCreateSystemType(config.typeName);
+  const updateMutation = useUpdateSystemType(config.typeName);
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const formSchema = useMemo(
+    () => buildSystemTypeFormSchema(config.fields),
+    [config.fields],
+  );
+
+  const initialValues = useMemo(
+    () => buildSystemTypeInitialValues(config.fields, systemTypeObj),
+    [config.fields, systemTypeObj],
+  );
+
+  const methods = useForm<SystemTypeFormValues>({
+    resolver: getSharedResolver(formSchema),
+    defaultValues: initialValues,
+  });
+
+  const {
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = methods;
+
+  useEffect(() => {
+    reset(initialValues);
+  }, [initialValues, reset]);
+
+  const handleMutationError = (error: Error, fallbackMessage: string) => {
+    const message = error.message.trim().length > 0 ? error.message : fallbackMessage;
+    toast.error(message);
+  };
+
+  const onSubmit = (values: SystemTypeFormValues) => {
+    if (isEdit && !isDirty) {
+      toast.error("לא בוצעו שינויים");
+      return;
+    }
+
+    const payload = buildSystemTypePayload(config.fields, values);
+
+    if (isEdit) {
+      if (!editId) {
+        toast.error("לא ניתן לערוך פריט ללא מזהה");
+        return;
+      }
+      updateMutation.mutate(
+        { id: editId, payload },
+        {
+          onSuccess: onClose,
+          onError: (error: Error) =>
+            handleMutationError(error, "שמירת השינויים נכשלה"),
+        },
+      );
+    } else {
+      createMutation.mutate(payload as CreatePayload, {
+        onSuccess: onClose,
+        onError: (error: Error) => handleMutationError(error, "יצירת הפריט נכשלה"),
+      });
+    }
+  };
+
+  return (
+    <FormProvider {...methods}>
+      <SystemTypeEditorShell
+        isEdit={isEdit}
+        createTitle={config.createTitle}
+        editTitle={config.editTitle}
+        currentItemName={currentItemName}
+        onClose={onClose}
+        onSubmit={handleSubmit(onSubmit)}
+        isPending={isPending}
+        submitDisabled={isEdit && !isDirty}
+      >
+        {config.fields.map((field) => (
+          <SystemTypeField
+            key={field.name}
+            field={field}
+            isEdit={isEdit}
+            isPending={isPending}
+          />
+        ))}
+      </SystemTypeEditorShell>
+    </FormProvider>
+  );
+}
 
 export default function SystemTypeForm({
   systemTypeKey,
   systemTypeObj,
   onClose,
 }: SystemTypeFormProps) {
-  const config = SYSTEM_TYPE_CONFIG[systemTypeKey]!;
-  const isEdit = systemTypeObj !== undefined;
-
-  const createMutation = useCreateSystemType(config.typeName);
-  const updateMutation = useUpdateSystemType(config.typeName);
-  const isPending = createMutation.isPending || updateMutation.isPending;
-
-  // Initialise form values from all field descriptors
-  const initialValues = () => {
-    const vals: Record<string, string | number> = {};
-    for (const field of config.fields) {
-      const rowKey = field.sourceKey ?? field.name;
-      const existingVal = systemTypeObj?.[rowKey];
-      vals[field.name] =
-        existingVal !== undefined && existingVal !== null
-          ? (existingVal as string | number)
-          : "";
-    }
-    return vals;
-  };
-
-  const [values, setValues] =
-    useState<Record<string, string | number>>(initialValues);
-
-  // Reset when the systemTypeObj changes (switching between edit targets)
-  useEffect(() => {
-    setValues(initialValues());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [systemTypeObj]);
-
-  const handleChange = (name: string, val: string | number) => {
-    setValues((prev) => ({ ...prev, [name]: val }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Strip empty string values for optional numeric fields
-    const payload: Record<string, string | number | boolean> = {};
-    for (const [k, v] of Object.entries(values)) {
-      if (v !== "" && v !== null && v !== undefined) {
-        payload[k] = v;
-      }
-    }
-
-    if (isEdit) {
-      updateMutation.mutate(
-        { id: systemTypeObj!.id as string, payload },
-        { onSuccess: onClose },
-      );
-    } else {
-      createMutation.mutate(payload as CreatePayload, {
-        onSuccess: onClose,
-      });
-    }
-  };
+  const config = SYSTEM_TYPE_CONFIG[systemTypeKey];
+  if (!config) {
+    return null;
+  }
 
   return (
-    <div className="save-system-type-form">
-      <button
-        type="button"
-        className="btn btn-active btn-round back-btn"
-        onClick={onClose}
-      >
-        <FaArrowRight />
-      </button>
-      <div className="save-entity-form-container">
-        <h2 className="save-entity-form-title">
-          {isEdit ? config.editTitle : config.createTitle}
-        </h2>
-        <form className="save-entity-form" onSubmit={handleSubmit} noValidate>
-          {config.fields.map((field) => {
-            const val = values[field.name] ?? "";
-            const disabled =
-              isEdit &&
-              (field as StaticSelectField | DynamicSelectField).disabledOnEdit;
-
-            if (field.kind === "text") {
-              return (
-                <div key={field.name} className="form-group" dir="rtl">
-                  <label htmlFor={field.name}>{field.label}</label>
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    type="text"
-                    value={val as string}
-                    required={field.required}
-                    minLength={1}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                  />
-                </div>
-              );
-            }
-
-            if (field.kind === "number") {
-              return (
-                <div key={field.name} className="form-group" dir="rtl">
-                  <label htmlFor={field.name}>{field.label}</label>
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    type="number"
-                    value={val as number}
-                    min={field.min}
-                    required={field.required}
-                    onChange={(e) =>
-                      handleChange(field.name, e.target.valueAsNumber)
-                    }
-                  />
-                </div>
-              );
-            }
-
-            if (field.kind === "static-select") {
-              return (
-                <div key={field.name} className="form-group" dir="rtl">
-                  <label htmlFor={field.name}>{field.label}</label>
-                  <select
-                    id={field.name}
-                    value={val as string}
-                    required={field.required}
-                    disabled={!!disabled}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                  >
-                    <option value="">בחר...</option>
-                    {field.options.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.text}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              );
-            }
-
-            if (field.kind === "dynamic-select") {
-              return (
-                <DynamicSelectInput
-                  key={field.name}
-                  field={field}
-                  value={val as string}
-                  onChange={(v) => handleChange(field.name, v)}
-                  disabled={!!disabled}
-                />
-              );
-            }
-
-            return null;
-          })}
-
-          <button
-            type="submit"
-            className="btn btn-large save-entity-form-btn"
-            disabled={isPending}
-            aria-busy={isPending}
-          >
-            {isPending ? "...שומר" : "שמור"}
-          </button>
-        </form>
-      </div>
-    </div>
+    <SystemTypeFormContent
+      config={config}
+      systemTypeObj={systemTypeObj}
+      onClose={onClose}
+    />
   );
 }
