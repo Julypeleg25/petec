@@ -1,6 +1,15 @@
+import type { GetTableDataDTO } from "@petec/shared";
+import { ColumnDef } from "src/types/table.types";
+
 export type RowData = Record<string, string | number | boolean | null | undefined | object>;
 export type SearchObj = Record<string, string | number | boolean>;
-export type OrderByObj = Record<string, "ASC" | "DESC">;
+export const TABLE_SORT_DIRECTIONS = {
+    ASC: "ASC",
+    DESC: "DESC",
+} as const;
+export type TableSortDirection = (typeof TABLE_SORT_DIRECTIONS)[keyof typeof TABLE_SORT_DIRECTIONS];
+export type OrderByObj = Record<string, TableSortDirection>;
+export type TableFilterValue = GetTableDataDTO["filters"][string];
 
 export type PaginationBtns = {
     disableBtnNext: boolean;
@@ -10,10 +19,10 @@ export type PaginationBtns = {
 };
 
 export interface QueryObj {
-    query: string;
+    query: GetTableDataDTO["tableName"];
     orderBy?: OrderByObj;
-    filters?: Record<string, string>;
-    args?: string[];
+    filters?: GetTableDataDTO["filters"];
+    args?: GetTableDataDTO["args"];
     formatting?: Record<string, string>;
     variables?: Record<string, string>;
     isManagedTable?: boolean;
@@ -36,7 +45,7 @@ export interface TableDataResponse<T> {
 
 export interface ITableGeneratorProps<T> {
     queryObj: QueryObj;
-    columnsData: import("../../types").ColumnDef[];
+    columnsData: ColumnDef[];
     paginationPerPage?: number;
     btns?: TableBtnConfig<T>[];
     setOnRowClicked?: (row: T) => void;

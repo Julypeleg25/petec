@@ -2,19 +2,23 @@ import type { Request, Response, NextFunction } from "express";
 import { tableService } from "@services/table.service";
 import { sendSuccess } from "@utils/apiResponse";
 import { getValidatedBody } from "@utils/request.utils";
-import { logger } from "@utils/logger";
 import type { GetTableDataDTO } from "@petec/shared";
-import { TableDataResponseDTOSchema, PatientCardTableDataResponseDTOSchema } from "@petec/shared";
+import {
+  SYSTEM_TYPE_NAMES,
+  TableDataResponseDTOSchema,
+  PatientCardTableDataResponseDTOSchema,
+  createTableDataResponseSchema,
+  AdminMedicineRowDTOSchema,
+} from "@petec/shared";
+
+const AdminMedicineTableDataResponseDTOSchema = createTableDataResponseSchema(
+  AdminMedicineRowDTOSchema,
+);
 
 export class TableController {
   async getTableData(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const dto = getValidatedBody<GetTableDataDTO>(req);
-      logger.debug("table_get_data_request", {
-        tableName: dto.tableName,
-        page: dto.page,
-        limit: dto.limit,
-      });
       const result = await tableService.getTableData(
         dto.tableName,
         dto.filters,
@@ -25,6 +29,10 @@ export class TableController {
       );
       if (dto.tableName === "patients" || dto.tableName === "cases") {
         sendSuccess(res, result, PatientCardTableDataResponseDTOSchema);
+        return;
+      }
+      if (dto.tableName === SYSTEM_TYPE_NAMES.MEDICINES) {
+        sendSuccess(res, result, AdminMedicineTableDataResponseDTOSchema);
         return;
       }
       sendSuccess(res, result, TableDataResponseDTOSchema);
