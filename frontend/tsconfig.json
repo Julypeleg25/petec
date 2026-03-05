@@ -19,7 +19,17 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@petec/shared": [
+        "../packages/shared/src/index.ts",
+        "../packages/shared/dist/index.d.ts"
+      ],
+      "@petec/shared/*": [
+        "../packages/shared/src/*",
+        "../packages/shared/dist/*"
+      ]
+    }
   },
   "include": [
     "src"
