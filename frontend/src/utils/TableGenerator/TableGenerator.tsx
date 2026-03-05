@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MyLoader from "../MyLoader/MyLoader";
 import Pagination from "../Pagination/Pagination";
 import Table from "../Table/Table";
@@ -52,7 +52,6 @@ function TableGenerator<T extends RowData = RowData>({
 
   const [loading, setLoading] = useState(true);
   const [tableData, setTableData] = useState<T[]>([]);
-  const [search, setSearch] = useState<T[]>([]);
   const [sortDirection, setSortDirection] = useState(false);
   const [dataSize, setDataSize] = useState(-1);
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,29 +64,104 @@ function TableGenerator<T extends RowData = RowData>({
     });
   const [searchObj, setSearchObj] = useState(getSearchObjDefault(columnsData));
   const [orderBy, setOrderBy] = useState<OrderByObj>(queryObj?.orderBy || {});
+  const searchObjRef = useRef(searchObj);
+  const columnsDataRef = useRef(columnsData);
+  const queryObjRef = useRef(queryObj);
+  const columnsSearchSignature = useMemo(
+    () =>
+      JSON.stringify(
+        columnsData.map((column) => ({
+          searchObjField: column.searchObjField,
+          hide: column.hide,
+          searchDefaultVal: column.searchDefaultVal,
+          customFilter: column.customFilter,
+          customFilterVal: column.customFilterVal,
+          hideSearch: column.hideSearch,
+          isDateSearch: column.isDateSearch,
+          isDisabled: column.isDisabled,
+          placeholder: column.placeholder,
+        })),
+      ),
+    [columnsData],
+  );
+  const queryOrderByKey = useMemo(
+    () => JSON.stringify(queryObj?.orderBy || {}),
+    [queryObj?.orderBy],
+  );
+  const querySignature = useMemo(
+    () =>
+      JSON.stringify({
+        query: queryObj?.query,
+        args: queryObj?.args || [],
+        isManagedTable: queryObj?.isManagedTable || false,
+      }),
+    [queryObj?.args, queryObj?.isManagedTable, queryObj?.query],
+  );
 
   useEffect(() => {
-    const nextOrderBy = queryObj?.orderBy || {};
-    setSearchObj(getSearchObjDefault(columnsData));
+    searchObjRef.current = searchObj;
+  }, [searchObj]);
+
+  useEffect(() => {
+    columnsDataRef.current = columnsData;
+  }, [columnsData]);
+
+  useEffect(() => {
+    queryObjRef.current = queryObj;
+  }, [queryObj]);
+
+  useEffect(() => {
+    const nextOrderBy = JSON.parse(queryOrderByKey) as OrderByObj;
+    setSearchObj(getSearchObjDefault(columnsDataRef.current));
     setOrderBy((prev) => (isSameOrderBy(prev, nextOrderBy) ? prev : nextOrderBy));
     setCurrentPage(1);
-  }, [queryObj?.query]);
+  }, [columnsSearchSignature, queryObj?.query, queryOrderByKey]);
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
+    const currentQueryObj = queryObjRef.current;
     await getDataByQuery(
-      { ...queryObj, orderBy },
+      { ...currentQueryObj, orderBy },
       0,
-      getFilters(searchObj, columnsData),
+      getFilters(searchObjRef.current, columnsDataRef.current),
       setDataSize,
       setTableData,
       setCurrentPage,
-      disablePaginationBtns,
       setDisablePaginationBtns,
-      tableSectionContainerRef,
-      setSearch,
       setLoading,
     );
-  };
+  }, [orderBy]);
+
+  const tableColumns = useMemo(
+    () =>
+      columnsGeneratorWithSearch(
+        columnsData,
+        searchObj,
+        setSearchObj,
+        tableData,
+        setTableData,
+        sortDirection,
+        setSortDirection,
+        { ...queryObj, orderBy },
+        setDataSize,
+        setCurrentPage,
+        setDisablePaginationBtns,
+        setLoading,
+        setOrderBy,
+      ),
+    [
+      columnsData,
+      searchObj,
+      tableData,
+      sortDirection,
+      queryObj,
+      orderBy,
+      setDataSize,
+      setCurrentPage,
+      setDisablePaginationBtns,
+      setLoading,
+      setOrderBy,
+    ],
+  );
 
   const onRowClicked = (_event: React.MouseEvent, row: T) => {
     if (btns !== undefined) {
@@ -97,15 +171,11 @@ function TableGenerator<T extends RowData = RowData>({
           ".table-btn, .table-btn-no-style",
         );
 
-        for (let i = 0; i < btns.length; i++) {
-          if (btns[i].hide !== undefined && btns[i].hide) btns.splice(i, 1);
-        }
-
-        if (!tableBtns) return;
+        const visibleBtns = btns.filter((btn) => btn.hide !== true);
         for (let i = 0; i < tableBtns.length; i++) {
-          if (btns[i]?.activate) {
+          if (visibleBtns[i]?.activate) {
             const tableBtn = tableBtns[i] as HTMLButtonElement;
-            if (btns[i].activate!(row)) {
+            if (visibleBtns[i].activate!(row)) {
               tableBtn.disabled = false;
               tableBtn.classList.add("btn-active");
             } else {
@@ -119,7 +189,7 @@ function TableGenerator<T extends RowData = RowData>({
   };
 
   useEffect(() => {
-    if (paginationPerPage !== undefined) setRowsPerPage(paginationPerPage);
+    if (paginationPerPage) setRowsPerPage(paginationPerPage);
     getData()
       .then(() => {
         setLoading(false);
@@ -127,7 +197,7 @@ function TableGenerator<T extends RowData = RowData>({
       .catch(() => {
         // handled by interceptor
       });
-  }, [reload, orderBy]);
+  }, [getData, paginationPerPage, querySignature, reload]);
 
   return (
     <>
@@ -171,24 +241,7 @@ function TableGenerator<T extends RowData = RowData>({
         <Table
           tableContainerRef={tableContainerRef}
           tableSectionContainerRef={tableSectionContainerRef}
-          columns={columnsGeneratorWithSearch(
-            columnsData,
-            searchObj,
-            setSearchObj,
-            tableData,
-            setTableData,
-            search,
-            sortDirection,
-            setSortDirection,
-            tableSectionContainerRef,
-            queryObj,
-            setDataSize,
-            setCurrentPage,
-            disablePaginationBtns,
-            setDisablePaginationBtns,
-            setLoading,
-            setOrderBy,
-          )}
+          columns={tableColumns}
           data={tableData?.length === 0 ? [{} as T] : tableData}
           btns={btns}
           onRowClicked={(row: T, event: React.MouseEvent) => {
