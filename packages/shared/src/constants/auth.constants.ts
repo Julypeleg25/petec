@@ -1,4 +1,4 @@
-export const Role = {
+export const roles = {
   ADMIN: "ADMIN",
   DOCTOR: "DOCTOR",
   ASSISTANT: "ASSISTANT",
@@ -6,8 +6,6 @@ export const Role = {
 } as const;
 
 export type Role = (typeof Role)[keyof typeof Role];
-
-export const ROLES = Object.values(Role);
 
 export const ROLES_TUPLE: readonly [Role, ...Role[]] = [
   Role.ADMIN,
