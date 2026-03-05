@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "@utils/authTokens";
-import { AuthError, ForbiddenError } from "@utils/errors";
+import { AuthError, ForbiddenError } from "@constants/error.constants";
+import { logger } from "@config/logger";
 import type { AuthenticatedUser } from "@petec/shared";
-import { ROLE_PERMISSIONS, Permission, Role } from "@petec/shared";
+import { ROLE_PERMISSIONS, Permission, Role, roles } from "@petec/shared";
 
 declare global {
     namespace Express {
@@ -30,6 +31,15 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
             role: decoded.role,
             privileges: decoded.privileges ?? [],
         };
+
+        if (req.ctx) {
+            req.ctx.user = {
+                userId: decoded.userId,
+                role: decoded.role,
+                permissions: decoded.privileges ?? [],
+            };
+        }
+
         next();
     } catch {
         next(new AuthError("Invalid or expired access token"));
@@ -47,6 +57,15 @@ export const authorize = (...allowedRoles: Role[]) => {
         }
 
         if (allowedRoles.length > 0 && !allowedRoles.includes(user.role as Role)) {
+            const route = `${req.method} ${req.originalUrl.split("?")[0] || req.originalUrl}`;
+            logger.warn("Insufficient role privileges", {
+                module: "auth",
+                request_id: req.requestId,
+                user_id: user.userId,
+                route,
+                required_roles: allowedRoles.join(","),
+                user_role: user.role,
+            });
             next(new ForbiddenError("Insufficient role privileges"));
             return;
         }
@@ -69,6 +88,14 @@ export const requirePermission = (...requiredPermissions: Permission[]) => {
         const rolePermissions = ROLE_PERMISSIONS[userRole];
 
         if (!rolePermissions) {
+            const route = `${req.method} ${req.originalUrl.split("?")[0] || req.originalUrl}`;
+            logger.warn("Unknown role encountered", {
+                module: "auth",
+                request_id: req.requestId,
+                user_id: user.userId,
+                route,
+                user_role: user.role,
+            });
             next(new ForbiddenError("Unknown role"));
             return;
         }
@@ -81,6 +108,14 @@ export const requirePermission = (...requiredPermissions: Permission[]) => {
 
         const hasAll = requiredPermissions.every((perm) => rolePermissions.includes(perm));
         if (!hasAll) {
+            const route = `${req.method} ${req.originalUrl.split("?")[0] || req.originalUrl}`;
+            logger.warn("Insufficient permissions", {
+                module: "auth",
+                request_id: req.requestId,
+                user_id: user.userId,
+                route,
+                required_permissions: requiredPermissions.join(","),
+            });
             next(new ForbiddenError("Insufficient permissions"));
             return;
         }
@@ -89,4 +124,4 @@ export const requirePermission = (...requiredPermissions: Permission[]) => {
     };
 };
 
-export const requireAdmin = authorize(Role.ADMIN);
+export const requireAdmin = authorize(roles.ADMIN);
