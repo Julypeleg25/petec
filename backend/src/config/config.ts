@@ -16,14 +16,17 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(10),
   JWT_REFRESH_SECRET: z.string().min(10),
   JWT_RESET_PASSWORD_SECRET: z.string().min(10).optional(),
+  REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
+  ACCESS_TOKEN_EXPIRES_IN: z.string().default("30m"),
 
   MJ_APIKEY_PUBLIC: z.string().optional(),
   MJ_APIKEY_PRIVATE: z.string().optional(),
+  UPLOAD_DIR: z.string().default("uploads"),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse({...process.env,...configFile});
+const parsed = envSchema.safeParse({ ...process.env, ...configFile });
 
 if (!parsed.success) {
   const formatted = parsed.error.format();
@@ -46,4 +49,7 @@ export const ENV = {
   jwtResetPasswordSecret: data.JWT_RESET_PASSWORD_SECRET ?? data.JWT_ACCESS_SECRET,
   mailjetPublicKey: data.MJ_APIKEY_PUBLIC ?? "",
   mailjetPrivateKey: data.MJ_APIKEY_PRIVATE ?? "",
+  uploadDir: data.UPLOAD_DIR,
+  accessTokenExpiresIn: data.ACCESS_TOKEN_EXPIRES_IN,
+  refreshTokenExpiresIn: data.REFRESH_TOKEN_EXPIRES_IN,
 } as const;
