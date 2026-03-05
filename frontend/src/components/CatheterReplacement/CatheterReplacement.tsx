@@ -1,8 +1,10 @@
 import { FiAlertTriangle } from "react-icons/fi";
 import "./CatheterReplacement.css";
-import { getFormattedDateFromDBdate } from "../../utils/FormattingUtil";
+import { getFormattedDateFromDBdate } from "../../utils/DateFormattingUtil";
 
-import { CatheterReplacementProps } from "./CatheterReplacement.types";
+interface CatheterReplacementProps {
+  catheterDate: string;
+}
 
 function CatheterReplacement({ catheterDate }: CatheterReplacementProps) {
   return (

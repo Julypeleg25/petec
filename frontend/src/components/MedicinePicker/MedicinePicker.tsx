@@ -3,9 +3,21 @@ import FormSelect from "../../utils/FormSelect/FormSelect";
 import FormInput from "../../utils/FormInput/FormInput";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
 import RangeSlider from "../../utils/RangeSlider/RangeSlider";
-import { IMedicinePickerProps } from "./MedicinePicker.types";
-import { useMedicinePicker } from "./useMedicinePicker";
+import { MedicineSelectOptionObj } from "./MedicinePicker.types";
+import { useMedicinePicker } from "./hooks/useMedicinePicker";
+import { hasDoseRange } from "./hooks/useMedicinePicker.utils";
 import "./MedicinePicker.css";
+
+interface MedicinePickerProps {
+  medicineList: MedicineSelectOptionObj[];
+  afterConfirmation?: (selectedMedicines: MedicineSelectOptionObj[]) => void;
+  selectedMedicinesList?: MedicineSelectOptionObj[];
+  setStateSelectedMedicines?: React.Dispatch<
+    React.SetStateAction<MedicineSelectOptionObj[]>
+  >;
+  isEdit?: boolean;
+  animalWeight?: number;
+}
 
 function MedicinePicker({
   medicineList,
@@ -14,7 +26,7 @@ function MedicinePicker({
   setStateSelectedMedicines,
   isEdit = true,
   animalWeight,
-}: IMedicinePickerProps) {
+}: MedicinePickerProps) {
   const {
     medicinesRoutesForAdministration,
     medicinesFrequencies,
@@ -86,8 +98,8 @@ function MedicinePicker({
               labelText=":כמות"
               disabled={selectedMedicine === undefined}
               isRequired={true}
-              setState={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setDoseAmount(parseFloat(e.target.value));
+              setState={(val: string) => {
+                setDoseAmount(parseFloat(val));
               }}
               className={
                 isDoseAmountNotRecommended(
@@ -99,7 +111,8 @@ function MedicinePicker({
                   : ""
               }
             />
-            {selectedMedicine?.totalDose && (
+            {selectedMedicine?.totalDose !== undefined &&
+              selectedMedicine?.totalDose !== null && (
               <FormInput
                 name="totalDose"
                 type="number"
@@ -110,25 +123,24 @@ function MedicinePicker({
                 state={selectedMedicine?.totalDose}
               />
             )}
-            {selectedMedicine?.rangeMax &&
-              selectedMedicine?.rangeMin &&
-              (selectedMedicine?.rangeMax === selectedMedicine?.rangeMin ? (
+            {hasDoseRange(selectedMedicine) &&
+              (selectedMedicine.rangeMax === selectedMedicine.rangeMin ? (
                 <FormInput
                   name="amountPerKg"
                   type="number"
                   width="100%"
                   labelText={`:כמות ל- ק"ג`}
                   disabled={true}
-                  state={selectedMedicine?.rangeMax}
+                  state={selectedMedicine.rangeMax}
                 />
               ) : (
                 <RangeSlider
-                  min={selectedMedicine?.rangeMin}
-                  max={selectedMedicine?.rangeMax}
+                  min={selectedMedicine.rangeMin}
+                  max={selectedMedicine.rangeMax}
                   step={0.01}
                   label={`טווח ערכים ל- ק"ג:`}
                   initialValue={
-                    (selectedMedicine?.rangeMin + selectedMedicine?.rangeMax) /
+                    (selectedMedicine.rangeMin + selectedMedicine.rangeMax) /
                     2
                   }
                   onChange={onRangeInputChange}

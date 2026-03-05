@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./RangeSlider.css";
-
 import { RangeSliderProps } from "./RangeSlider.types";
 
 function RangeSlider({
@@ -10,7 +9,6 @@ function RangeSlider({
   label,
   initialValue = 0,
   onChange,
-  reload,
 }: RangeSliderProps) {
   const [value, setValue] = useState<number>(initialValue);
 
@@ -19,10 +17,6 @@ function RangeSlider({
     setValue(newValue);
     if (onChange) onChange(newValue);
   };
-
-  useEffect(() => {
-    setValue(initialValue);
-  }, [reload]);
 
   return (
     <div className="RangeSlider">
