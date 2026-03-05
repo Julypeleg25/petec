@@ -6,7 +6,7 @@ export const VITALS_TYPE_OPTIONS = [
     { value: "R", text: "נשימה" },
 ];
 
-export const SYSTEM_TYPE_CONFIG: Record<string, TypeConfig> = {
+export const SYSTEM_TYPE_CONFIG = {
     animalColors: {
         typeName: "animal_colors",
         createTitle: "הוספת צבע חיה",
@@ -53,11 +53,7 @@ export const SYSTEM_TYPE_CONFIG: Record<string, TypeConfig> = {
         typeName: "dosage_frequencies",
         createTitle: "הוספת תדירות מינון",
         editTitle: "עריכת תדירות מינון",
-        fields: [
-            { kind: "text", name: "name", label: ":שם", required: true },
-            { kind: "text", name: "description", label: ":תיאור", required: true },
-            { kind: "text", name: "descriptionPerHour", label: ":תיאור לפי שעה", required: true, sourceKey: "description_per_hour" },
-        ],
+        fields: [{ kind: "text", name: "name", label: ":שם", required: true }],
     },
     insuranceTypes: {
         typeName: "insurance_types",
@@ -87,10 +83,7 @@ export const SYSTEM_TYPE_CONFIG: Record<string, TypeConfig> = {
         typeName: "routes_of_administration",
         createTitle: "הוספת אופן מתן",
         editTitle: "עריכת אופן מתן",
-        fields: [
-            { kind: "text", name: "name", label: ":שם", required: true },
-            { kind: "text", name: "description", label: ":תיאור", required: true },
-        ],
+        fields: [{ kind: "text", name: "name", label: ":שם", required: true }],
     },
     raceTypes: {
         typeName: "race_types",
@@ -124,15 +117,32 @@ export const SYSTEM_TYPE_CONFIG: Record<string, TypeConfig> = {
             },
             {
                 kind: "static-select",
-                name: "vitalsType",
+                name: "name",
                 label: ":סוג התראה",
                 options: VITALS_TYPE_OPTIONS,
                 required: true,
                 disabledOnEdit: true,
                 sourceKey: "vitals_type",
             },
-            { kind: "number", name: "rangeMin", label: ":טווח - מינימום", min: 0, sourceKey: "range_min" },
-            { kind: "number", name: "rangeMax", label: ":טווח - מקסימום", min: 0, sourceKey: "range_max" },
+            {
+                kind: "number",
+                name: "minValue",
+                label: ":טווח - מינימום",
+                min: 0,
+                sourceKey: "range_min",
+            },
+            {
+                kind: "number",
+                name: "maxValue",
+                label: ":טווח - מקסימום",
+                min: 0,
+                sourceKey: "range_max",
+            },
         ],
     },
-};
+} satisfies Record<string, TypeConfig>;
+
+export type SystemTypeFormKey = keyof typeof SYSTEM_TYPE_CONFIG;
+
+export const isSystemTypeFormKey = (value: string): value is SystemTypeFormKey =>
+  value in SYSTEM_TYPE_CONFIG;

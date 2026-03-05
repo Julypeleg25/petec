@@ -1,4 +1,3 @@
-import type { RowData } from "../../../utils/TableGenerator/TableGenerator.types";
 import type { SystemTypeName } from "@petec/shared";
 
 export interface TextField {
@@ -46,10 +45,4 @@ export interface TypeConfig {
     createTitle: string;
     editTitle: string;
     fields: FieldDescriptor[];
-}
-
-export interface SystemTypeFormProps {
-    systemTypeKey: string;
-    systemTypeObj?: RowData;
-    onClose: () => void;
 }
