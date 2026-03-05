@@ -11,12 +11,20 @@ import {
 
 const router = Router();
 
-router.post("/register", validateBody(RegisterDTOSchema), authController.register);
-router.post("/login", validateBody(LoginDTOSchema), authController.login);
-router.post("/refresh", authController.refresh);
-router.post("/logout", authenticate, authController.logout);
-router.post("/forgot-password", validateBody(ForgotPasswordDTOSchema), authController.forgotPassword);
-router.post("/reset-password", validateBody(ResetPasswordDTOSchema), authController.resetPassword);
-router.get("/userRoles", authenticate, requireAdmin, authController.getUserRoles);
+const AUTH_ROUTE_PATHS = {
+  REGISTER: "/register",
+  LOGIN: "/login",
+  REFRESH: "/refresh",
+  LOGOUT: "/logout",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password"
+} as const;
+
+router.post(AUTH_ROUTE_PATHS.REGISTER, authenticate, requireAdmin, validateBody(RegisterDTOSchema), authController.register);
+router.post(AUTH_ROUTE_PATHS.LOGIN, validateBody(LoginDTOSchema), authController.login);
+router.post(AUTH_ROUTE_PATHS.REFRESH, authController.refresh);
+router.post(AUTH_ROUTE_PATHS.LOGOUT, authController.logout);
+router.post(AUTH_ROUTE_PATHS.FORGOT_PASSWORD, validateBody(ForgotPasswordDTOSchema), authController.forgotPassword);
+router.post(AUTH_ROUTE_PATHS.RESET_PASSWORD, validateBody(ResetPasswordDTOSchema), authController.resetPassword);
 
 export default router;

@@ -25,7 +25,7 @@ const ForgotPassword = () => {
       <main className="login-page-main">
         <img
           className="logo-img"
-          src={"assets/images/logo_reversed.jpg"}
+          src={"/assets/images/petec_logo_v2.jpg"}
           alt="logo"
         />
         <span className="logo-main-title">PETEC</span>
@@ -41,8 +41,8 @@ const ForgotPassword = () => {
             placeholder="אימייל"
             isRequired
             state={watch("email")}
-            setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValue("email", e.target.value, { shouldValidate: true })
+            setState={(val: string) =>
+              setValue("email", val, { shouldDirty: true, shouldValidate: true })
             }
           />
           {errors.email && (
