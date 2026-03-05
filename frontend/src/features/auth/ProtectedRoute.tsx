@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import type { Role } from "@petec/shared";
 
 import { ProtectedRouteProps } from "./ProtectedRoute.types";
 

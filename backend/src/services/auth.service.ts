@@ -11,73 +11,81 @@ import {
   clearRefreshCookie,
 } from "@utils/authTokens";
 import { sendEmail } from "@utils/emailUtils";
-import { logger } from "@utils/logger";
-import { AuthError, ConflictError, NotFoundError, BadRequestError } from "@utils/errors";
-import { BCRYPT_SALT_ROUNDS, TOKEN_EXPIRY, Role } from "@petec/shared";
+import { logger } from "@config/logger";
+import { AuthError, ConflictError, NotFoundError, BadRequestError } from "@constants/error.constants";
+import { BCRYPT_SALT_ROUNDS, TOKEN_EXPIRY } from "@petec/shared";
 import type { Response } from "express";
 import type { IRefreshToken, UserDocument } from "@models/User";
-import type { LoginResponseDTO, RefreshResponseDTO, RegisterResponseDTO } from "@petec/shared";
+import type { LoginDTO, LoginResponseDTO, ForgotPasswordDTO, ResetPasswordDTO, RefreshResponseDTO, RegisterDTO, RegisterResponseDTO, TokenPayload, ResetPasswordTokenPayload } from "@petec/shared";
+import {
+  buildAuthTokenPayload,
+  buildUserFullName,
+  findMatchingRefreshToken,
+  isActiveUser,
+} from "@services/utils/auth.service.utils";
 
-const ENTITY_TYPE_USER = "User";
+const MODULE = "auth";
 const AUDIT_SUBJECT_AUTH = "Authentication";
+const ENTITY_TYPE_USER = "User";
 
 export class AuthService {
-  async register(username: string, email: string, password: string, role: Role, privileges?: string[]): Promise<RegisterResponseDTO> {
-    const existingEmail = await userRepository.findByEmail(email);
+  async register(dto: RegisterDTO): Promise<RegisterResponseDTO> {
+    const existingEmail = await userRepository.findByEmail(dto.email);
     if (existingEmail) {
       throw new ConflictError("A user with this email already exists");
     }
 
-    const existingUsername = await userRepository.findByUsername(username);
+    const existingUsername = await userRepository.findByUsername(dto.username);
     if (existingUsername) {
       throw new ConflictError("A user with this username already exists");
     }
 
-    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
 
     const user = await userRepository.create({
-      username,
-      email: email.toLowerCase(),
+      username: dto.username,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email.toLowerCase(),
       passwordHash,
-      role,
-      privileges: privileges ?? [],
+      role: dto.role,
+      privileges: dto.privileges ?? [],
     });
 
     await auditRepository.log(
       AUDIT_SUBJECT_AUTH,
-      `User registered: ${username} (${email})`,
+      `User registered: ${dto.username} (${dto.email})`,
       ENTITY_TYPE_USER,
       user._id.toString(),
     );
 
     return {
       id: user._id.toString(),
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       role: user.role,
     };
-  };
+  }
 
-  async login(username: string, password: string, res: Response): Promise<LoginResponseDTO> {
-    const user = await userRepository.findByUsernameWithPassword(username);
+  async login(dto: LoginDTO, res: Response): Promise<LoginResponseDTO> {
+    const user = await userRepository.findByUsernameWithPassword(dto.username);
 
     if (!user) {
       throw new AuthError("Invalid username or password");
     }
 
-    if (user.status !== "ACTIVE") {
+    if (!isActiveUser(user)) {
       throw new AuthError("Account is inactive");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new AuthError("Invalid username or password");
     }
 
-    const tokenPayload = {
-      userId: user._id.toString(),
-      role: user.role,
-      privileges: user.privileges,
-    };
+    const tokenPayload = buildAuthTokenPayload(user);
 
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
@@ -96,56 +104,62 @@ export class AuthService {
 
     await auditRepository.log(
       AUDIT_SUBJECT_AUTH,
-      `User logged in: ${username}`,
+      `User logged in: ${dto.username}`,
       ENTITY_TYPE_USER,
       user._id.toString(),
       user._id,
     );
+
+    logger.info("Login success", { module: MODULE, user_id: user._id.toString() });
 
     return {
       accessToken,
       user: {
         id: user._id.toString(),
         username: user.username,
+        fullName: buildUserFullName(user),
         email: user.email,
         role: user.role,
         privileges: user.privileges,
         lastLogin: new Date().toISOString(),
       },
     };
-  };
+  }
 
   async refresh(refreshTokenFromCookie: string, res: Response): Promise<RefreshResponseDTO> {
-    let decoded: { userId: string; role: string; privileges: string[] };
+    let decoded: TokenPayload;
     try {
       decoded = verifyRefreshToken(refreshTokenFromCookie);
     } catch {
+      clearRefreshCookie(res);
       throw new AuthError("Invalid or expired refresh token");
     }
 
     const user = await userRepository.findByIdWithRefreshTokens(decoded.userId);
     if (!user) {
+      clearRefreshCookie(res);
       throw new AuthError("User not found");
     }
 
-    if (user.status !== "ACTIVE") {
+    if (!isActiveUser(user)) {
+      clearRefreshCookie(res);
       throw new AuthError("Account is inactive");
     }
 
-    const validToken = await this.findMatchingRefreshToken(user, refreshTokenFromCookie);
+    const validToken = await findMatchingRefreshToken(
+      user,
+      refreshTokenFromCookie,
+    );
     if (!validToken) {
       await userRepository.removeAllRefreshTokens(user._id);
-      logger.warn("Refresh token reuse detected, clearing all tokens", { userId: decoded.userId });
+      clearRefreshCookie(res);
+      logger.warn("Refresh token reuse detected, clearing all tokens", { module: MODULE, user_id: decoded.userId });
       throw new AuthError("Refresh token reuse detected");
     }
 
     await userRepository.removeRefreshToken(user._id, validToken.tokenHash);
 
-    const tokenPayload = {
-      userId: user._id.toString(),
-      role: user.role,
-      privileges: user.privileges,
-    };
+    const tokenPayload = buildAuthTokenPayload(user);
 
     const newAccessToken = generateAccessToken(tokenPayload);
     const newRefreshToken = generateRefreshToken(tokenPayload);
@@ -161,32 +175,48 @@ export class AuthService {
     setRefreshCookie(res, newRefreshToken);
 
     return { accessToken: newAccessToken };
-  };
+  }
 
-  async logout(userId: string, refreshTokenFromCookie: string | undefined, res: Response): Promise<void> {
-    if (refreshTokenFromCookie) {
-      const user = await userRepository.findByIdWithRefreshTokens(userId);
+  async logout(userId: string | undefined, refreshTokenFromCookie: string | undefined, res: Response): Promise<void> {
+    let resolvedUserId = userId;
+
+    if (!resolvedUserId && refreshTokenFromCookie) {
+      try {
+        const decoded = verifyRefreshToken(refreshTokenFromCookie);
+        resolvedUserId = decoded.userId;
+      } catch {
+        resolvedUserId = undefined;
+      }
+    }
+
+    if (refreshTokenFromCookie && resolvedUserId) {
+      const user = await userRepository.findByIdWithRefreshTokens(resolvedUserId);
       if (user) {
-        const matchingToken = await this.findMatchingRefreshToken(user, refreshTokenFromCookie);
+        const matchingToken = await findMatchingRefreshToken(
+          user,
+          refreshTokenFromCookie,
+        );
         if (matchingToken) {
-          await userRepository.removeRefreshToken(userId, matchingToken.tokenHash);
+          await userRepository.removeRefreshToken(resolvedUserId, matchingToken.tokenHash);
         }
       }
     }
 
     clearRefreshCookie(res);
 
-    await auditRepository.log(
-      AUDIT_SUBJECT_AUTH,
-      "User logged out",
-      ENTITY_TYPE_USER,
-      userId,
-      userId,
-    );
-  };
+    if (resolvedUserId) {
+      await auditRepository.log(
+        AUDIT_SUBJECT_AUTH,
+        "User logged out",
+        ENTITY_TYPE_USER,
+        resolvedUserId,
+        resolvedUserId,
+      );
+    }
+  }
 
-  async forgotPassword(email: string): Promise<void> {
-    const user = await userRepository.findByEmail(email);
+  async forgotPassword(dto: ForgotPasswordDTO): Promise<void> {
+    const user = await userRepository.findByEmail(dto.email);
     if (!user) {
       return;
     }
@@ -199,13 +229,13 @@ export class AuthService {
       html: `<p>Use this token to reset your password: <strong>${resetToken}</strong></p>`,
     });
 
-    logger.info("Password reset email sent", { userId: user._id.toString() });
-  };
+    logger.info("Password reset requested", { module: MODULE, user_id: user._id.toString() });
+  }
 
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    let payload: { userId: string };
+  async resetPassword(dto: ResetPasswordDTO): Promise<void> {
+    let payload: ResetPasswordTokenPayload;
     try {
-      payload = verifyResetPasswordToken(token);
+      payload = verifyResetPasswordToken(dto.token);
     } catch {
       throw new BadRequestError("Invalid or expired reset token");
     }
@@ -215,7 +245,7 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
     await userRepository.updateById(user._id, { $set: { passwordHash } });
     await userRepository.removeAllRefreshTokens(user._id);
 
@@ -226,28 +256,9 @@ export class AuthService {
       user._id.toString(),
       user._id,
     );
-  };
 
-  private async findMatchingRefreshToken(
-    user: UserDocument,
-    rawToken: string,
-  ): Promise<IRefreshToken | undefined> {
-    if (!user.refreshTokens || user.refreshTokens.length === 0) {
-      return undefined;
-    }
-
-    for (const storedToken of user.refreshTokens) {
-      if (storedToken.expiresAt < new Date()) {
-        continue;
-      }
-      const isMatch = await bcrypt.compare(rawToken, storedToken.tokenHash);
-      if (isMatch) {
-        return storedToken;
-      }
-    }
-
-    return undefined;
-  };
+    logger.info("Password reset completed", { module: MODULE, user_id: user._id.toString() });
+  }
 }
 
 export const authService = new AuthService();
