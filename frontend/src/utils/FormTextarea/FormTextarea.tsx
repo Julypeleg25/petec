@@ -51,12 +51,12 @@ function FormTextarea({
           placeholder={(isRequired ? "* " : "") + placeholder}
           name={name}
           required={isRequired}
-          value={state}
+          value={state ?? ""}
           defaultValue={defaultValue}
           onChange={(e) => {
             if (setState) {
-              if (setStateParams) setState(e, setStateParams);
-              else setState(e);
+              const params = setStateParams ?? name;
+              setState(e.target.value, params, name);
             }
 
             if (afterChange) afterChange();

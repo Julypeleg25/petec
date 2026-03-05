@@ -3,5 +3,5 @@ export interface FormCheckboxProps {
     setChecked: React.Dispatch<React.SetStateAction<boolean>>;
     labelText?: string;
     disabled?: boolean;
-    afterChange?: (isChecked: any) => void;
+    afterChange?: (isChecked: boolean) => void;
 }
