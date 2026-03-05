@@ -10,7 +10,7 @@ export class PatientMedicineRepository extends BaseRepository<IPatientMedicine> 
 
     async findByPatientId(patientId: string | Types.ObjectId): Promise<PatientMedicineDocument[]> {
         return this.model
-            .find({ patientId })
+            .find({ patientId, isDeleted: { $ne: true } })
             .populate("medicineId", "name")
             .populate("dosageFrequencyId", "name")
             .populate("routeOfAdministrationId", "name")
@@ -21,8 +21,11 @@ export class PatientMedicineRepository extends BaseRepository<IPatientMedicine> 
 
     async findByCaseId(caseId: string | Types.ObjectId): Promise<PatientMedicineDocument[]> {
         return this.model
-            .find({ caseId })
+            .find({ caseId, isDeleted: { $ne: true } })
             .populate("medicineId", "name")
+            .populate("dosageFrequencyId", "name")
+            .populate("routeOfAdministrationId", "name")
+            .populate("measureUnitTypeId", "name")
             .sort({ createdAt: -1 })
             .exec();
     }
