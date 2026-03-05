@@ -1,6 +1,43 @@
 import React from "react";
-import FormTextarea, { growHeightOnInput } from "../../../utils/FormTextarea/FormTextarea";
-import { BooleanCellProps, MedicineCommentCellProps, SelectCellProps } from "./CaseDetailsTable.types";
+import FormTextarea, {
+  growHeightOnInput,
+} from "../../../utils/FormTextarea/FormTextarea";
+import type {
+  CaseDetailsData,
+  CaseDetailsInputChangeHandler,
+} from "./CaseDetailsTable.types";
+import {
+  getCaseDetailsMedicineCommentsByType,
+  getCaseDetailsStringFieldValue,
+} from "./CaseDetailsTableCells.utils";
+
+interface CellComponentProps {
+  index: number;
+  isComment?: boolean;
+  commentValName?: string;
+  formTextareaElementId?: string;
+  caseDetailsList: CaseDetailsData[][];
+  caseDetailsDataIndex: number;
+  handleInputChange?: CaseDetailsInputChangeHandler;
+  setCaseDetailsList?: React.Dispatch<
+    React.SetStateAction<CaseDetailsData[][]>
+  >;
+}
+
+interface BooleanCellProps extends CellComponentProps {
+  valName: string;
+}
+
+interface SelectCellProps extends CellComponentProps {
+  selectElement: React.ReactNode;
+}
+
+interface MedicineCommentCellProps extends CellComponentProps {
+  medicineId: string;
+  type: string;
+  caseDetailsPopUpId: string;
+}
+
 export const BooleanCellComponent = ({
   index,
   isComment,
@@ -12,7 +49,12 @@ export const BooleanCellComponent = ({
   handleInputChange,
 }: BooleanCellProps) => {
   return (
-    <div className={"case-details-pop-up boolean-cell-component" + (isComment ? " boolean-cell-component-comment" : "")}>
+    <div
+      className={
+        "case-details-pop-up boolean-cell-component" +
+        (isComment ? " boolean-cell-component-comment" : "")
+      }
+    >
       {isComment && commentValName && handleInputChange && (
         <div className="case-details-boolean-pop-up-comment">
           <FormTextarea
@@ -23,13 +65,18 @@ export const BooleanCellComponent = ({
             maxHeight={"150px"}
             minWidth="70%"
             maxLength={150}
-            state={(caseDetailsList[caseDetailsDataIndex][index] as any)[commentValName]}
+            state={getCaseDetailsStringFieldValue(
+              caseDetailsList[caseDetailsDataIndex][index],
+              commentValName,
+            )}
             setState={handleInputChange}
             setStateParams={{ index: index }}
             afterChange={() => {
               if (formTextareaElementId) {
                 const el = document.getElementById(formTextareaElementId);
-                if (el) growHeightOnInput(el as HTMLTextAreaElement);
+                if (el) {
+                  growHeightOnInput(el as HTMLTextAreaElement);
+                }
               }
             }}
           />
@@ -40,7 +87,9 @@ export const BooleanCellComponent = ({
           className="case-details-boolean-pop-up-btn"
           onClick={(e) => {
             e.preventDefault();
-            if (handleInputChange) handleInputChange(undefined, { index: index }, true, valName);
+            if (handleInputChange) {
+              handleInputChange(true, { index: index }, valName);
+            }
           }}
         >
           כן
@@ -49,7 +98,9 @@ export const BooleanCellComponent = ({
           className="case-details-boolean-pop-up-btn"
           onClick={(e) => {
             e.preventDefault();
-            if (handleInputChange) handleInputChange(undefined, { index: index }, false, valName);
+            if (handleInputChange) {
+              handleInputChange(false, { index: index }, valName);
+            }
           }}
         >
           לא
@@ -58,7 +109,6 @@ export const BooleanCellComponent = ({
     </div>
   );
 };
-
 
 export const SelectCellComponent = ({
   index,
@@ -71,7 +121,12 @@ export const SelectCellComponent = ({
   handleInputChange,
 }: SelectCellProps) => {
   return (
-    <div className={"case-details-pop-up select-cell-component" + (isComment ? " select-cell-component-comment" : "")}>
+    <div
+      className={
+        "case-details-pop-up select-cell-component" +
+        (isComment ? " select-cell-component-comment" : "")
+      }
+    >
       {isComment && commentValName && handleInputChange && (
         <div className="case-details-select-pop-up-comment">
           <FormTextarea
@@ -82,25 +137,27 @@ export const SelectCellComponent = ({
             maxHeight={"150px"}
             minWidth="70%"
             maxLength={150}
-            state={(caseDetailsList[caseDetailsDataIndex][index] as any)[commentValName]}
+            state={getCaseDetailsStringFieldValue(
+              caseDetailsList[caseDetailsDataIndex][index],
+              commentValName,
+            )}
             setState={handleInputChange}
             setStateParams={{ index: index }}
             afterChange={() => {
               if (formTextareaElementId) {
                 const el = document.getElementById(formTextareaElementId);
-                if (el) growHeightOnInput(el as HTMLTextAreaElement);
+                if (el) {
+                  growHeightOnInput(el as HTMLTextAreaElement);
+                }
               }
             }}
           />
         </div>
       )}
-      <div style={{ width: "80%", marginBottom: "0.5em" }}>
-        {selectElement}
-      </div>
+      <div style={{ width: "80%", marginBottom: "0.5em" }}>{selectElement}</div>
     </div>
   );
 };
-
 
 export const MedicineCommentCellComponent = ({
   index,
@@ -112,8 +169,17 @@ export const MedicineCommentCellComponent = ({
   caseDetailsDataIndex,
   setCaseDetailsList,
 }: MedicineCommentCellProps) => {
+  const medicineCommentsByType = getCaseDetailsMedicineCommentsByType(
+    caseDetailsList[caseDetailsDataIndex][index],
+    type,
+  );
+  const currentComment = medicineCommentsByType?.[medicineId]?.comment ?? "";
+
   return (
-    <div id={caseDetailsPopUpId} className={"case-details-pop-up-on-double-click comment-cell-component"}>
+    <div
+      id={caseDetailsPopUpId}
+      className={"case-details-pop-up-on-double-click comment-cell-component"}
+    >
       <div className="case-details-select-pop-up-comment">
         <FormTextarea
           labelText="הערות:"
@@ -122,12 +188,19 @@ export const MedicineCommentCellComponent = ({
           maxHeight={"150px"}
           minWidth="70%"
           maxLength={150}
-          state={((caseDetailsList[caseDetailsDataIndex][index] as any)[type][medicineId] as any).comment}
-          setState={(e: any) => {
+          state={currentComment}
+          setState={(value: string) => {
             if (setCaseDetailsList) {
               setCaseDetailsList((prevState) => {
                 const newState = [...prevState];
-                ((newState[caseDetailsDataIndex][index] as any)[type][medicineId] as any).comment = e.target.value;
+                const typeDetails = getCaseDetailsMedicineCommentsByType(
+                  newState[caseDetailsDataIndex][index],
+                  type,
+                );
+                if (!typeDetails || !typeDetails[medicineId]) {
+                  return newState;
+                }
+                typeDetails[medicineId].comment = value;
                 return newState;
               });
             }
@@ -135,7 +208,9 @@ export const MedicineCommentCellComponent = ({
           afterChange={() => {
             if (formTextareaElementId) {
               const el = document.getElementById(formTextareaElementId);
-              if (el) growHeightOnInput(el as HTMLTextAreaElement);
+              if (el) {
+                growHeightOnInput(el as HTMLTextAreaElement);
+              }
             }
           }}
         />

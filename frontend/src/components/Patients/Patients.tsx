@@ -4,26 +4,27 @@ import TableGenerator from "../../utils/TableGenerator/TableGenerator";
 import SavePatient from "./SavePatient/SavePatient";
 import FormCheckbox from "../../utils/FormCheckbox/FormCheckbox";
 import DailyPlan from "../DailyPlan/DailyPlan";
-import { AppRoutes } from "../../config/app-routes";
-import { usePatients } from "./usePatients";
+import { AppRoutes } from "../../config/appRoutes";
+import { usePatients } from "./hooks/usePatients";
 import "./Patients.css";
-import { IPatientsProps } from "./Patients.types";
+import {
+  buildCaseSearchFilters,
+  buildPatientsArgs,
+  getButtonClassName,
+} from "./patients.utils";
 import {
   CARD_LAYOUT,
   PATIENTS_NAV_TYPES,
   PATIENT_TABLE_TYPES,
-  SEARCH_FILTER_KEYS,
   TABLE_ORDER_BY,
   TABLE_QUERY_KEYS,
 } from "./patients.constants";
 
-const toPatientsArgs = (value: boolean, isArchive: boolean): string[] => [
-  String(value),
-  String(value),
-  String(isArchive),
-];
+interface PatientsProps {
+  patientsNavType?: string;
+}
 
-function Patients({ patientsNavType }: IPatientsProps) {
+function Patients({ patientsNavType }: PatientsProps) {
   const {
     navigate,
     isArchive,
@@ -59,9 +60,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
     <div className="Patients">
       <nav className="navbar patients-navbar">
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN)}
             title="יומי plan"
             onClick={() => {
               navigate(AppRoutes.Patients.DailyPlan);
@@ -71,7 +70,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             יומי plan
           </button>
           <button
-            className={`btn ${isArchive ? "" : "btn-active"}`}
+            className={getButtonClassName(isArchive)}
             title="ארכיון"
             onClick={() => {
               resetPatientCards(true);
@@ -82,9 +81,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             ארכיון
           </button>
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT)}
             title="הוספת מטופל"
             onClick={() => {
               navigate(AppRoutes.Patients.NewPatient);
@@ -94,9 +91,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             הוספת מטופל
           </button>
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST)}
             title="רשימת מטופלים"
             onClick={() => {
               resetPatientCards(false);
@@ -111,7 +106,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
         patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES) && (
         <nav className="nav-patients-cards">
           <button
-            className={`btn ${tableType === PATIENT_TABLE_TYPES.PROCEDURES ? "" : "btn-active"}`}
+            className={getButtonClassName(tableType === PATIENT_TABLE_TYPES.PROCEDURES)}
             title="פרוצדרות"
             onClick={() => {
               setTableType(PATIENT_TABLE_TYPES.PROCEDURES);
@@ -121,7 +116,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             פרוצדרות
           </button>
           <button
-            className={`btn ${tableType === PATIENT_TABLE_TYPES.PATIENTS ? "" : "btn-active"}`}
+            className={getButtonClassName(tableType === PATIENT_TABLE_TYPES.PATIENTS)}
             title="אשפוז"
             onClick={() => {
               setTableType(PATIENT_TABLE_TYPES.PATIENTS);
@@ -140,13 +135,13 @@ function Patients({ patientsNavType }: IPatientsProps) {
                 <div className="patients-section-title">פרוצדרות</div>
                 <div className="procedures-search-section">
                   <SearchBar
-                    placeholder="חפש לפי מספר תיק"
+                    placeholder="חפש לפי מספר תיק / שם / שם בעלים / טלפון"
                     state={proceduresSearch}
                     setState={setProceduresSearch}
                     onEnter={(e) => {
-                      setProceduresFilters({
-                        [SEARCH_FILTER_KEYS.MASTER_CASE_ID]: e.target.value,
-                      });
+                      setProceduresFilters(
+                        buildCaseSearchFilters(e.currentTarget.value, isArchive),
+                      );
                       setReloadProceduresCards((prev) => !prev);
                     }}
                   />
@@ -155,7 +150,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     setChecked={setShowOnlyProceduresWithAlerts}
                     labelText="הצג רק מטופלים עם התראות"
                     afterChange={(isChecked) => {
-                      setPatientsArgs(toPatientsArgs(isChecked, isArchive));
+                      setPatientsArgs(buildPatientsArgs(isChecked, isArchive));
                       setReloadProceduresCards((prev) => !prev);
                     }}
                   />
@@ -186,13 +181,13 @@ function Patients({ patientsNavType }: IPatientsProps) {
                 <div className="patients-section-title">אשפוז</div>
                 <div className="procedures-search-section">
                   <SearchBar
-                    placeholder="חפש לפי מספר תיק"
+                    placeholder="חפש לפי מספר תיק / שם / שם בעלים / טלפון"
                     state={patientSearch}
                     setState={setPatientSearch}
                     onEnter={(e) => {
-                      setPatientsFilters({
-                        [SEARCH_FILTER_KEYS.MASTER_CASE_ID]: e.target.value,
-                      });
+                      setPatientsFilters(
+                        buildCaseSearchFilters(e.currentTarget.value, isArchive),
+                      );
                       setReloadPatientsCards((prev) => !prev);
                     }}
                   />
@@ -201,7 +196,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     setChecked={setShowOnlyPatientsWithAlerts}
                     labelText="הצג רק מטופלים עם התראות"
                     afterChange={(isChecked) => {
-                      setPatientsArgs(toPatientsArgs(isChecked, isArchive));
+                      setPatientsArgs(buildPatientsArgs(isChecked, isArchive));
                       setReloadPatientsCards((prev) => !prev);
                     }}
                   />
