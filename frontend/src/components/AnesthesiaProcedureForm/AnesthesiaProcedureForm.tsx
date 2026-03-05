@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import FormInput from "../../utils/FormInput/FormInput";
 import "./AnesthesiaProcedureForm.css";
 import FormCheckbox from "../../utils/FormCheckbox/FormCheckbox";
@@ -9,111 +10,135 @@ import toast from "react-hot-toast";
 import { FaEraser } from "react-icons/fa";
 import FormRadio from "../../utils/FormRadio/FormRadio";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
+import { getSharedResolver } from "../../utils/form";
+import {
+  AnesthesiaProcedureFormDTOSchema,
+  type AnesthesiaProcedureFormDTO,
+  type CreateAnesthesiaProcedureFormDTO,
+} from "@petec/shared";
 
-import { AnesthesiaProcedureFormProps, AnesthesiaProcedureFormData } from "./AnesthesiaProcedureForm.types";
+interface AnesthesiaProcedureFormProps {
+  caseId: string;
+  caseSerialId: string;
+}
 
-function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFormProps) {
-  const CANVAS_WIDTH = 500;
-  const CANVAS_HEIGHT = 200;
+const CANVAS_WIDTH = 500;
+const CANVAS_HEIGHT = 200;
 
-  const [formData, setFormData] = useState<AnesthesiaProcedureFormData>({
-    ownerName: "",
-    name: "",
-    plannedProcedure: "",
-    priceEstimate: 0,
-    date: null,
-    generalComments: null,
-    distortionComments: null,
-    medicationsSensitiveComments: null,
-  });
-  const [isFastSinceMidnight, setIsFastSinceMidnight] = useState<
-    boolean | null
-  >(null);
-  const [isDistortionHistory, setIsDistortionHistory] = useState<
-    boolean | null
-  >(null);
-  const [isMedicationsSensitive, setIsMedicationsSensitive] = useState<
-    boolean | null
-  >(null);
-  const [isNeedToMarkEar, setIsNeedToMarkEar] = useState<boolean | null>(null);
-  const [isSterilization, setIsSterilization] = useState<boolean | null>(null);
-  const [
-    isPriceIncludesReleaseMedications,
-    setIsPriceIncludesReleaseMedications,
-  ] = useState(false);
+type AnesthesiaBooleanFields =
+  | "isFastSinceMidnight"
+  | "isDistortionHistory"
+  | "isMedicationsSensitive"
+  | "isNeedToMarkEar"
+  | "isSterilization";
+
+type AnesthesiaProcedureFormValues = Omit<
+  AnesthesiaProcedureFormDTO,
+  AnesthesiaBooleanFields
+> & {
+  isFastSinceMidnight?: boolean | null;
+  isDistortionHistory?: boolean | null;
+  isMedicationsSensitive?: boolean | null;
+  isNeedToMarkEar?: boolean | null;
+  isSterilization?: boolean | null;
+};
+
+export default function AnesthesiaProcedureForm({ caseId, caseSerialId }: AnesthesiaProcedureFormProps) {
   const signatureRef = useRef<SignatureCanvas>(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [isPriceIncludesReleaseMedications, setIsPriceIncludesReleaseMedications] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AnesthesiaProcedureFormValues>({
+    resolver: getSharedResolver(AnesthesiaProcedureFormDTOSchema),
+    defaultValues: {
+      ownerName: "",
+      name: "",
+      plannedProcedure: "",
+      priceEstimate: 0,
+      date: null,
+      generalComments: null,
+      distortionComments: null,
+      medicationsSensitiveComments: null,
+      isFastSinceMidnight: null,
+      isDistortionHistory: null,
+      isMedicationsSensitive: null,
+      isNeedToMarkEar: null,
+      isSterilization: null,
+    },
+  });
 
-  const saveAnesthesiaProcedureForm = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const saveAnesthesiaProcedureForm = handleSubmit(async (values) => {
     if (!signatureRef.current || signatureRef.current.isEmpty()) {
       toast.error("אנא חתום על המסמך");
       return;
     }
 
-    const requestBody = {
-      name: formData.name,
-      ownerName: formData.ownerName,
-      plannedProcedure: formData.plannedProcedure,
-      priceEstimate: formData.priceEstimate,
-      date: formData.date,
-      isFastSinceMidnight: isFastSinceMidnight,
-      isDistortionHistory: isDistortionHistory,
-      isMedicationsSensitive: isMedicationsSensitive,
-      isNeedToMarkEar: isNeedToMarkEar,
-      isSterilization: isSterilization,
+    const requestBody: CreateAnesthesiaProcedureFormDTO = {
+      name: values.name,
+      ownerName: values.ownerName,
+      plannedProcedure: values.plannedProcedure,
+      priceEstimate: values.priceEstimate,
+      date: values.date ? new Date(values.date) : undefined,
+      isFastSinceMidnight: values.isFastSinceMidnight ?? undefined,
+      isDistortionHistory: values.isDistortionHistory ?? undefined,
+      isMedicationsSensitive: values.isMedicationsSensitive ?? undefined,
+      isNeedToMarkEar: values.isNeedToMarkEar ?? undefined,
+      isSterilization: values.isSterilization ?? undefined,
       isPriceIncludesReleaseMedications: isPriceIncludesReleaseMedications,
-      generalComments: formData.generalComments,
-      distortionComments: formData.distortionComments,
-      medicationsSensitiveComments: formData.medicationsSensitiveComments,
+      generalComments: values.generalComments ?? undefined,
+      distortionComments: values.distortionComments ?? undefined,
+      medicationsSensitiveComments: values.medicationsSensitiveComments ?? undefined,
       caseId: caseId,
       signature: signatureRef.current?.toDataURL(),
     };
 
     try {
-      await patientsApi.upsertAnesthesiaForm(caseId, {
-        ...requestBody,
-        caseId,
-        date: requestBody.date ? new Date(requestBody.date) : undefined,
-      } as Parameters<typeof patientsApi.upsertAnesthesiaForm>[1]);
+      await patientsApi.upsertAnesthesiaForm(caseId, requestBody);
       toast.success("הפרטים נשמרו בהצלחה");
       if (!isEdit) setIsEdit(true);
     } catch {
       toast.error("שגיאה בשמירת הטופס");
     }
-  };
+  }, (formErrors) => {
+    const firstError = Object.values(formErrors)[0];
+    if (firstError?.message) {
+      toast.error(firstError.message.toString());
+    }
+  });
 
-  const getCaseAnesthesiaProcedureForm = async () => {
+  const getCaseAnesthesiaProcedureForm = useCallback(async () => {
     try {
       const data = await patientsApi.getAnesthesiaForm(caseId);
       if (data) {
+        const normalizedDate = data.date
+          ? new Date(data.date).toISOString().split("T")[0]
+          : null;
         setIsEdit(true);
-        setFormData({
+        reset({
           name: data.name ?? "",
           ownerName: data.ownerName ?? "",
           plannedProcedure: data.plannedProcedure ?? "",
           priceEstimate: data.priceEstimate ? Number(data.priceEstimate) : 0,
-          date: data.date ? (data.date as unknown as string) : null,
+          date: normalizedDate,
           generalComments: data.generalComments ?? null,
           distortionComments: data.distortionComments ?? null,
           medicationsSensitiveComments: data.medicationsSensitiveComments ?? null,
+          isFastSinceMidnight: data.isFastSinceMidnight ?? null,
+          isDistortionHistory: data.isDistortionHistory ?? null,
+          isMedicationsSensitive: data.isMedicationsSensitive ?? null,
+          isNeedToMarkEar: data.isNeedToMarkEar ?? null,
+          isSterilization: data.isSterilization ?? null,
         });
-        setIsFastSinceMidnight(data.isFastSinceMidnight ?? null);
-        setIsDistortionHistory(data.isDistortionHistory ?? null);
-        setIsMedicationsSensitive(data.isMedicationsSensitive ?? null);
-        setIsNeedToMarkEar(data.isNeedToMarkEar ?? null);
-        setIsSterilization(data.isSterilization ?? null);
+        
         setIsPriceIncludesReleaseMedications(
           data.isPriceIncludesReleaseMedications ?? false
         );
+
         if (data.signature) {
           signatureRef.current?.fromDataURL(data.signature, {
             width: CANVAS_WIDTH,
@@ -122,16 +147,16 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
         }
       }
     } catch { /* handled by interceptor */ }
-  };
+  }, [caseId, reset]);
 
-  const clearSignature = (e: React.MouseEvent) => {
+  const clearSignature = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     signatureRef.current?.clear();
-  };
+  }, []);
 
   useEffect(() => {
-    getCaseAnesthesiaProcedureForm();
-  }, []);
+    void getCaseAnesthesiaProcedureForm();
+  }, [getCaseAnesthesiaProcedureForm]);
 
   return (
     <div
@@ -140,91 +165,192 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
     >
       <form
         className="save-entity-form save-anesthesia-procedure-form"
-        onSubmit={(e) => saveAnesthesiaProcedureForm(e)}
+        onSubmit={saveAnesthesiaProcedureForm}
+        noValidate
       >
-        <FormInput
-          labelText=":שם בעלים"
+        <Controller
           name="ownerName"
-          isRequired={true}
-          state={formData.ownerName}
-          setState={handleInputChange}
-          minLength={1}
+          control={control}
+          render={({ field }) => (
+            <>
+              <FormInput
+                labelText=":שם בעלים"
+                name={field.name}
+                isRequired={true}
+                state={field.value}
+                setState={field.onChange}
+                minLength={1}
+              />
+              {errors.ownerName && <p className="form-error">{errors.ownerName.message}</p>}
+            </>
+          )}
         />
-        <FormInput
-          labelText=":שם בעל חיים"
+        
+        <Controller
           name="name"
-          isRequired={true}
-          state={formData.name}
-          setState={handleInputChange}
-          minLength={1}
+          control={control}
+          render={({ field }) => (
+            <>
+              <FormInput
+                labelText=":שם בעל חיים"
+                name={field.name}
+                isRequired={true}
+                state={field.value}
+                setState={field.onChange}
+                minLength={1}
+              />
+              {errors.name && <p className="form-error">{errors.name.message}</p>}
+            </>
+          )}
         />
+
         <FormInput
           labelText=":מספר תיק"
           name="caseId"
           disabled={true}
-          state={masterCaseId}
+          state={caseSerialId}
           minLength={1}
         />
-        <FormRadio
-          labelText="?האם בעל החיים היה בצום הכל מחצות"
-          optionValue={isFastSinceMidnight}
-          setOptionValue={setIsFastSinceMidnight}
+
+        <Controller
+          name="isFastSinceMidnight"
+          control={control}
+          render={({ field }) => (
+            <FormRadio
+              labelText="?האם בעל החיים היה בצום הכל מחצות"
+              optionValue={field.value ?? null}
+              setOptionValue={field.onChange}
+            />
+          )}
         />
-        <FormRadio
-          labelText="?האם לבעל החיים היסטוריה של עוויתות"
-          optionValue={isDistortionHistory}
-          setOptionValue={setIsDistortionHistory}
+
+        <Controller
+          name="isDistortionHistory"
+          control={control}
+          render={({ field }) => (
+            <FormRadio
+              labelText="?האם לבעל החיים היסטוריה של עוויתות"
+              optionValue={field.value ?? null}
+              setOptionValue={field.onChange}
+            />
+          )}
         />
-        <FormTextarea
+
+        <Controller
           name="distortionComments"
-          state={formData.distortionComments}
-          setState={handleInputChange}
-          maxLength={300}
+          control={control}
+          render={({ field }) => (
+            <FormTextarea
+              name={field.name}
+              state={field.value ?? ""}
+              setState={field.onChange}
+              maxLength={300}
+            />
+          )}
         />
-        <FormRadio
-          labelText="?האם ידועה רגישות של בעל החיים לתרופות כלשהן"
-          optionValue={isMedicationsSensitive}
-          setOptionValue={setIsMedicationsSensitive}
+
+        <Controller
+          name="isMedicationsSensitive"
+          control={control}
+          render={({ field }) => (
+            <FormRadio
+              labelText="?האם ידועה רגישות של בעל החיים לתרופות כלשהן"
+              optionValue={field.value ?? null}
+              setOptionValue={field.onChange}
+            />
+          )}
         />
-        <FormTextarea
+
+        <Controller
           name="medicationsSensitiveComments"
-          state={formData.medicationsSensitiveComments}
-          setState={handleInputChange}
-          maxLength={300}
+          control={control}
+          render={({ field }) => (
+            <FormTextarea
+              name={field.name}
+              state={field.value ?? ""}
+              setState={field.onChange}
+              maxLength={300}
+            />
+          )}
         />
-        <FormRadio
-          labelText="?חתול לעיקור/חתול לסירוס - האם יש צורך לסמן אוזן"
-          optionValue={isNeedToMarkEar}
-          setOptionValue={setIsNeedToMarkEar}
+
+        <Controller
+          name="isNeedToMarkEar"
+          control={control}
+          render={({ field }) => (
+            <FormRadio
+              labelText="?חתול לעיקור/חתול לסירוס - האם יש צורך לסמן אוזן"
+              optionValue={field.value ?? null}
+              setOptionValue={field.onChange}
+            />
+          )}
         />
-        <FormRadio
-          labelText="במקרה של כלבה - אני מאשר/ת שאינה בייחום"
-          optionValue={isSterilization}
-          setOptionValue={setIsSterilization}
+
+        <Controller
+          name="isSterilization"
+          control={control}
+          render={({ field }) => (
+            <FormRadio
+              labelText="במקרה של כלבה - אני מאשר/ת שאינה בייחום"
+              optionValue={field.value ?? null}
+              setOptionValue={field.onChange}
+            />
+          )}
         />
-        <FormTextarea
-          labelText=":הערות"
+
+        <Controller
           name="generalComments"
-          state={formData.generalComments}
-          setState={handleInputChange}
-          height={"70px"}
-          maxLength={300}
+          control={control}
+          render={({ field }) => (
+            <FormTextarea
+              labelText=":הערות"
+              name={field.name}
+              state={field.value ?? ""}
+              setState={field.onChange}
+              height={"70px"}
+              maxLength={300}
+            />
+          )}
         />
-        <FormInput
-          labelText=":הפרוצדורה המתוכננת"
+
+        <Controller
           name="plannedProcedure"
-          state={formData.plannedProcedure}
-          setState={handleInputChange}
-          minLength={1}
+          control={control}
+          render={({ field }) => (
+            <>
+              <FormInput
+                labelText=":הפרוצדורה המתוכננת"
+                name={field.name}
+                state={field.value}
+                setState={field.onChange}
+                minLength={1}
+              />
+              {errors.plannedProcedure && (
+                <p className="form-error">{errors.plannedProcedure.message}</p>
+              )}
+            </>
+          )}
         />
+
         <div className="anesthesia-procedure-form-price-details">
-          <FormInput
-            type="number"
-            labelText=":הערכת מחיר"
+          <Controller
             name="priceEstimate"
-            state={formData.priceEstimate}
-            setState={handleInputChange}
-            min={0}
+            control={control}
+            render={({ field }) => (
+              <>
+                <FormInput
+                  type="number"
+                  labelText=":הערכת מחיר"
+                  name={field.name}
+                  state={field.value?.toString() ?? ""}
+                  setState={(val: string) => field.onChange(val === "" ? null : Number(val))}
+                  min={0}
+                />
+                {errors.priceEstimate && (
+                  <p className="form-error">{errors.priceEstimate.message}</p>
+                )}
+              </>
+            )}
           />
           <FormCheckbox
             labelText="כולל תרופות לשחרור"
@@ -232,6 +358,7 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
             setChecked={setIsPriceIncludesReleaseMedications}
           />
         </div>
+
         <div className="anesthesia-procedure-form-text">
           <p>
             חומרי הרדמה נחשבים בטוחים, עם זאת תמיד קיים סיכון בהרדמה ובפרוצדרות
@@ -262,9 +389,10 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
             רפואי נוכח בלילה.
           </p>
         </div>
+
         <label className="anesthesia-procedure-signature-label">
           <span>
-            <FaEraser onClick={(e) => clearSignature(e)} />
+            <FaEraser onClick={clearSignature} />
           </span>
           <span>:חתימה</span>
         </label>
@@ -277,12 +405,23 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
             className: "anesthesia-procedure-signature",
           }}
         />
-        <DatePicker
-          labelText=":תאריך"
+
+        <Controller
           name="date"
-          state={formData.date}
-          setState={handleInputChange}
+          control={control}
+          render={({ field }) => (
+            <>
+              <DatePicker
+                labelText=":תאריך"
+                name={field.name}
+                state={field.value ?? ""}
+                setState={field.onChange}
+              />
+              {errors.date && <p className="form-error">{errors.date.message}</p>}
+            </>
+          )}
         />
+        
         <button type="submit" className="btn btn-large save-entity-form-btn">
           שמור
         </button>
@@ -290,5 +429,3 @@ function AnesthesiaProcedureForm({ caseId, masterCaseId }: AnesthesiaProcedureFo
     </div>
   );
 }
-
-export default AnesthesiaProcedureForm;

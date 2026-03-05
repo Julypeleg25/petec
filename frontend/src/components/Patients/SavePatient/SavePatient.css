@@ -280,15 +280,16 @@
 }
 
 .child-case {
-  width: 70px;
-  height: 80px;
+  width: 90px;
+  min-height: 112px;
   border-radius: 10px;
   border: 2px solid var(--color-light-grey);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 0.3em;
+  padding-bottom: 0.4em;
+  gap: 0.2em;
 }
 
 .child-case-disabled:hover {
@@ -302,10 +303,26 @@
 }
 
 .child-case-img {
-  width: 70px;
-  height: 50px;
+  width: 90px;
+  height: 56px;
   object-fit: cover;
   border-radius: 7px 7px 0 0;
+}
+
+.child-case-name {
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 1.1;
+  padding: 0 0.3em;
+}
+
+.child-case-visit-date {
+  width: 100%;
+  text-align: center;
+  font-size: 0.7rem;
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1;
 }
 
 .patient-age-inputs {

@@ -5,8 +5,10 @@ import {
   requestWithRequestAndResponseSchema,
   requestWithRequestSchemaNoContent,
   requestWithSchema,
-} from "../../lib/api-client";
-import { API_ROUTES } from "../../config/api-routes";
+} from "../../lib/apiClient";
+import { API_ROUTES } from "../../config/apiRoutes";
+import { HTTP_METHODS } from "../../lib/http.constants";
+import { PATIENTS_UPLOAD_FILE_FIELD_NAME } from "./patients.constants";
 import {
   NewPatientDTO,
   NewPatientDTOSchema,
@@ -20,6 +22,8 @@ import {
   DeletePatientCaseDTOSchema,
   UploadDocumentDTO,
   UploadDocumentDTOSchema,
+  UploadPatientPhotoResponseDTO,
+  UploadPatientPhotoResponseDTOSchema,
   CreateAnesthesiaProcedureFormDTO,
   CreateAnesthesiaProcedureFormDTOSchema,
   CreatePatientResponseDTO,
@@ -45,7 +49,7 @@ import {
 export const patientsApi = {
   createPatient: (dto: NewPatientDTO): Promise<CreatePatientResponseDTO> =>
     requestWithRequestAndResponseSchema(
-      { method: "post", url: API_ROUTES.patient.create },
+      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.create },
       dto,
       NewPatientDTOSchema,
       CreatePatientResponseDTOSchema,
@@ -53,22 +57,38 @@ export const patientsApi = {
 
   updatePatient: (dto: EditPatientDTO): Promise<void> =>
     requestWithRequestSchemaNoContent(
-      { method: "put", url: API_ROUTES.patient.edit },
+      { method: HTTP_METHODS.PUT, url: API_ROUTES.patient.edit },
       dto,
       EditPatientDTOSchema,
     ),
 
-  getCaseDetails: (caseId: string): Promise<CaseDetailsResponseDTO> => {
-    const params = CaseIdParamsDTOSchema.parse({ caseId });
+  getCaseDetails: (
+    caseId: string,
+    masterCaseId?: string,
+  ): Promise<CaseDetailsResponseDTO> => {
+    const params = CaseIdParamsDTOSchema.parse({
+      caseId,
+      masterCaseId: masterCaseId || undefined,
+    });
+    const url = params.masterCaseId
+      ? API_ROUTES.patient.caseDetailsWithMaster(
+          params.masterCaseId,
+          params.caseId,
+        )
+      : API_ROUTES.patient.caseDetails(params.caseId);
+
     return requestWithSchema(
-      { method: "get", url: API_ROUTES.patient.caseDetails(params.caseId) },
+      {
+        method: HTTP_METHODS.GET,
+        url,
+      },
       CaseDetailsResponseDTOSchema,
     );
   },
 
   releasePatient: (dto: ReleasePatientDTO): Promise<void> =>
     requestWithRequestSchemaNoContent(
-      { method: "post", url: API_ROUTES.patient.release },
+      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.release },
       dto,
       ReleasePatientDTOSchema,
     ),
@@ -76,21 +96,21 @@ export const patientsApi = {
   getReleasePatientData: (caseId: string): Promise<ReleasePatientDataResponseDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: "get", url: API_ROUTES.patient.releaseData(params.caseId) },
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.releaseData(params.caseId) },
       ReleasePatientDataResponseDTOSchema,
     );
   },
 
   archivePatient: (dto: ArchivePatientDTO): Promise<void> =>
     requestWithRequestSchemaNoContent(
-      { method: "put", url: API_ROUTES.patient.archiveCase },
+      { method: HTTP_METHODS.PUT, url: API_ROUTES.patient.archiveCase },
       dto,
       ArchivePatientDTOSchema,
     ),
 
   deleteCase: (dto: DeletePatientCaseDTO): Promise<void> =>
     requestWithRequestSchemaNoContent(
-      { method: "delete", url: API_ROUTES.patient.deleteCase },
+      { method: HTTP_METHODS.DELETE, url: API_ROUTES.patient.deleteCase },
       dto,
       DeletePatientCaseDTOSchema,
     ),
@@ -98,7 +118,7 @@ export const patientsApi = {
   getDocuments: (patientId: string): Promise<PatientDocumentResponseDTO[]> => {
     const params = PatientIdParamsDTOSchema.parse({ patientId });
     return requestWithSchema(
-      { method: "get", url: API_ROUTES.patient.documents(params.patientId) },
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.documents(params.patientId) },
       PatientDocumentListResponseDTOSchema,
     );
   },
@@ -109,21 +129,35 @@ export const patientsApi = {
   ): Promise<PatientDocumentResponseDTO> => {
     UploadDocumentDTOSchema.parse(dto);
     const form = new FormData();
-    form.append("file", file);
+    form.append(PATIENTS_UPLOAD_FILE_FIELD_NAME, file);
     Object.entries(dto).forEach(([k, v]) => {
       if (v !== undefined) form.append(k, String(v));
     });
     return requestFormDataWithResponseSchema(
-      { method: "post", url: API_ROUTES.patient.documentsUpload },
+      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.documentsUpload },
       form,
       PatientDocumentResponseDTOSchema,
+    );
+  },
+
+  uploadPatientPhoto: (
+    patientId: string,
+    file: File,
+  ): Promise<UploadPatientPhotoResponseDTO> => {
+    const params = PatientIdParamsDTOSchema.parse({ patientId });
+    const form = new FormData();
+    form.append(PATIENTS_UPLOAD_FILE_FIELD_NAME, file);
+    return requestFormDataWithResponseSchema(
+      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.photo(params.patientId) },
+      form,
+      UploadPatientPhotoResponseDTOSchema,
     );
   },
 
   deleteDocument: (id: string): Promise<void> => {
     const params = DocumentIdParamsDTOSchema.parse({ documentId: id });
     return requestNoContent({
-      method: "delete",
+      method: HTTP_METHODS.DELETE,
       url: API_ROUTES.patient.documentsDelete(params.documentId),
     });
   },
@@ -131,7 +165,7 @@ export const patientsApi = {
   getAnesthesiaForm: (caseId: string): Promise<CreateAnesthesiaProcedureFormDTO | null> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: "get", url: API_ROUTES.patient.anesthesia(params.caseId) },
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.anesthesia(params.caseId) },
       CreateAnesthesiaProcedureFormDTOSchema.nullable(),
     );
   },
@@ -142,7 +176,7 @@ export const patientsApi = {
   ): Promise<CreateAnesthesiaProcedureFormDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithRequestAndResponseSchema(
-      { method: "post", url: API_ROUTES.patient.anesthesia(params.caseId) },
+      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.anesthesia(params.caseId) },
       dto,
       CreateAnesthesiaProcedureFormDTOSchema,
       CreateAnesthesiaProcedureFormDTOSchema,
@@ -152,22 +186,22 @@ export const patientsApi = {
   getChartsData: (caseId: string): Promise<ChartsDataResponseDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: "get", url: API_ROUTES.patient.chartsData(params.caseId) },
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.chartsData(params.caseId) },
       ChartsDataResponseDTOSchema,
     );
   },
 
   exportCase: (caseId: string): Promise<Blob> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
-    return requestBlob({ method: "get", url: API_ROUTES.patient.exportCase(params.caseId) });
+    return requestBlob({ method: HTTP_METHODS.GET, url: API_ROUTES.patient.exportCase(params.caseId) });
   },
 
   getDailyPlan: (): Promise<DailyPlanDetailDTO[]> =>
-    requestWithSchema({ method: "get", url: API_ROUTES.patient.dailyPlan.get }, DailyPlanDetailListResponseDTOSchema),
+    requestWithSchema({ method: HTTP_METHODS.GET, url: API_ROUTES.patient.dailyPlan.get }, DailyPlanDetailListResponseDTOSchema),
 
   updateDailyPlan: (data: UpdateDailyPlanRequestDTO): Promise<void> =>
     requestNoContent({
-      method: "put",
+      method: HTTP_METHODS.PUT,
       url: API_ROUTES.patient.dailyPlan.update,
       data: UpdateDailyPlanRequestDTOSchema.parse(data),
     }),

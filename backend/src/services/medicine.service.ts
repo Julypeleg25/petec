@@ -1,94 +1,131 @@
 import { systemTypesRepository } from "@repositories/systemTypes.repository";
-import { SYSTEM_TYPE_NAMES } from "@petec/shared";
 import type { MedicineDTO, SimpleSystemTypeDTO } from "@petec/shared";
-import type { MedicineLeanDoc, SimpleTypeLeanDoc, PopulatedRefDoc } from "@services/medicine.service.types";
+import { Types } from "mongoose";
+import type {
+  MedicineLeanDoc,
+  SimpleTypeLeanDoc,
+} from "@app-types/medicine.types";
+import {
+  buildCategoryLookupFilters,
+  matchesCategoryLookupValue,
+  mapMedicineDocToDto,
+  mapSimpleTypeDocToDto,
+  MEDICINE_ACTIVE_FILTER,
+  MEDICINE_SERVICE_TYPES,
+  MEDICINE_SORT,
+  type MedicineCategoryLeanDoc,
+} from "@services/utils/medicine.service.utils";
 
-const MEDICINES = SYSTEM_TYPE_NAMES.MEDICINES;
-const MEDICINE_CATEGORIES = SYSTEM_TYPE_NAMES.MEDICINE_CATEGORIES;
-const DOSAGE_FREQUENCIES = SYSTEM_TYPE_NAMES.DOSAGE_FREQUENCIES;
-const ROUTES_OF_ADMINISTRATION = SYSTEM_TYPE_NAMES.ROUTES_OF_ADMINISTRATION;
-const MEASURE_UNIT_TYPES = SYSTEM_TYPE_NAMES.MEASURE_UNIT_TYPES;
+const resolveCategoryDoc = async (
+  rawCategoryValue: string,
+): Promise<MedicineCategoryLeanDoc | null> => {
+  const normalizedCategoryValue = rawCategoryValue.trim();
+  if (!normalizedCategoryValue) {
+    return null;
+  }
 
-const toId = (val: PopulatedRefDoc | null | undefined): string =>
-  val == null ? "" : typeof val._id === "object" ? val._id.toString() : String(val._id);
+  const categoryModel = systemTypesRepository.getModel(MEDICINE_CATEGORIES);
+  const categoryLookupFilters = buildCategoryLookupFilters(
+    normalizedCategoryValue,
+  );
 
-function toPopulatedRef(val: PopulatedRefDoc | null | undefined): { _id: string; name: string } | undefined {
-  if (val == null) return undefined;
-  const name = val.name;
-  return { _id: toId(val), name: typeof name === "string" ? name : "" };
-}
+  const exactCategory = (await categoryModel
+    .findOne({
+      isDeleted: { $ne: true },
+      $or: categoryLookupFilters,
+    })
+    .lean()
+    .exec()) as MedicineCategoryLeanDoc | null;
 
-const mapMedicineDoc = (doc: MedicineLeanDoc): MedicineDTO => ({
-  id: doc._id != null ? String(doc._id) : "",
-  name: String(doc.name ?? ""),
-  isActive: doc.isActive,
-  legacyId: doc.legacyId ?? undefined,
-  measureUnitId: toPopulatedRef(doc.measureUnitId ?? undefined),
-  rangeMax: doc.rangeMax ?? undefined,
-  rangeMin: doc.rangeMin ?? undefined,
-  totalDose: doc.totalDose ?? undefined,
-  comments: doc.comments ?? undefined,
-  routeOfAdministrationId: toPopulatedRef(doc.routeOfAdministrationId ?? undefined),
-  dosageFrequencyId: toPopulatedRef(doc.dosageFrequencyId ?? undefined),
-  categoryId: toPopulatedRef(doc.categoryId ?? undefined),
-  defaultUnit: doc.defaultUnit ?? undefined,
-});
+  if (exactCategory) {
+    return exactCategory;
+  }
 
-const mapSimpleDoc = (doc: SimpleTypeLeanDoc): SimpleSystemTypeDTO => ({
-  id: doc._id != null ? String(doc._id) : "",
-  name: String(doc.name ?? ""),
-  isActive: doc.isActive,
-  legacyId: doc.legacyId,
-});
+  const categories = (await categoryModel
+    .find({ isDeleted: { $ne: true } })
+    .lean()
+    .exec()) as MedicineCategoryLeanDoc[];
+
+  return (
+    categories.find((category) =>
+      matchesCategoryLookupValue(category, normalizedCategoryValue),
+    ) ?? null
+  );
+};
+
+const MEDICINES = MEDICINE_SERVICE_TYPES.MEDICINES;
+const MEDICINE_CATEGORIES = MEDICINE_SERVICE_TYPES.MEDICINE_CATEGORIES;
+const DOSAGE_FREQUENCIES = MEDICINE_SERVICE_TYPES.DOSAGE_FREQUENCIES;
+const ROUTES_OF_ADMINISTRATION =
+  MEDICINE_SERVICE_TYPES.ROUTES_OF_ADMINISTRATION;
+const MEASURE_UNIT_TYPES = MEDICINE_SERVICE_TYPES.MEASURE_UNIT_TYPES;
 
 export class MedicineService {
   async getAll(): Promise<MedicineDTO[]> {
     const model = systemTypesRepository.getModel(MEDICINES);
     const docs = await model
-      .find({ isActive: true })
+      .find(MEDICINE_ACTIVE_FILTER)
       .populate("categoryId")
       .populate("measureUnitId")
       .populate("dosageFrequencyId")
       .populate("routeOfAdministrationId")
-      .sort({ name: 1 })
+      .sort(MEDICINE_SORT)
       .lean()
       .exec();
-    return (docs as MedicineLeanDoc[]).map(mapMedicineDoc);
+    return (docs as MedicineLeanDoc[]).map(mapMedicineDocToDto);
   }
 
-  async getAllByCategoryType(categoryId: string): Promise<MedicineDTO[]> {
+  async getAllByCategoryType(categoryValue: string): Promise<MedicineDTO[]> {
+    const category = await resolveCategoryDoc(categoryValue);
+
+    if (!category) {
+      return [];
+    }
+
     const model = systemTypesRepository.getModel(MEDICINES);
-    const query = categoryId ? { isActive: true, categoryId } : { isActive: true };
     const docs = await model
-      .find(query)
+      .find({
+        ...MEDICINE_ACTIVE_FILTER,
+        $or: [{ categoryId: category._id }, { category_id: category._id }],
+      })
       .populate("categoryId")
       .populate("measureUnitId")
       .populate("dosageFrequencyId")
       .populate("routeOfAdministrationId")
-      .sort({ name: 1 })
+      .sort(MEDICINE_SORT)
       .lean()
       .exec();
-    return (docs as MedicineLeanDoc[]).map(mapMedicineDoc);
+    return (docs as MedicineLeanDoc[]).map(mapMedicineDocToDto);
   }
 
   async getAllCategoryTypes(): Promise<SimpleSystemTypeDTO[]> {
     const docs = await systemTypesRepository.findActive(MEDICINE_CATEGORIES);
-    return docs.map((d) => mapSimpleDoc(d.toObject() as SimpleTypeLeanDoc));
+    return docs.map((d) =>
+      mapSimpleTypeDocToDto(d.toObject() as SimpleTypeLeanDoc),
+    );
   }
 
   async getMedicinesFrequencies(): Promise<SimpleSystemTypeDTO[]> {
     const docs = await systemTypesRepository.findActive(DOSAGE_FREQUENCIES);
-    return docs.map((d) => mapSimpleDoc(d.toObject() as SimpleTypeLeanDoc));
+    return docs.map((d) =>
+      mapSimpleTypeDocToDto(d.toObject() as SimpleTypeLeanDoc),
+    );
   }
 
   async getMedicinesRoutesForAdministration(): Promise<SimpleSystemTypeDTO[]> {
-    const docs = await systemTypesRepository.findActive(ROUTES_OF_ADMINISTRATION);
-    return docs.map((d) => mapSimpleDoc(d.toObject() as SimpleTypeLeanDoc));
+    const docs = await systemTypesRepository.findActive(
+      ROUTES_OF_ADMINISTRATION,
+    );
+    return docs.map((d) =>
+      mapSimpleTypeDocToDto(d.toObject() as SimpleTypeLeanDoc),
+    );
   }
 
   async getMeasureUnitTypes(): Promise<SimpleSystemTypeDTO[]> {
     const docs = await systemTypesRepository.findActive(MEASURE_UNIT_TYPES);
-    return docs.map((d) => mapSimpleDoc(d.toObject() as SimpleTypeLeanDoc));
+    return docs.map((d) =>
+      mapSimpleTypeDocToDto(d.toObject() as SimpleTypeLeanDoc),
+    );
   }
 }
 

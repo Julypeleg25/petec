@@ -1,8 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "@services/patient.service";
+import { patientUploadService } from "@services/patientUpload.service";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
 import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "@utils/request.utils";
 import { HttpStatus } from "@petec/shared";
+import { PATIENT_EXPORT } from "@constants/patient.constants";
 import type {
   NewPatientDTO,
   EditPatientDTO,
@@ -18,6 +20,7 @@ import {
   CreatePatientResponseDTOSchema,
   CaseDetailsResponseDTOSchema,
   PatientDocumentResponseDTOSchema,
+  UploadPatientPhotoResponseDTOSchema,
   PatientDocumentListResponseDTOSchema,
   ReleasePatientDataResponseDTOSchema,
   ChartsDataResponseDTOSchema,
@@ -50,8 +53,8 @@ export class PatientController {
 
   async getCaseDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
-      const result = await patientService.getCaseDetails(caseId);
+      const { caseId, masterCaseId } = getValidatedParams<CaseIdParamsDTO>(req);
+      const result = await patientService.getCaseDetails(caseId, masterCaseId);
       sendSuccess(res, result, CaseDetailsResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -105,9 +108,11 @@ export class PatientController {
     try {
       const dto = getValidatedBody<UploadDocumentDTO>(req);
       const userId = getAuthenticatedUserId(req);
-      const storageKey = `documents/${Date.now()}`;
-      const fileName = (req.file?.originalname) ?? "document";
-      const result = await patientService.uploadDocumentMetadata(dto, storageKey, fileName, userId);
+      const result = await patientUploadService.uploadDocument({
+        dto,
+        userId,
+        file: req.file,
+      });
       sendCreated(res, result, PatientDocumentResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -190,10 +195,47 @@ export class PatientController {
   async exportCase(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
-      const result = await patientService.exportPatientCase(caseId);
-      res.setHeader("Content-Disposition", `attachment; filename="case-${caseId}.pdf"`);
-      res.setHeader("Content-Type", "application/pdf");
-      res.status(HttpStatus.OK).send(result);
+      const pdfBuffer = await patientService.exportCase(caseId);
+      const fileName = `${PATIENT_EXPORT.FILE_NAME_PREFIX}${caseId}${PATIENT_EXPORT.FILE_NAME_EXTENSION}`;
+      res.setHeader(PATIENT_EXPORT.CONTENT_DISPOSITION_HEADER, `attachment; filename="${fileName}"`);
+      res.setHeader(PATIENT_EXPORT.CONTENT_TYPE_HEADER, PATIENT_EXPORT.PDF_CONTENT_TYPE);
+      res.setHeader(PATIENT_EXPORT.CONTENT_LENGTH_HEADER, pdfBuffer.length);
+      res.status(HttpStatus.OK).end(pdfBuffer);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async uploadPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
+      const userId = getAuthenticatedUserId(req);
+      const photoName = await patientUploadService.uploadPatientPhoto({
+        patientId,
+        userId,
+        file: req.file,
+      });
+      sendSuccess(
+        res,
+        { photoName },
+        UploadPatientPhotoResponseDTOSchema,
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
+      const result = await patientService.getPatientPhotoStream(patientId);
+      res.setHeader("Content-Type", result.contentType);
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.status(HttpStatus.OK);
+      result.stream.once("error", (streamError) => {
+        next(streamError);
+      });
+      result.stream.pipe(res);
     } catch (err) {
       next(err);
     }

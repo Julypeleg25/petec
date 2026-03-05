@@ -1,6 +1,7 @@
+
 export const PATIENTS_CARDS_AMOUNT = 12;
 export const MOBILE_TABLE_BREAKPOINT_PX = 720;
-export const DEFAULT_PATIENT_IMAGE = "assets/images/default-patient-image.jpg";
+export const DEFAULT_PATIENT_IMAGE = "/assets/images/default-patient-image.jpg";
 
 export const PATIENT_TABLE_TYPES = {
   PATIENTS: "patients",
@@ -32,5 +33,6 @@ export const CARD_LAYOUT = {
 } as const;
 
 export const SEARCH_FILTER_KEYS = {
+  SEARCH: "search",
   MASTER_CASE_ID: "masterCaseId",
 } as const;
