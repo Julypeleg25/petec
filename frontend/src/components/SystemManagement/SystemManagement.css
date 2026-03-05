@@ -31,13 +31,6 @@
   height: 95%;
 }
 
-.system-management-system-types-table .form-select {
-  margin-right: 0.5em;
-  margin-top: 0;
-  margin-bottom: 1em;
-  justify-content: flex-end;
-}
-
 .save-entity-form-container {
   width: 90%;
   margin: 1em auto;
@@ -77,13 +70,3 @@
 }
 
 
-.system-management-main .back-btn {
-  float: right;
-  margin: 1em;
-}
-
-.save-system-type-form {
-  width: 95%;
-  margin: 0.8em auto;
-  height: 100%;
-}
