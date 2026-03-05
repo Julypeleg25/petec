@@ -26,7 +26,7 @@ const patientMedicineSchema = new Schema<IPatientMedicine, Model<IPatientMedicin
         notes: { type: String },
         startDate: { type: Date },
         endDate: { type: Date },
-        isActive: { type: Boolean, default: true },
+        isDeleted: { type: Boolean, default: false, index: true },
     },
     {
         timestamps: true,
@@ -34,7 +34,7 @@ const patientMedicineSchema = new Schema<IPatientMedicine, Model<IPatientMedicin
     },
 );
 
-patientMedicineSchema.index({ patientId: 1, isActive: 1 });
+patientMedicineSchema.index({ patientId: 1, isDeleted: 1 });
 
 export const PatientMedicineModel = mongoose.model<IPatientMedicine>(
     "PatientMedicine",
