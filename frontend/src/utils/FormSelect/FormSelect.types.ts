@@ -8,14 +8,14 @@ export interface FormSelectProps {
         value: string;
         text: string;
     }[];
-    getElementsFunc?: () => Promise<[{ value: string; text: string }]>;
+    getElementsFunc?: () => Promise<SelectOptionObj[]>;
     icon?: JSX.Element;
     width?: string;
     optionState?: string;
-    setOptionState?: React.Dispatch<React.SetStateAction<string>>;
+    setOptionState?: (value: string) => void;
     selectId?: string;
     isRequired?: boolean;
-    afterSelect?: (selectedValue: any, setStateParams?: any) => void;
+    afterSelect?: (selectedValue: string, selectedText?: string) => void;
     labelText?: string;
     disabled?: boolean;
     isDescOrder?: boolean;

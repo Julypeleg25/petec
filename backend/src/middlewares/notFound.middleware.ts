@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { NotFoundError } from "@utils/errors";
+import { NotFoundError } from "@constants/error.constants";
 
 export const notFound = (req: Request, res: Response, next: NextFunction): void => {
   void res;
