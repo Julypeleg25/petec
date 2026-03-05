@@ -1,16 +1,16 @@
 import express from "express";
-import helmet from "helmet";
-import cors from "cors";
 import cookieParser from "cookie-parser";
-
-import { ENV } from "@config/config";
-import { ROUTES, JSON_BODY_LIMIT, HealthResponseDTOSchema } from "@petec/shared";
-import { requestId } from "@middlewares/requestId";
-import { requestLogger } from "@middlewares/requestLogger";
-import { errorHandler } from "@middlewares/errorsHandler";
+import {
+  ROUTES,
+  JSON_BODY_LIMIT,
+  URL_ENCODED_BODY_LIMIT,
+  HttpStatus,
+} from "@petec/shared";
+import { requestIdMiddleware } from "@middlewares/requestId";
+import { requestLoggerMiddleware } from "@middlewares/requestLogger.middleware";
+import { applyAppSecurity } from "@middlewares/security";
+import { errorHandler } from "@middlewares/error.middleware";
 import { notFound } from "@middlewares/notFound.middleware";
-import { sendSuccess } from "@utils/apiResponse";
-
 import authRoutes from "@routes/auth.routes";
 import patientRoutes from "@routes/patient.routes";
 import adminRoutes from "@routes/admin.routes";
@@ -20,24 +20,16 @@ import medicineRoutes from "@routes/medicine.routes";
 
 const app = express();
 
-app.use(requestId);
-app.use(requestLogger);
-
-app.use(helmet());
-
-app.use(cors({
-  origin: ENV.frontendUrl,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(requestIdMiddleware);
+app.use(requestLoggerMiddleware);
+applyAppSecurity(app);
 
 app.use(cookieParser());
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: URL_ENCODED_BODY_LIMIT }));
 
 app.get(ROUTES.HEALTH, (_req, res) => {
-  sendSuccess(res, { status: "healthy" }, HealthResponseDTOSchema);
+    res.status(HttpStatus.OK).json({ success: true, data: { status: "healthy" } });
 });
 
 app.use(ROUTES.AUTH, authRoutes);
@@ -51,3 +43,4 @@ app.use(notFound);
 app.use(errorHandler);
 
 export default app;
+

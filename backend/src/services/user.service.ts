@@ -1,33 +1,28 @@
 import { userRepository } from "@repositories/user.repository";
-import { Role, UserStatus } from "@petec/shared";
-import type { UpdateUserDTO, UserResponseDTO } from "@petec/shared";
-import type { UserDocument } from "@models/User";
+import { auditRepository } from "@repositories/audit.repository";
+import { logger } from "@config/logger";
+import { NotFoundError } from "@constants/error.constants";
+import { type UpdateUserDTO, type UserResponseDTO, type UserRowDTO, type StaffMemberDTO, roles } from "@petec/shared";
+import { mapUserToResponse, mapUserToRow, mapUserToStaffMember } from "@mappers/user/user.mappers";
 
-const mapUserToResponse = (user: UserDocument): UserResponseDTO => ({
-    id: user._id.toString(),
-    email: user.email,
-    role: user.role,
-    privileges: user.privileges,
-    status: user.status,
-    lastLogin: user.lastLogin?.toISOString(),
-    createdAt: user.createdAt?.toISOString(),
-    updatedAt: user.updatedAt?.toISOString(),
-});
+const ENTITY_TYPE = "User";
+const AUDIT_SUBJECT = "User Management";
+const MODULE = "user";
 
 export class UserService {
-    async getAllUsers(): Promise<UserResponseDTO[]> {
-        const users = await userRepository.findMany({}, { sort: { email: 1 } });
-        return users.map(mapUserToResponse);
+    async getAllUsers(): Promise<UserRowDTO[]> {
+        const users = await userRepository.findMany({ isDeleted: { $ne: true } }, { sort: { email: 1 } });
+        return users.map(mapUserToRow);
     };
 
-    async getDoctors(): Promise<UserResponseDTO[]> {
-        const users = await userRepository.findByRole(Role.DOCTOR);
-        return users.map(mapUserToResponse);
+    async getDoctors(): Promise<StaffMemberDTO[]> {
+        const users = await userRepository.findByRole(roles.DOCTOR);
+        return users.map(mapUserToStaffMember);
     };
 
-    async getNurses(): Promise<UserResponseDTO[]> {
-        const users = await userRepository.findByRole(Role.ASSISTANT);
-        return users.map(mapUserToResponse);
+    async getNurses(): Promise<StaffMemberDTO[]> {
+        const users = await userRepository.findByRole(roles.ASSISTANT);
+        return users.map(mapUserToStaffMember);
     };
 
     async getUserById(userId: string): Promise<UserResponseDTO | null> {
@@ -37,11 +32,21 @@ export class UserService {
 
     async updateUser(userId: string, data: UpdateUserDTO): Promise<UserResponseDTO | null> {
         const user = await userRepository.updateById(userId, { $set: data });
-        return user ? mapUserToResponse(user) : null;
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+        await auditRepository.log(AUDIT_SUBJECT, `User updated: ${user.email}`, ENTITY_TYPE, userId, userId);
+        logger.info("User updated", { module: MODULE, user_id: userId });
+        return mapUserToResponse(user);
     };
 
     async deleteUser(userId: string): Promise<void> {
-        await userRepository.updateById(userId, { $set: { status: UserStatus.INACTIVE } });
+        const user = await userRepository.updateById(userId, { $set: { isDeleted: true } });
+        if (!user) {
+            throw new NotFoundError("User not found");
+        }
+        await auditRepository.log(AUDIT_SUBJECT, `User deleted: ${user.email}`, ENTITY_TYPE, userId, userId);
+        logger.info("User deleted", { module: MODULE, user_id: userId });
     };
 }
 

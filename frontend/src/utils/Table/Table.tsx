@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./Table.css";
 import MyLoader from "../MyLoader/MyLoader";
 
@@ -20,15 +20,25 @@ function Table<T extends object>({
   const tableHeaderRef = useRef(null);
 
   const [selectedRow, setSelectedRow] = useState<T>();
+  const visibleBtns = btns?.filter((btn) => btn.hide !== true);
 
   const isHasData =
     data && data.length !== 0 && Object.keys(data[0]).length !== 0;
+
+  useEffect(() => {
+    setSelectedRow(undefined);
+    if (!tableBodyRef.current) return;
+
+    const rows = (tableBodyRef.current as HTMLTableSectionElement).getElementsByTagName("tr");
+    for (let i = 0; i < rows.length; i++) {
+      rows[i].classList.remove("highlighted-table-row");
+    }
+  }, [data]);
 
   const highlightRowAndActivateBtns = (e: React.MouseEvent, row: T) => {
     if (!tableBodyRef.current || !tableSectionContainerRef.current) return;
     const rows = (tableBodyRef.current as HTMLTableSectionElement).getElementsByTagName("tr");
     const selectedRow = e.currentTarget;
-
 
     for (let i = 0; i < rows.length; i++) {
       const tableRow = rows[i];
@@ -37,19 +47,15 @@ function Table<T extends object>({
       else tableRow.classList.remove("highlighted-table-row");
     }
 
-
-    if (btns !== undefined) {
-      let tableBtns = tableSectionContainerRef.current.querySelectorAll<HTMLButtonElement>(
+    if (btns) {
+      const tableBtns = tableSectionContainerRef.current.querySelectorAll<HTMLButtonElement>(
         ".table-btn, .table-btn-no-style"
       );
 
-      for (let i = 0; i < btns.length; i++) {
-        if (btns[i].hide !== undefined && btns[i].hide) btns.splice(i, 1);
-      }
-
       for (let i = 0; i < tableBtns.length; i++) {
-        if (btns[i].activate) {
-          if (btns[i].activate(row)) {
+        const activateFn = visibleBtns?.[i]?.activate;
+        if (activateFn) {
+          if (activateFn(row)) {
             tableBtns[i].disabled = false;
             tableBtns[i].classList.add("btn-active");
           } else {
@@ -63,49 +69,56 @@ function Table<T extends object>({
     setSelectedRow(row);
   };
 
-  const getCellTitle = (cell: any) => {
-    while (cell?.props?.children) {
-      cell = cell.props.children;
+  const getCellTitle = (cell: React.ReactNode | object): React.ReactNode => {
+    let currentCell = cell;
+    while (currentCell && typeof currentCell === "object" && "props" in currentCell && currentCell.props && typeof currentCell.props === "object" && "children" in currentCell.props) {
+      currentCell = (currentCell.props as { children: React.ReactNode }).children;
     }
 
-    return cell;
+    return currentCell as React.ReactNode;
   };
 
   return (
     <div className="mtc-table-section-container" ref={tableSectionContainerRef}>
       {btns && (
         <div className="table-btn-container">
-          {btns?.map((btn: any, i: number) => {
+          {visibleBtns?.map((btn, i: number) => {
             const {
               btnClassName,
               btnText,
               btnId,
               onClick,
-              hide,
               customBtn,
               activate,
               extraBtnStyle,
               title,
             } = btn;
             const isDisabled = activate !== undefined;
-            if (hide !== undefined && hide) {
-              return <div key={i} style={{ display: "none" }}></div>;
-            } else if (customBtn !== undefined) {
+            if (customBtn) {
               return <React.Fragment key={i}>{customBtn}</React.Fragment>;
             } else {
               return (
                 <button
                   key={i}
-                  id={btnId !== undefined && btnId}
+                  id={btnId || undefined}
                   className={btnClassName}
                   disabled={
                     isDisabled && selectedRow === undefined
                       ? isDisabled
                       : activate === undefined
                       ? false
-                      : !activate(selectedRow)
+                      : !activate(selectedRow!)
                   }
-                  onClick={() => onClick(selectedRow as T)}
+                  onClick={() => {
+                    if (selectedRow !== undefined) {
+                      onClick(selectedRow);
+                      return;
+                    }
+                    // Allow global actions (e.g. "create") without row selection.
+                    if (activate === undefined) {
+                      onClick({} as T);
+                    }
+                  }}
                   style={extraBtnStyle === undefined ? {} : extraBtnStyle}
                   title={title || ""}
                 >
@@ -130,7 +143,7 @@ function Table<T extends object>({
         >
           <thead ref={tableHeaderRef}>
             <tr>
-              {columns.map((column: any, index: number) => {
+              {columns.map((column, index: number) => {
                 const { name, minWidth } = column;
                 return (
                   <th
@@ -151,7 +164,7 @@ function Table<T extends object>({
             <div className="mtc-no-data-container">אין מידע זמין</div>
           ) : (
             <tbody ref={tableBodyRef}>
-              {data?.map((row: any, index: number) => (
+              {data?.map((row, index: number) => (
                 <tr
                   key={index}
                   onClick={(e) => {
@@ -164,20 +177,20 @@ function Table<T extends object>({
                   className="mtc-table-body-table-row"
                   role="row"
                 >
-                  {Object.keys(row).map((key, index) => {
+                  {Object.keys(row).map((_key, index) => {
                     if (index >= columns.length) {
                       return <React.Fragment key={index} />;
                     } else {
                       const val = getCellTitle(
                         !columns[index]?.cell
-                          ? columns[index]?.selector(row)
-                          : columns[index]?.cell(row)
+                          ? columns[index]?.selector?.(row)
+                          : columns[index]?.cell?.(row)
                       );
                       return (
                         <td
                           key={index}
                           className="mtc-table-cell"
-                          title={val}
+                          title={typeof val === "string" ? val : ""}
                           style={{
                             textAlign: columns[index]?.center
                               ? "center"

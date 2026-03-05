@@ -2,8 +2,9 @@ import type { HydratedDocument, Types } from "mongoose";
 
 export interface IBaseLookup {
   _id: Types.ObjectId;
+  serialId?: string;
   name: string;
-  isActive: boolean;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

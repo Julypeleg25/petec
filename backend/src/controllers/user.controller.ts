@@ -4,7 +4,7 @@ import { sendSuccess } from "@utils/apiResponse";
 import { StaffMemberListResponseDTOSchema } from "@petec/shared";
 
 export class UserController {
-    async getDoctors(req: Request, res: Response, next: NextFunction): Promise<void> {
+    async getDoctors(_req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const result = await userService.getDoctors();
             sendSuccess(res, result, StaffMemberListResponseDTOSchema);
@@ -13,7 +13,7 @@ export class UserController {
         }
     };
 
-    async getNurses(req: Request, res: Response, next: NextFunction): Promise<void> {
+    async getNurses(_req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const result = await userService.getNurses();
             sendSuccess(res, result, StaffMemberListResponseDTOSchema);

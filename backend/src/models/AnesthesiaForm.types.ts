@@ -2,7 +2,7 @@ import type { HydratedDocument, Types } from "mongoose";
 
 export interface IAnesthesiaForm {
   _id: Types.ObjectId;
-  caseId: Types.ObjectId;
+  caseId: string;
   ownerName?: string;
   name?: string;
   date?: Date;
