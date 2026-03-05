@@ -1,15 +1,16 @@
 .Pagination {
-  height: var(--table-pagination-height);
-  width: max-content;
-  margin: 0 auto;
+  min-height: var(--table-pagination-height);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   color: black;
   display: flex;
   display: -webkit-flex; /* Safari */
   align-items: center;
-  flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
-  justify-content: center;
+  justify-content: space-between;
+  gap: 0.75em;
   margin-top: 0.5em;
+  padding: 0 0.5em;
 }
 
 .pagination-disabled button,
@@ -36,11 +37,15 @@
   display: flex;
   display: -webkit-flex; /* Safari */
   align-items: center;
+  gap: 0.2em;
+  flex-wrap: nowrap;
 }
 
 .pagination-pages-numbers {
   text-align: right;
-  padding-right: 0.5em;
+  color: rgb(92, 92, 92);
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .pagination-btn:hover {
@@ -62,26 +67,46 @@
 .pagination-current-page {
   margin: 0 0.5em;
   font-size: 1rem;
-  padding-bottom: 0.05em;
   font-weight: 500;
   color: rgb(92, 92, 92);
 }
 
+.pagination-current-page-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
 .search-page-input {
-  width: 40px;
-  height: 25px;
+  width: 52px;
+  height: 28px;
   text-align: center;
-  margin-right: 0.4em;
+  border: 1px solid rgb(206, 206, 206);
+  border-radius: 6px;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 @media screen and (max-width: 600px) {
   .Pagination {
-    width: 380px;
-    min-width: 380px;
+    justify-content: center;
+    padding: 0.35em 0.5em;
   }
+
+  .pagination-btn-container {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 0.4em;
+  }
+
   .pagination-pages-numbers {
-    order: 2;
+    width: 100%;
+    order: 3;
     text-align: center;
-    width: 170px;
+  }
+
+  .pagination-current-page {
+    margin: 0 0.2em;
   }
 }

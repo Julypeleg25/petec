@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FormSelect from "../../utils/FormSelect/FormSelect";
 import "./SelectOptionsPicker.css";
-import { apiClient } from "../../lib/api-client";
+import { requestWithSchema } from "../../lib/apiClient";
 import toast from "react-hot-toast";
 import { FaPlus, FaTrash } from "react-icons/fa";
+import { SimpleSystemTypeListResponseDTOSchema } from "@petec/shared";
 
-import { SelectOptionsPickerOptionObj, SystemTypeItem, SelectOptionsPickerProps } from "./SelectOptionsPicker.types";
+import { SelectOptionsPickerOptionObj } from "./SelectOptionsPicker.types";
+
+interface SelectOptionsPickerProps {
+  optionsList: SelectOptionsPickerOptionObj[];
+  afterConfirmation?: (selectedOptions: SelectOptionsPickerOptionObj[]) => void;
+  selectedOptionsList?: SelectOptionsPickerOptionObj[];
+  setStateSelectedOptions?: React.Dispatch<
+    React.SetStateAction<SelectOptionsPickerOptionObj[]>
+  >;
+  selectOptionsUrl: string;
+  isEdit?: boolean;
+}
 
 function SelectOptionsPicker({
   optionsList,
@@ -16,23 +28,26 @@ function SelectOptionsPicker({
   isEdit = true,
 }: SelectOptionsPickerProps) {
   const [selectOptions, setSelectOptions] =
-    useState<SelectOptionsPickerOptionObj[]>();
+    useState<SelectOptionsPickerOptionObj[]>(optionsList);
   const [selectedOptions, setSelectedOptions] =
     useState<SelectOptionsPickerOptionObj[]>(selectedOptionsList);
 
-  const getSelectOptions = async () => {
+  const getSelectOptions = useCallback(async () => {
     try {
-      const res = await apiClient.get<SystemTypeItem[]>(selectOptionsUrl);
+      const options = await requestWithSchema(
+        { method: "get", url: selectOptionsUrl },
+        SimpleSystemTypeListResponseDTOSchema,
+      );
       setSelectOptions(
-        res.data.map((option) => ({
+        options.map((option) => ({
           value: option.id,
           text: option.name,
         }))
       );
     } catch { /* handled by interceptor */ }
-  };
+  }, [selectOptionsUrl]);
 
-  const addOption = (e: React.FormEvent) => {
+  const addOption = useCallback((e: React.FormEvent) => {
     e.preventDefault();
 
     const optionsSelect = document.getElementById(
@@ -47,40 +62,58 @@ function SelectOptionsPicker({
       return;
     }
 
-    let isExist = false;
-    selectedOptions.forEach((option) => {
-      if (option.value.toString() === optionId) isExist = true;
-    });
-
-    if (isExist) {
-      toast.error("האפשרות כבר קיימת ברשימה");
-      return;
-    }
-
-    const options = [
-      ...selectedOptions,
-      {
-        value: optionId,
-        text: optionName,
-      },
-    ];
-
     const sortFn = (a: SelectOptionsPickerOptionObj, b: SelectOptionsPickerOptionObj) =>
       a.text.localeCompare(b.text);
+    setSelectedOptions((prevOptions) => {
+      const isExist = prevOptions.some(
+        (option) => option.value.toString() === optionId,
+      );
+      if (isExist) {
+        toast.error("האפשרות כבר קיימת ברשימה");
+        return prevOptions;
+      }
 
-    setSelectedOptions(options.sort(sortFn));
-    if (setStateSelectedOptions) setStateSelectedOptions(options.sort(sortFn));
-  };
+      const nextOptions = [
+        ...prevOptions,
+        {
+          value: optionId,
+          text: optionName,
+        },
+      ].sort(sortFn);
 
-  const deleteOption = (index: number) => {
-    const filteredOptions = selectedOptions.filter((_, i) => i !== index);
-    setSelectedOptions(filteredOptions);
-    if (setStateSelectedOptions) setStateSelectedOptions(filteredOptions);
-  };
+      if (setStateSelectedOptions) {
+        setStateSelectedOptions(nextOptions);
+      }
+
+      return nextOptions;
+    });
+  }, [setStateSelectedOptions]);
+
+  const deleteOption = useCallback((index: number) => {
+    setSelectedOptions((prevOptions) => {
+      const filteredOptions = prevOptions.filter((_, i) => i !== index);
+      if (setStateSelectedOptions) {
+        setStateSelectedOptions(filteredOptions);
+      }
+      return filteredOptions;
+    });
+  }, [setStateSelectedOptions]);
+
+  const optionsToDisplay = useMemo(
+    () =>
+      !isEdit && selectedOptionsList !== undefined
+        ? selectedOptionsList
+        : selectedOptions,
+    [isEdit, selectedOptions, selectedOptionsList],
+  );
 
   useEffect(() => {
-    getSelectOptions();
-  }, []);
+    setSelectOptions(optionsList);
+  }, [optionsList]);
+
+  useEffect(() => {
+    void getSelectOptions();
+  }, [getSelectOptions]);
 
   return (
     <div className="SelectOptionsPicker">
@@ -99,16 +132,10 @@ function SelectOptionsPicker({
           </button>
         </div>
       )}
-      {(!isEdit && selectedOptionsList !== undefined
-        ? selectedOptionsList
-        : selectedOptions
-      ).length > 0 && (
+      {optionsToDisplay.length > 0 && (
         <div className="option-picker-selected-options">
           <label className="form-label">האפשרויות שנבחרו:</label>
-          {(!isEdit && selectedOptionsList !== undefined
-            ? selectedOptionsList
-            : selectedOptions
-          ).map((option, index) => {
+          {optionsToDisplay.map((option, index) => {
             return (
               <div key={index} className="option-picker-selected-options-cell">
                 {isEdit && (
