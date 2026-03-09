@@ -1,43 +1,39 @@
-import type { AllowedTableName, PaginatedResponse, SortOrder } from "@petec/shared";
+import type {
+  AllowedTableName,
+  PaginatedResponse,
+  SortOrder,
+} from "@petec/shared";
 import { TABLE_ALLOW_LIST } from "@petec/shared";
-import { BadRequestError } from "@utils/errors";
-import { TABLE_HANDLERS } from "@mappers/table.mappers";
-import type { MongoFilter } from "@utils/types";
+import type { MongoFilter } from "@app-types/global.types";
+import { TABLE_HANDLERS } from "@mappers/table/table.mappers";
+import type { TableRow } from "@mappers/table/table.mappers.types";
+import {
+  buildPaginatedTableResponse,
+  ensureAllowedTableName,
+  resolveTableHandler,
+} from "@mappers/table/table.service.mappers";
 
 const ALLOWED_TABLE_NAMES = new Set<AllowedTableName>(TABLE_ALLOW_LIST);
 
 export class TableService {
-    async getTableData<T extends Record<string, string | number | boolean | null> = Record<string, string | number | boolean | null>>(
-        tableName: AllowedTableName,
-        filters: MongoFilter,
-        page: number,
-        limit: number,
-        sortBy: string,
-        sortOrder: SortOrder,
-    ): Promise<PaginatedResponse<T>> {
-        if (!ALLOWED_TABLE_NAMES.has(tableName)) {
-            throw new BadRequestError(`Table "${tableName}" is not allowed`);
-        }
+  async getTableData(
+    tableName: AllowedTableName,
+    filters: MongoFilter,
+    page: number,
+    limit: number,
+    sortBy: string,
+    sortOrder: SortOrder,
+  ): Promise<PaginatedResponse<TableRow>> {
+    ensureAllowedTableName(tableName, ALLOWED_TABLE_NAMES);
+    const handler = resolveTableHandler(tableName, TABLE_HANDLERS);
 
-        const handler = TABLE_HANDLERS[tableName];
+    const [items, total] = await Promise.all([
+      handler.find(filters, { page, limit, sortBy, sortOrder }),
+      handler.count(filters),
+    ]);
 
-        if (!handler) {
-            throw new BadRequestError(`Table "${tableName}" handler not found`);
-        }
-
-        const [items, total] = await Promise.all([
-            handler.find(filters, { page, limit, sortBy, sortOrder }),
-            handler.count(filters),
-        ]);
-
-        return {
-            items: items as T[],
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
-        };
-    };
+    return buildPaginatedTableResponse(items, total, page, limit);
+  }
 }
 
 export const tableService = new TableService();

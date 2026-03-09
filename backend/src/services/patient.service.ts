@@ -5,85 +5,170 @@ import { anesthesiaFormRepository } from "@repositories/anesthesiaForm.repositor
 import { documentRepository } from "@repositories/document.repository";
 import { patientMedicineRepository } from "@repositories/patientMedicine.repository";
 import { auditRepository } from "@repositories/audit.repository";
-import { NotFoundError, BadRequestError } from "@utils/errors";
+import { storageService } from "@services/storage.service";
+import { caseGridService } from "@services/caseGrid.service";
+import { logger } from "@config/logger";
+import { NotFoundError, BadRequestError } from "@constants/error.constants";
+import {
+  toAnesthesiaFormDTO,
+  toCaseDetailsResponseDTO,
+  withMasterCaseDetails,
+  toPatientDocumentResponseDTO,
+  toReleasePatientDataResponseDTO,
+} from "@mappers/patient/patient.response.mappers";
+import {
+  isPhotoStorageKey,
+  mapCaseToChartsDataResponse,
+  mapCaseToDailyPlanDetail,
+  mapRelatedCasesToMasterCaseDetails,
+  toPhotoContentType,
+} from "@mappers/patient/patient.service.mappers";
+import {
+  getCaseSerialPrefix,
+  type NewPatientDTO,
+  type EditPatientDTO,
+  type ReleasePatientDTO,
+  type UploadDocumentDTO,
+  type CreatePatientResponseDTO,
+  type PatientDocumentResponseDTO,
+  type ChartsDataResponseDTO,
+  type DailyPlanDetailDTO,
+  type UpdateDailyPlanRequestDTO,
+  type CreateAnesthesiaProcedureFormDTO,
+  type CaseDetailsResponseDTO,
+  type ReleasePatientDataResponseDTO,
+} from "@petec/shared";
+import type { ICase, CaseDocument } from "@models/Case";
+import type { ReadStream } from "node:fs";
+
+import { toObjectId } from "@utils/objectId.utils";
+import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
 import {
   mapNewPatientDtoToPatientData,
-  mapNewPatientDtoToCaseData,
   mapEditDtoToPatientUpdate,
+} from "@mappers/patient/patient.patient-data.mappers";
+import {
   mapEditDtoToCaseUpdate,
+  mapNewPatientDtoToCaseData,
+} from "@mappers/patient/patient.case-data.mappers";
+import { mapGridDtoToRows } from "@mappers/patient/patient.case-grid.request.mappers";
+import {
   mapReleaseMedicineToData,
   mapUploadDocumentToData,
-} from "@mappers/patient.mappers";
+} from "@mappers/patient/patient.release-document.mappers";
 import type {
-  NewPatientDTO,
-  EditPatientDTO,
-  ReleasePatientDTO,
-  UploadDocumentDTO,
-  CreatePatientResponseDTO,
-  PatientDocumentResponseDTO,
-  ChartsDataResponseDTO,
-  DailyPlanDetailDTO,
-  UpdateDailyPlanRequestDTO,
-  CreateAnesthesiaProcedureFormDTO,
-} from "@petec/shared";
-import type { ICase } from "@models/Case";
-import type { IAnesthesiaForm } from "@models/AnesthesiaForm";
-import type { IPatientDocument } from "@models/PatientDocument";
-import type { IPatientMedicine } from "@models/PatientMedicine";
-import { ObjectId, Types } from "mongoose";
-import { toObjectId } from "@utils/objectId.utils";
+  AnesthesiaFormUpsertData,
+  CaseWithPopulatedPatient,
+  MedWithPopulatedName,
+} from "@app-types/patient.types";
+import {
+  ensureDedicatedPatientForCase,
+  getCaseByIdOrThrow,
+  getCaseByIdPopulatedOrThrow,
+  getCaseBySerialIdOrThrow,
+  resolveMasterCaseBySerialPrefix,
+} from "@services/utils/patient.service.utils";
 
+const MODULE = "patient";
 const ENTITY_TYPE_PATIENT = "Patient";
 const ENTITY_TYPE_CASE = "Case";
 const AUDIT_SUBJECT_PATIENT = "Patient Management";
 
 export class PatientService {
-  async createPatientAndCase(dto: NewPatientDTO, userId: string): Promise<CreatePatientResponseDTO> {
-    const patientData = mapNewPatientDtoToPatientData(dto);
-    const patient = await patientRepository.create(patientData);
+  async createPatientAndCase(
+    dto: NewPatientDTO,
+    userId: string,
+  ): Promise<CreatePatientResponseDTO> {
+    const existingCaseBySerial = await caseRepository.findBySerialId(dto.caseId);
+    if (existingCaseBySerial) {
+      throw new BadRequestError("Case with this serial id already exists");
+    }
 
-    const masterCase = await masterCaseRepository.create({
-      patientId: patient._id,
-      caseIds: [],
-    });
+    let patientIdForCase: ICase["patientId"];
+    let masterCaseIdForCase: NonNullable<ICase["masterCaseId"]>;
 
-    const caseData = mapNewPatientDtoToCaseData(dto, patient._id, masterCase._id, userId);
+    const existingMasterCaseId = await resolveMasterCaseBySerialPrefix(
+      dto.caseId,
+    );
+    if (existingMasterCaseId) {
+      const patientData = mapNewPatientDtoToPatientData(dto);
+      const patient = await patientRepository.create(patientData);
+
+      patientIdForCase = patient._id;
+      masterCaseIdForCase = existingMasterCaseId;
+    } else {
+      const patientData = mapNewPatientDtoToPatientData(dto);
+      const patient = await patientRepository.create(patientData);
+
+      const masterCase = await masterCaseRepository.create({
+        caseIds: [],
+      });
+
+      patientIdForCase = patient._id;
+      masterCaseIdForCase = masterCase._id;
+    }
+
+    const caseData = mapNewPatientDtoToCaseData(
+      dto,
+      patientIdForCase,
+      masterCaseIdForCase,
+      userId,
+    );
     const newCase = await caseRepository.create(caseData);
-    await masterCaseRepository.addCaseId(masterCase._id, newCase._id);
+    if (existingMasterCaseId) {
+      await masterCaseRepository.addCaseId(masterCaseIdForCase, newCase._id);
+    } else {
+      await masterCaseRepository.updateById(masterCaseIdForCase, {
+        $set: { caseIds: [newCase._id] },
+      });
+    }
 
     await auditRepository.log(
       AUDIT_SUBJECT_PATIENT,
-      `Patient created: ${dto.name}`,
+      `Patient case created: ${dto.name}`,
       ENTITY_TYPE_PATIENT,
-      patient._id.toString(),
+      patientIdForCase.toString(),
       userId,
     );
 
+    logger.info("Patient and case created", {
+      module: MODULE,
+      patient_id: patientIdForCase.toString(),
+      case_id: newCase._id.toString(),
+      case_serial_id: dto.caseId,
+      master_case_id: masterCaseIdForCase.toString(),
+    });
+
     return {
-      patientId: patient._id.toString(),
+      patientId: patientIdForCase.toString(),
       caseId: newCase._id.toString(),
-      masterCaseId: masterCase._id.toString(),
+      masterCaseId: masterCaseIdForCase.toString(),
     };
-  };
+  }
 
   async editPatientAndCase(dto: EditPatientDTO, userId: string): Promise<void> {
-    const patient = await patientRepository.findById(dto.patientId);
-    if (!patient) {
-      throw new NotFoundError("Patient not found");
-    }
-
-    const existingCase = await caseRepository.findById(dto.caseId);
-    if (!existingCase) {
-      throw new NotFoundError("Case not found");
-    }
+    const existingCase = await getCaseBySerialIdOrThrow(dto.caseId);
 
     if (existingCase.isArchived) {
       throw new BadRequestError("Cannot edit an archived case");
     }
 
+    const patientIdForCase = await ensureDedicatedPatientForCase(
+      existingCase,
+    );
+    const patient = await patientRepository.findById(patientIdForCase);
+    if (!patient) {
+      throw new NotFoundError("Patient not found");
+    }
+
     const patientUpdate = mapEditDtoToPatientUpdate(dto);
     if (Object.keys(patientUpdate).length > 0) {
       await patientRepository.updateById(patient._id, { $set: patientUpdate });
+    }
+
+    if (dto.caseDetails && dto.caseDetails.length > 0) {
+      const gridRows = mapGridDtoToRows(dto.caseDetails);
+      await caseGridService.saveGrid(existingCase.serialId, gridRows);
     }
 
     const caseUpdate = mapEditDtoToCaseUpdate(dto, existingCase);
@@ -98,35 +183,85 @@ export class PatientService {
       existingCase._id.toString(),
       userId,
     );
-  };
 
-  async getCaseDetails(caseId: string): Promise<ICase> {
-    const caseDoc = await caseRepository.findByIdPopulated(caseId);
-    if (!caseDoc) {
-      throw new NotFoundError("Case not found");
+    logger.info("Patient and case edited", {
+      module: MODULE,
+      patient_id: patient._id.toString(),
+      case_serial_id: dto.caseId,
+    });
+  }
+
+  async getCaseDetails(
+    caseId: string,
+    _masterCaseId?: string,
+  ): Promise<CaseDetailsResponseDTO> {
+    const caseDocForIsolation = await getCaseByIdOrThrow(caseId);
+    await ensureDedicatedPatientForCase(caseDocForIsolation);
+    const caseDoc = await getCaseByIdPopulatedOrThrow(caseId);
+
+    const caseDetailsResponse = toCaseDetailsResponseDTO(
+      caseDoc.toObject() as CaseWithPopulatedPatient,
+    );
+    const resolvedMasterCaseId = caseDoc.masterCaseId?.toString();
+    let relatedCases: CaseDocument[];
+
+    if (resolvedMasterCaseId) {
+      relatedCases = await caseRepository.findMany(
+        { masterCaseId: resolvedMasterCaseId, isDeleted: false },
+        { sort: { createdAt: -1 }, populate: "patientId" },
+      );
+    } else {
+      const serialPrefix = getCaseSerialPrefix(caseDoc.serialId);
+      relatedCases = serialPrefix
+        ? await caseRepository.findMany(
+          {
+            serialId: new RegExp(`^${serialPrefix}-\\d{6,}$`),
+            isDeleted: false,
+          },
+          { sort: { createdAt: -1 }, populate: "patientId" },
+        )
+        : [];
     }
-    return caseDoc.toObject();
-  };
+
+    if (relatedCases.length === 0) {
+      return caseDetailsResponse;
+    }
+
+    return withMasterCaseDetails(
+      caseDetailsResponse,
+      mapRelatedCasesToMasterCaseDetails(
+        relatedCases.map(
+          (relatedCase) =>
+            relatedCase.toObject() as CaseWithPopulatedPatient,
+        ),
+      ),
+    );
+  }
 
   async releasePatient(dto: ReleasePatientDTO, userId: string): Promise<void> {
-    const existingCase = await caseRepository.findById(dto.caseId);
-    if (!existingCase) {
-      throw new NotFoundError("Case not found");
-    }
+    const existingCase = await getCaseBySerialIdOrThrow(dto.caseId);
 
     if (existingCase.releaseDate) {
       throw new BadRequestError("Patient is already released");
     }
 
     const dateUpdates: ICase["dates"] = { ...existingCase.dates };
-    if (dto.stitchesRemovalDate) dateUpdates.stitchesRemovalDate = dto.stitchesRemovalDate;
-    if (dto.nextInspectionDate) dateUpdates.nextInspectionDate = dto.nextInspectionDate;
+    if (dto.stitchesRemovalDate)
+      dateUpdates.stitchesRemovalDate = dto.stitchesRemovalDate;
+    if (dto.nextInspectionDate)
+      dateUpdates.nextInspectionDate = dto.nextInspectionDate;
 
-    await caseRepository.release(existingCase._id, userId, { dates: dateUpdates });
+    await caseRepository.release(existingCase._id, userId, {
+      dates: dateUpdates,
+    });
 
     if (dto.medicines.length > 0) {
       for (const med of dto.medicines) {
-        const medData = mapReleaseMedicineToData(med, existingCase.patientId, existingCase._id);
+        const medData = mapReleaseMedicineToData(
+          med,
+          existingCase.patientId,
+          existingCase._id,
+        );
         await patientMedicineRepository.create(medData);
       }
     }
@@ -138,35 +273,44 @@ export class PatientService {
       existingCase._id.toString(),
       userId,
     );
-  };
+
+    logger.info("Case released", {
+      module: MODULE,
+      case_id: existingCase._id.toString(),
+    });
+  }
 
   async archivePatientCase(caseId: string, userId: string): Promise<void> {
-    const existingCase = await caseRepository.findById(caseId);
-    if (!existingCase) {
-      throw new NotFoundError("Case not found");
-    }
+    const existingCase = await getCaseBySerialIdOrThrow(caseId);
+    const nextArchiveState = !existingCase.isArchived;
 
-    await caseRepository.archive(existingCase._id);
+    await caseRepository.archive(existingCase._id, nextArchiveState);
 
     await auditRepository.log(
       AUDIT_SUBJECT_PATIENT,
-      "Case archived",
+      nextArchiveState ? "Case archived" : "Case restored from archive",
       ENTITY_TYPE_CASE,
       existingCase._id.toString(),
       userId,
     );
-  };
+
+    logger.info("Case archive status updated", {
+      module: MODULE,
+      case_id: existingCase._id.toString(),
+      is_archived: nextArchiveState,
+    });
+  }
 
   async deletePatientCase(caseId: string, userId: string): Promise<void> {
-    const existingCase = await caseRepository.findById(caseId);
-    if (!existingCase) {
-      throw new NotFoundError("Case not found");
-    }
+    const existingCase = await getCaseBySerialIdOrThrow(caseId);
 
     await caseRepository.softDelete(existingCase._id);
 
     if (existingCase.masterCaseId) {
-      await masterCaseRepository.removeCaseId(existingCase.masterCaseId, existingCase._id);
+      await masterCaseRepository.removeCaseId(
+        existingCase.masterCaseId,
+        existingCase._id,
+      );
     }
 
     await auditRepository.log(
@@ -176,32 +320,147 @@ export class PatientService {
       existingCase._id.toString(),
       userId,
     );
-  };
 
-  async getPatientDocuments(patientId: string): Promise<IPatientDocument[]> {
+    logger.info("Case deleted", {
+      module: MODULE,
+      case_id: existingCase._id.toString(),
+    });
+  }
+
+  async getPatientDocuments(
+    patientId: string,
+  ): Promise<PatientDocumentResponseDTO[]> {
     const docs = await documentRepository.findByPatientId(patientId);
-    return docs.map((d) => d.toObject());
-  };
+    return docs.map((d) => toPatientDocumentResponseDTO(d.toObject()));
+  }
 
   async uploadDocumentMetadata(
     dto: UploadDocumentDTO,
     storageKey: string,
     fileName: string,
     userId: string,
-  ): Promise<IPatientDocument> {
-    const docData = mapUploadDocumentToData(dto, storageKey, fileName, userId);
-    const doc = await documentRepository.create(docData as Partial<IPatientDocument>);
-
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      `Document uploaded: ${fileName}`,
-      ENTITY_TYPE_PATIENT,
-      dto.patientId,
+  ): Promise<PatientDocumentResponseDTO> {
+    const resolvedCaseObjectId = dto.caseId
+      ? (await caseRepository.findById(dto.caseId))?._id
+      : undefined;
+    const docData = mapUploadDocumentToData(
+      dto,
+      storageKey,
+      fileName,
       userId,
+      resolvedCaseObjectId,
     );
+    const doc = await documentRepository.create(docData);
 
-    return doc.toObject();
-  };
+    try {
+      await auditRepository.log(
+        AUDIT_SUBJECT_PATIENT,
+        `Document uploaded: ${fileName}`,
+        ENTITY_TYPE_PATIENT,
+        dto.patientId,
+        userId,
+      );
+    } catch (auditError) {
+      logger.warn("Document upload audit log failed", {
+        module: MODULE,
+        patient_id: dto.patientId,
+        error: auditError,
+      });
+    }
+
+    logger.info("Document uploaded", {
+      module: MODULE,
+      doc_id: doc._id.toString(),
+      patient_id: dto.patientId,
+    });
+
+    return toPatientDocumentResponseDTO(doc.toObject());
+  }
+
+  async uploadPatientPhoto(
+    patientId: string,
+    storageKey: string,
+    userId: string,
+  ): Promise<string> {
+    const patient = await patientRepository.findById(patientId);
+    if (!patient) {
+      throw new NotFoundError("Patient not found");
+    }
+
+    if (!isPhotoStorageKey(storageKey)) {
+      throw new BadRequestError("Invalid photo storage key");
+    }
+
+    const previousPhotoKey = patient.photoName;
+    await patientRepository.updateById(patient._id, {
+      $set: { photoName: storageKey },
+    });
+
+    if (
+      previousPhotoKey &&
+      isPhotoStorageKey(previousPhotoKey) &&
+      previousPhotoKey !== storageKey
+    ) {
+      await storageService.delete(previousPhotoKey).catch((deleteError) => {
+        logger.warn("Previous patient photo delete failed", {
+          module: MODULE,
+          patient_id: patient._id.toString(),
+          previous_photo_key: previousPhotoKey,
+          error: deleteError,
+        });
+      });
+    }
+
+    try {
+      await auditRepository.log(
+        AUDIT_SUBJECT_PATIENT,
+        "Patient photo updated",
+        ENTITY_TYPE_PATIENT,
+        patient._id.toString(),
+        userId,
+      );
+    } catch (auditError) {
+      logger.warn("Patient photo audit log failed", {
+        module: MODULE,
+        patient_id: patient._id.toString(),
+        error: auditError,
+      });
+    }
+
+    logger.info("Patient photo updated", {
+      module: MODULE,
+      patient_id: patient._id.toString(),
+    });
+
+    return (
+      toPatientPhotoUrl(patient._id.toString(), storageKey, new Date()) ??
+      storageKey
+    );
+  }
+
+  async getPatientPhotoStream(
+    patientId: string,
+  ): Promise<{ stream: ReadStream; contentType: string }> {
+    const patient = await patientRepository.findById(patientId);
+    if (!patient) {
+      throw new NotFoundError("Patient not found");
+    }
+
+    const storageKey = patient.photoName;
+    if (!storageKey || !isPhotoStorageKey(storageKey)) {
+      throw new NotFoundError("Patient photo not found");
+    }
+
+    const exists = await storageService.exists(storageKey);
+    if (!exists) {
+      throw new NotFoundError("Patient photo not found");
+    }
+
+    return {
+      stream: storageService.createReadStream(storageKey),
+      contentType: toPhotoContentType(storageKey),
+    };
+  }
 
   async deleteDocument(documentId: string, userId: string): Promise<void> {
     const doc = await documentRepository.findById(documentId);
@@ -209,6 +468,7 @@ export class PatientService {
       throw new NotFoundError("Document not found");
     }
 
+    await storageService.delete(doc.storageKey);
     await documentRepository.deleteById(documentId);
 
     await auditRepository.log(
@@ -218,24 +478,34 @@ export class PatientService {
       doc.patientId.toString(),
       userId,
     );
-  };
 
-  async getAnesthesiaForm(caseId: string): Promise<IAnesthesiaForm | null> {
+    logger.info("Document deleted", { module: MODULE, doc_id: documentId });
+  }
+
+  async getAnesthesiaForm(
+    caseId: string,
+  ): Promise<CreateAnesthesiaProcedureFormDTO | null> {
+    await getCaseByIdPopulatedOrThrow(caseId);
     const form = await anesthesiaFormRepository.findByCaseId(caseId);
-    return form ? form.toObject() : null;
-  };
+    if (!form) return null;
+    return toAnesthesiaFormDTO(form.toObject());
+  }
 
   async upsertAnesthesiaForm(
     caseId: string,
     data: CreateAnesthesiaProcedureFormDTO,
     userId: string,
-  ): Promise<IAnesthesiaForm> {
+  ): Promise<CreateAnesthesiaProcedureFormDTO> {
+    await getCaseByIdOrThrow(caseId);
     const { caseId: _dtoCaseId, ...formFields } = data;
-    const formData: Partial<IAnesthesiaForm> & { updatedByUserId: Types.ObjectId } = {
+    const formData: AnesthesiaFormUpsertData = {
       ...formFields,
       updatedByUserId: toObjectId(userId),
     };
-    const form = await anesthesiaFormRepository.upsertByCaseId(caseId, formData);
+    const form = await anesthesiaFormRepository.upsertByCaseId(
+      caseId,
+      formData,
+    );
 
     await auditRepository.log(
       AUDIT_SUBJECT_PATIENT,
@@ -245,92 +515,53 @@ export class PatientService {
       userId,
     );
 
-    return form.toObject();
-  };
+    logger.info("Anesthesia form upserted", {
+      module: MODULE,
+      case_id: caseId,
+    });
 
-  async getReleasePatientData(caseId: string): Promise<{ releaseMedicines: IPatientMedicine[] }> {
-    const meds = await patientMedicineRepository.findByCaseId(caseId);
-    return { releaseMedicines: meds.map((m) => m.toObject()) };
-  };
+    return toAnesthesiaFormDTO(form.toObject());
+  }
+
+  async getReleasePatientData(
+    caseId: string,
+  ): Promise<ReleasePatientDataResponseDTO> {
+    const caseDoc = await getCaseByIdOrThrow(caseId);
+
+    const meds = await patientMedicineRepository.findByCaseId(caseDoc._id);
+    return toReleasePatientDataResponseDTO(
+      caseDoc.toObject(),
+      meds.map((doc) => doc.toObject() as MedWithPopulatedName),
+    );
+  }
 
   async getChartsData(caseId: string): Promise<ChartsDataResponseDTO> {
-    const caseDoc = await caseRepository.findById(caseId);
-    if (!caseDoc) {
-      throw new NotFoundError("Case not found");
-    }
-
-    const rows = caseDoc.caseDetailsGrid ?? [];
-    const mapPoints = (
-      pick: (row: (typeof rows)[number]) => number | undefined,
-      label: string,
-    ): ChartsDataResponseDTO["temperature"] =>
-      rows
-        .map((row, index) => {
-          const value = pick(row);
-          if (typeof value !== "number") {
-            return null;
-          }
-          const name = row.time
-            ? `${row.date || label}-${row.time}`
-            : `${row.date || label}-${String(index + 1)}`;
-          return { name, value };
-        })
-        .filter((point): point is { name: string; value: number } => point !== null);
-
-    const weight =
-      typeof caseDoc.patientSnapshot?.weightKg === "number"
-        ? [{ name: "weight", value: caseDoc.patientSnapshot.weightKg }]
-        : [];
-
-    return {
-      temperature: mapPoints((row) => row.temperature, "temperature"),
-      pulse: mapPoints((row) => row.pulse, "pulse"),
-      respiration: mapPoints((row) => row.respiration, "respiration"),
-      weight,
-    };
-  };
+    const caseDoc = await getCaseByIdOrThrow(caseId);
+    return mapCaseToChartsDataResponse(caseDoc.toObject());
+  }
 
   async getDailyPlan(): Promise<DailyPlanDetailDTO[]> {
     const cases = await caseRepository.findMany(
       { isDeleted: false, isArchived: false },
-      { sort: { createdAt: -1 }, populate: "patientId" },
+      {
+        sort: { createdAt: -1 },
+        populate: [
+          "patientId",
+          "planned.examinations.examinationTypeId",
+          "planned.procedures.procedureTypeId",
+        ],
+      },
     );
-
-    return cases.map((caseDoc) => {
-      const patient = caseDoc.patientId as unknown as { name?: string; owner?: { name?: string; phone?: string } };
-      const plannedExaminations = caseDoc.planned?.examinations ?? [];
-      const plannedProcedures = caseDoc.planned?.procedures ?? [];
-
-      return {
-        case_id: caseDoc._id.toString(),
-        master_case_id: caseDoc.masterCaseId?.toString() ?? caseDoc._id.toString(),
-        name: patient?.name ?? "",
-        owner_name: patient?.owner?.name ?? "",
-        owner_phone_number: patient?.owner?.phone ?? "",
-        hospitalization_reason: caseDoc.admission?.hospitalizationReason ?? "",
-        daily_plan_comments: caseDoc.dailyPlan?.comments ?? "",
-        caseExaminations: plannedExaminations.map((exam) => ({
-          name: exam.examinationTypeId?.toString() ?? "",
-          value: exam.status ?? "",
-          date: exam.scheduledFor ? exam.scheduledFor.toISOString() : "",
-        })),
-        caseProcedures: plannedProcedures.map((procedure) => ({
-          name: procedure.plannedProcedureText ?? procedure.procedureTypeId?.toString() ?? "",
-          value: procedure.status === "done",
-          date: procedure.scheduledFor ? procedure.scheduledFor.toISOString() : "",
-        })),
-        ownerUpdate: [],
-        releaseMedicines: [],
-      };
-    });
-  };
+    return cases.map((caseDoc) => mapCaseToDailyPlanDetail(caseDoc.toObject()));
+  }
 
   async updateDailyPlan(payload: UpdateDailyPlanRequestDTO): Promise<void> {
     const updates = Object.values(payload);
 
     await Promise.all(
       updates.map(async ({ caseId, comments }) => {
-        await caseRepository.updateById(caseId, {
+        const caseDoc = await getCaseBySerialIdOrThrow(caseId);
+        await caseRepository.updateById(caseDoc._id, {
           $set: {
             dailyPlan: {
               comments,
@@ -340,15 +571,7 @@ export class PatientService {
         });
       }),
     );
-  };
-
-  async exportPatientCase(caseId: string): Promise<ICase> {
-    const caseDoc = await caseRepository.findByIdPopulated(caseId);
-    if (!caseDoc) {
-      throw new NotFoundError("Case not found");
-    }
-    return caseDoc.toObject();
-  };
+  }
 }
 
 export const patientService = new PatientService();
