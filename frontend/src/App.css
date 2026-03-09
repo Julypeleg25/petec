@@ -30,8 +30,20 @@
 }
 
 .btn:disabled {
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+  opacity: 0.45;
+  filter: grayscale(0.35);
+  box-shadow: none;
   cursor: not-allowed !important;
+}
+
+.btn:disabled:hover {
+  box-shadow: none;
+}
+
+.btn.btn-active:disabled {
+  color: #8a8a8a;
+  background-color: #f0f0f0;
+  border-color: #b9b9b9;
 }
 
 .navbar .btn:disabled {

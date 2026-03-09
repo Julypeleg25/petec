@@ -1,18 +1,61 @@
 import { lazy, Suspense } from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { roles } from "@petec/shared";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
-import { Role } from "@petec/shared";
-
-// ── Lazy-loaded pages ─────────────────────────────────────────────────────────
+import { AppRoutes } from "../config/appRoutes";
+import { PATIENTS_NAV_TYPES } from "../features/patients/constants/patients.constants";
+import {
+  MAIN_PAGE_TYPES,
+  SYSTEM_MANAGEMENT_TAB_TYPES,
+} from "../components/MainPage/MainPage.constants";
 
 const Login = lazy(() => import("../components/Login/Login"));
-const ForgotPassword = lazy(() => import("../components/ForgotPassword/ForgotPassword"));
-const ResetPassword = lazy(() => import("../components/ResetPassword/ResetPassword"));
-
-// Authenticated pages — via MainPage layout (preserves existing layout)
+const ForgotPassword = lazy(
+  () => import("../components/ForgotPassword/ForgotPassword"),
+);
+const ResetPassword = lazy(
+  () => import("../components/ResetPassword/ResetPassword"),
+);
 const MainPage = lazy(() => import("../components/MainPage/MainPage"));
 
-// Fallback spinner while lazy chunks load
+const PATIENT_ROUTES = [
+  {
+    path: AppRoutes.Patients.List,
+    patientsNavType: PATIENTS_NAV_TYPES.PATIENTS_LIST,
+  },
+  {
+    path: AppRoutes.Patients.NewPatient,
+    patientsNavType: PATIENTS_NAV_TYPES.NEW_PATIENT,
+  },
+  {
+    path: AppRoutes.Patients.DailyPlan,
+    patientsNavType: PATIENTS_NAV_TYPES.DAILY_PLAN,
+  },
+  {
+    path: AppRoutes.Patients.Details.path,
+    patientsNavType: PATIENTS_NAV_TYPES.PATIENT_CASE,
+  },
+  {
+    path: AppRoutes.Patients.Archive,
+    patientsNavType: PATIENTS_NAV_TYPES.ARCHIVE,
+  },
+] as const;
+
+const ADMIN_ROUTES = [
+  {
+    path: AppRoutes.SystemManagement.Users,
+    systemManagementType: SYSTEM_MANAGEMENT_TAB_TYPES.USERS,
+  },
+  {
+    path: AppRoutes.SystemManagement.SystemTypes,
+    systemManagementType: SYSTEM_MANAGEMENT_TAB_TYPES.SYSTEM_TYPES,
+  },
+  {
+    path: AppRoutes.SystemManagement.History,
+    systemManagementType: SYSTEM_MANAGEMENT_TAB_TYPES.HISTORY,
+  },
+] as const;
+
 function PageLoader() {
   return (
     <div className="page-loader" aria-label="טוען...">
@@ -21,73 +64,62 @@ function PageLoader() {
   );
 }
 
+function UnauthorizedPage() {
+  return (
+    <div className="error-boundary">
+      <h2>אין הרשאה</h2>
+      <p>אין לך הרשאות מספיקות לצפות בדף זה.</p>
+    </div>
+  );
+}
+
 export function AppRouter() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgotPassword" element={<ForgotPassword />} />
-        <Route path="/resetPassword/:token" element={<ResetPassword />} />
+        <Route path={AppRoutes.Login} element={<Login />} />
+        <Route path={AppRoutes.ForgotPassword} element={<ForgotPassword />} />
+        <Route path={AppRoutes.ResetPassword.path} element={<ResetPassword />} />
 
-        {/* Redirect root to login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* Protected patient routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route
-            path="/patients/patientsList"
-            element={<MainPage type="patients" patientsNavType="patients-list" />}
-          />
-          <Route
-            path="/patients/newPatient"
-            element={<MainPage type="patients" patientsNavType="new-patient" />}
-          />
-          <Route
-            path="/patients/dailyPlan"
-            element={<MainPage type="patients" patientsNavType="daily-plan" />}
-          />
-          <Route
-            path="/patients/patientCase/:masterCaseId/:caseId"
-            element={<MainPage type="patients" patientsNavType="patientCase" />}
-          />
-          <Route
-            path="/patients/archive"
-            element={<MainPage type="patients" patientsNavType="archive" />}
-          />
-        </Route>
-
-        {/* Admin-only routes */}
-        <Route element={<ProtectedRoute allowedRoles={[Role.ADMIN]} />}>
-          <Route
-            path="/systemManagement/users"
-            element={<MainPage type="system-management" systemManagementType="users" />}
-          />
-          <Route
-            path="/systemManagement/systemTypes"
-            element={<MainPage type="system-management" systemManagementType="system-types" />}
-          />
-          <Route
-            path="/systemManagement/history"
-            element={<MainPage type="system-management" systemManagementType="history" />}
-          />
-        </Route>
-
-        {/* Unauthorized catch-all */}
         <Route
-          path="/unauthorized"
-          element={
-            <div className="error-boundary">
-              <h2>אין הרשאה</h2>
-              <p>אין לך הרשאות מספיקות לצפות בדף זה.</p>
-            </div>
-          }
+          path={AppRoutes.Root}
+          element={<Navigate to={AppRoutes.Login} replace />}
         />
 
-        {/* 404 */}
+        <Route element={<ProtectedRoute />}>
+          {PATIENT_ROUTES.map(({ path, patientsNavType }) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <MainPage
+                  type={MAIN_PAGE_TYPES.PATIENTS}
+                  patientsNavType={patientsNavType}
+                />
+              }
+            />
+          ))}
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={[roles.ADMIN]} />}>
+          {ADMIN_ROUTES.map(({ path, systemManagementType }) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <MainPage
+                  type={MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT}
+                  systemManagementType={systemManagementType}
+                />
+              }
+            />
+          ))}
+        </Route>
+
+        <Route path={AppRoutes.Unauthorized} element={<UnauthorizedPage />} />
         <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
+          path={AppRoutes.CatchAll}
+          element={<Navigate to={AppRoutes.Login} replace />}
         />
       </Routes>
     </Suspense>
