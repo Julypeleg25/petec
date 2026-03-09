@@ -2,8 +2,10 @@ export interface CaseDetailsMedicineObj {
   medicineId: string;
   name?: string;
   dosageText?: string;
-  doseAmount?: number;
+  doseAmount?: number | string;
   measureUnitTypeId?: string;
+  dosageFrequencyId?: string;
+  routeOfAdministrationId?: string;
   isGiven?: boolean;
   isRequired: boolean;
   isEditable: boolean;
@@ -54,8 +56,32 @@ export interface CaseDetailsRow {
   isReleaseIsRequired?: boolean;
   isReleaseIsEditable?: boolean;
 
+  isTravel?: boolean;
+  isTravelIsRequired?: boolean;
+  isTravelIsEditable?: boolean;
+
+  weigh?: number;
+  weighIsRequired?: boolean;
+  weighIsEditable?: boolean;
+
+  isPuke?: boolean;
+  pukeComments?: string;
+  pukeIsRequired?: boolean;
+  pukeIsEditable?: boolean;
+
+  rowComments?: string;
+  rowCommentsIsRequired?: boolean;
+  rowCommentsIsEditable?: boolean;
+
+  ownerUpdate?: string;
+  ownerUpdateIsRequired?: boolean;
+  ownerUpdateIsEditable?: boolean;
+
   foodGiven?: boolean;
   waterGiven?: boolean;
+  foodAndWater?: string | null;
+  foodAndWaterIsRequired?: boolean;
+  foodAndWaterIsEditable?: boolean;
 
   fluids: CaseDetailsMedicineObj[];
   medicines: CaseDetailsMedicineObj[];
@@ -73,7 +99,7 @@ export interface PlannedMedicine {
   routeOfAdministrationId?: string;
   startDate?: string;
   endDate?: string;
-  isActive: boolean;
+  isDeleted?: boolean;
   notes?: string;
 }
 

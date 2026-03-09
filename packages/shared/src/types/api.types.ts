@@ -8,7 +8,6 @@ export interface ApiSuccessResponse<T> {
 export interface ApiErrorResponse {
   success: false;
   error: {
-    code: string;
     message: string;
     details?: ApiErrorDetails;
     requestId?: string;
@@ -16,7 +15,7 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-export type ApiErrorPayload = ApiErrorResponse | { error?: { message?: string; code?: string; details?: ApiErrorDetails } | string };
+export type ApiErrorPayload = ApiErrorResponse | { error?: { message?: string; details?: ApiErrorDetails } | string };
 
 export interface PaginatedResponse<T> {
   items: T[];
