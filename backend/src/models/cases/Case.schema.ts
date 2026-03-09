@@ -1,138 +1,13 @@
 import { Schema, Model } from "mongoose";
+import { CASE_SERIAL_ID_REGEX } from "@petec/shared";
+import { ICase } from "./Case.types";
 import {
-    ICase,
-    ICaseDetailsMedicineObj,
-    ICaseDetailsOptionsObj,
-    ICaseDetailsRow,
-    IPlannedMedicine,
-    IPlannedProcedure,
-    IPlannedFoodExtra,
-    IPlannedExamination,
-} from "./Case.types";
-
-const caseDetailsMedicineObjSchema = new Schema<ICaseDetailsMedicineObj>(
-    {
-        medicineId: { type: Schema.Types.ObjectId, ref: "Medicine", required: true },
-        name: { type: String },
-        dosageText: { type: String },
-        doseAmount: { type: Number },
-        measureUnitTypeId: { type: Schema.Types.ObjectId, ref: "MeasureUnitType" },
-        isGiven: { type: Boolean },
-        isRequired: { type: Boolean, required: true },
-        isEditable: { type: Boolean, required: true },
-        comment: { type: String },
-    },
-    { _id: false },
-);
-
-const caseDetailsOptionsObjSchema = new Schema<ICaseDetailsOptionsObj>(
-    {
-        typeId: { type: Schema.Types.ObjectId, required: true },
-        name: { type: String },
-        isGiven: { type: Boolean },
-        isRequired: { type: Boolean, required: true },
-        isEditable: { type: Boolean, required: true },
-        comment: { type: String },
-    },
-    { _id: false },
-);
-
-const caseDetailsRowSchema = new Schema<ICaseDetailsRow>(
-    {
-        date: { type: String, required: true },
-        time: { type: String, required: true },
-        index: { type: Number, required: true },
-
-        temperature: { type: Number },
-        temperatureIsRequired: { type: Boolean },
-        temperatureIsEditable: { type: Boolean },
-
-        pulse: { type: Number },
-        pulseIsRequired: { type: Boolean },
-        pulseIsEditable: { type: Boolean },
-
-        respiration: { type: Number },
-        respirationIsRequired: { type: Boolean },
-        respirationIsEditable: { type: Boolean },
-
-        urineTypeId: { type: Schema.Types.ObjectId, ref: "UrineType" },
-        urineComments: { type: String },
-        urineIsRequired: { type: Boolean },
-        urineIsEditable: { type: Boolean },
-
-        fecesTypeId: { type: Schema.Types.ObjectId, ref: "FecesType" },
-        fecesComments: { type: String },
-        fecesIsRequired: { type: Boolean },
-        fecesIsEditable: { type: Boolean },
-
-        isBoxClean: { type: Boolean },
-        isBoxCleanIsRequired: { type: Boolean },
-        isBoxCleanIsEditable: { type: Boolean },
-
-        isRelease: { type: Boolean },
-        isReleaseIsRequired: { type: Boolean },
-        isReleaseIsEditable: { type: Boolean },
-
-        foodGiven: { type: Boolean },
-        waterGiven: { type: Boolean },
-
-        fluids: { type: [caseDetailsMedicineObjSchema], default: [] },
-        medicines: { type: [caseDetailsMedicineObjSchema], default: [] },
-        procedures: { type: [caseDetailsOptionsObjSchema], default: [] },
-        examinations: { type: [caseDetailsOptionsObjSchema], default: [] },
-        foodExtras: { type: [caseDetailsOptionsObjSchema], default: [] },
-    },
-    { _id: false },
-);
-
-const plannedMedicineSchema = new Schema<IPlannedMedicine>(
-    {
-        medicineId: { type: Schema.Types.ObjectId, ref: "Medicine", required: true },
-        dosageText: { type: String },
-        doseAmount: { type: Number },
-        measureUnitTypeId: { type: Schema.Types.ObjectId, ref: "MeasureUnitType" },
-        dosageFrequencyId: { type: Schema.Types.ObjectId, ref: "DosageFrequency" },
-        routeOfAdministrationId: { type: Schema.Types.ObjectId, ref: "RouteOfAdministration" },
-        startDate: { type: Date },
-        endDate: { type: Date },
-        isActive: { type: Boolean, default: true },
-        notes: { type: String },
-    },
-    { _id: false },
-);
-
-const plannedProcedureSchema = new Schema<IPlannedProcedure>(
-    {
-        procedureTypeId: { type: Schema.Types.ObjectId, ref: "ProcedureType", required: true },
-        plannedProcedureText: { type: String },
-        scheduledFor: { type: Date },
-        priority: { type: String },
-        status: { type: String, default: "pending" },
-        notes: { type: String },
-    },
-    { _id: false },
-);
-
-const plannedFoodExtraSchema = new Schema<IPlannedFoodExtra>(
-    {
-        foodExtraTypeId: { type: Schema.Types.ObjectId, ref: "FoodExtraType", required: true },
-        amount: { type: Number },
-        measureUnitTypeId: { type: Schema.Types.ObjectId, ref: "MeasureUnitType" },
-        frequencyId: { type: Schema.Types.ObjectId, ref: "DosageFrequency" },
-        notes: { type: String },
-    },
-    { _id: false },
-);
-
-const plannedExaminationSchema = new Schema<IPlannedExamination>(
-    {
-        examinationTypeId: { type: Schema.Types.ObjectId, ref: "ExaminationType", required: true },
-        scheduledFor: { type: Date },
-        notes: { type: String },
-        status: { type: String },
-    },
-    { _id: false },
-);
+    caseDetailsRowSchema,
+    plannedExaminationSchema,
+    plannedFoodExtraSchema,
+    plannedMedicineSchema,
+    plannedProcedureSchema,
+} from "./CaseDetails.schema";
 
 export const caseSchema = new Schema<ICase, Model<ICase>>(
     {
@@ -141,6 +16,12 @@ export const caseSchema = new Schema<ICase, Model<ICase>>(
             ref: "Patient",
             required: true,
             index: true,
+        },
+        serialId: {
+            type: String,
+            required: true,
+            trim: true,
+            match: CASE_SERIAL_ID_REGEX,
         },
         masterCaseId: {
             type: Schema.Types.ObjectId,
@@ -263,5 +144,7 @@ export const caseSchema = new Schema<ICase, Model<ICase>>(
 );
 
 caseSchema.index({ patientId: 1, isDeleted: 1 });
-caseSchema.index({ isArchived: 1, releaseDate: 1 });
+caseSchema.index({ isArchived: 1, releaseDate: -1 });
+caseSchema.index({ serialId: 1 }, { unique: true });
 caseSchema.index({ createdAt: 1 });
+caseSchema.index({ "caseDetailsGrid.dateTime": -1 });

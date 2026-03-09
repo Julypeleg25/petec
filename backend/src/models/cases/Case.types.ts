@@ -1,11 +1,21 @@
 import { HydratedDocument, Types } from "mongoose";
 
+type NamedLookupReference = {
+    _id: Types.ObjectId;
+    name?: string;
+};
+
+type LookupReference = Types.ObjectId | NamedLookupReference;
+
 export interface ICaseDetailsMedicineObj {
-    medicineId: Types.ObjectId;
+    _id?: Types.ObjectId;
+    medicineId: LookupReference;
     name?: string;
     dosageText?: string;
-    doseAmount?: number;
-    measureUnitTypeId?: Types.ObjectId;
+    doseAmount?: number | string;
+    measureUnitTypeId?: LookupReference;
+    dosageFrequencyId?: LookupReference;
+    routeOfAdministrationId?: LookupReference;
     isGiven?: boolean;
     isRequired: boolean;
     isEditable: boolean;
@@ -13,6 +23,7 @@ export interface ICaseDetailsMedicineObj {
 }
 
 export interface ICaseDetailsOptionsObj {
+    _id?: Types.ObjectId;
     typeId: Types.ObjectId;
     name?: string;
     isGiven?: boolean;
@@ -21,9 +32,21 @@ export interface ICaseDetailsOptionsObj {
     comment?: string;
 }
 
+export interface ICaseDetailsExamObj {
+    _id?: Types.ObjectId;
+    typeId: Types.ObjectId;
+    name?: string;
+    value?: string | null;
+    isRequired: boolean;
+    isEditable: boolean;
+    comment?: string;
+}
+
 export interface ICaseDetailsRow {
+    _id?: Types.ObjectId;
     date: string;
     time: string;
+    dateTime: Date;
     index: number;
 
     temperature?: number;
@@ -56,26 +79,51 @@ export interface ICaseDetailsRow {
     isReleaseIsRequired?: boolean;
     isReleaseIsEditable?: boolean;
 
+    isTravel?: boolean;
+    isTravelIsRequired?: boolean;
+    isTravelIsEditable?: boolean;
+
+    weigh?: number;
+    weighIsRequired?: boolean;
+    weighIsEditable?: boolean;
+
+    isPuke?: boolean;
+    pukeComments?: string;
+    pukeIsRequired?: boolean;
+    pukeIsEditable?: boolean;
+
+    rowComments?: string;
+    rowCommentsIsRequired?: boolean;
+    rowCommentsIsEditable?: boolean;
+
+    ownerUpdate?: string;
+    ownerUpdateIsRequired?: boolean;
+    ownerUpdateIsEditable?: boolean;
+
     foodGiven?: boolean;
     waterGiven?: boolean;
+
+    foodAndWater?: string | null;
+    foodAndWaterIsRequired?: boolean;
+    foodAndWaterIsEditable?: boolean;
 
     fluids: ICaseDetailsMedicineObj[];
     medicines: ICaseDetailsMedicineObj[];
     procedures: ICaseDetailsOptionsObj[];
-    examinations: ICaseDetailsOptionsObj[];
+    examinations: ICaseDetailsExamObj[];
     foodExtras: ICaseDetailsOptionsObj[];
 }
 
 export interface IPlannedMedicine {
     medicineId: Types.ObjectId;
     dosageText?: string;
-    doseAmount?: number;
+    doseAmount?: number | string;
     measureUnitTypeId?: Types.ObjectId;
     dosageFrequencyId?: Types.ObjectId;
     routeOfAdministrationId?: Types.ObjectId;
     startDate?: Date;
     endDate?: Date;
-    isActive: boolean;
+    isDeleted: boolean;
     notes?: string;
 }
 
@@ -105,6 +153,7 @@ export interface IPlannedExamination {
 
 export interface ICase {
     _id: Types.ObjectId;
+    serialId: string;
     patientId: Types.ObjectId;
     masterCaseId?: Types.ObjectId;
 
