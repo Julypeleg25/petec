@@ -1,9 +1,11 @@
 import type { HydratedDocument, Types } from "mongoose";
+import type { MedicineCategoryType } from "@petec/shared";
 
 export interface IBaseLookup {
   _id: Types.ObjectId;
+  serialId?: string;
   name: string;
-  isActive: boolean;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +20,7 @@ export type LookupWithAnimalTypeDocument = HydratedDocument<ILookupWithAnimalTyp
 
 export interface IMedicine extends IBaseLookup {
   categoryId?: Types.ObjectId;
-  measureUnitId?: Types.ObjectId;
+  measureUnitTypeId?: Types.ObjectId;
   dosageFrequencyId?: Types.ObjectId;
   routeOfAdministrationId?: Types.ObjectId;
   rangeMin?: number;
@@ -29,13 +31,15 @@ export interface IMedicine extends IBaseLookup {
 
 export type MedicineDocument = HydratedDocument<IMedicine>;
 
-export interface IMedicineCategory extends IBaseLookup {}
+export interface IMedicineCategory extends IBaseLookup {
+  type: MedicineCategoryType;
+}
 export type MedicineCategoryDocument = HydratedDocument<IMedicineCategory>;
 
 export interface IAnimalVitals extends ILookupWithAnimalType {
-  minValue?: number;
-  maxValue?: number;
-  unit?: string;
+  vitalsType?: string;
+  rangeMin?: number;
+  rangeMax?: number;
 }
 
 export type AnimalVitalsDocument = HydratedDocument<IAnimalVitals>;

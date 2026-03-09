@@ -10,11 +10,14 @@ export interface IRefreshToken {
 export interface IUser {
   _id: Types.ObjectId;
   username: string;
+  firstName: string;
+  lastName: string;
   email: string;
   passwordHash: string;
   role: Role;
   privileges: string[];
   status: UserStatus;
+  isDeleted: boolean;
   refreshTokens: IRefreshToken[];
   lastLogin?: Date;
   createdAt: Date;

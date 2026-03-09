@@ -4,8 +4,7 @@ import type { IAnesthesiaForm } from "./AnesthesiaForm.types";
 const anesthesiaFormSchema = new Schema<IAnesthesiaForm, Model<IAnesthesiaForm>>(
     {
         caseId: {
-            type: Schema.Types.ObjectId,
-            ref: "Case",
+            type: String,
             required: true,
             unique: true,
             index: true,
@@ -37,6 +36,7 @@ const anesthesiaFormSchema = new Schema<IAnesthesiaForm, Model<IAnesthesiaForm>>
 export const AnesthesiaFormModel = mongoose.model<IAnesthesiaForm>(
     "AnesthesiaForm",
     anesthesiaFormSchema,
+    "anesthesiaForms"
 );
 
 export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm.types";

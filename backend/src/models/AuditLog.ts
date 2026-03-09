@@ -15,9 +15,9 @@ const auditLogSchema = new Schema<IAuditLog, Model<IAuditLog>>(
   },
 );
 
-auditLogSchema.index({ entityType: 1, entityId: 1, createdAt: 1 });
+auditLogSchema.index({ entityType: 1, entityId: 1, createdAt: -1 });
 auditLogSchema.index({ createdAt: 1 });
 
-export const AuditLogModel = mongoose.model<IAuditLog>("AuditLog", auditLogSchema);
+export const AuditLogModel = mongoose.model<IAuditLog>("AuditLog", auditLogSchema, "auditLogs");
 
 export type { IAuditLog, AuditLogDocument } from "./AuditLog.types";
