@@ -3,15 +3,13 @@ export interface DatePickerProps {
     name?: string;
     labelText?: string;
     isRequired?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setState?: React.SetStateAction<any>;
+    state?: string | Date | null;
+    setState?: (val: string | Date | null, params?: object | string | number, fieldName?: string) => void;
     width?: string;
     min?: number | string;
     max?: number | string;
     id?: string;
     disabled?: boolean;
-    setStateParams?: any;
-    afterChange?: (value: any) => void;
+    setStateParams?: object | string | number;
+    afterChange?: (value: string) => void;
 }

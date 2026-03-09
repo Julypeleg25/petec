@@ -8,6 +8,7 @@ import {
   RowData,
   OrderByObj,
   PaginationBtns,
+  SearchObj,
   ITableGeneratorProps,
 } from "./TableGenerator.types";
 
@@ -24,6 +25,19 @@ export * from "./TableGenerator.types";
 export * from "./TableGenerator.utils";
 
 const isSameOrderBy = (a: OrderByObj, b: OrderByObj): boolean => {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  for (const key of aKeys) {
+    if (a[key] !== b[key]) return false;
+  }
+  return true;
+};
+
+const isSameSearchObj = (
+  a: SearchObj,
+  b: SearchObj,
+): boolean => {
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
   if (aKeys.length !== bKeys.length) return false;
@@ -68,10 +82,13 @@ function TableGenerator<T extends RowData = RowData>({
 
   useEffect(() => {
     const nextOrderBy = queryObj?.orderBy || {};
-    setSearchObj(getSearchObjDefault(columnsData));
+    const nextSearchObj = getSearchObjDefault(columnsData);
+    setSearchObj((prev) =>
+      isSameSearchObj(prev, nextSearchObj) ? prev : nextSearchObj,
+    );
     setOrderBy((prev) => (isSameOrderBy(prev, nextOrderBy) ? prev : nextOrderBy));
     setCurrentPage(1);
-  }, [queryObj?.query]);
+  }, [columnsData, queryObj?.orderBy, queryObj.query]);
 
   const getData = async () => {
     await getDataByQuery(
@@ -81,10 +98,7 @@ function TableGenerator<T extends RowData = RowData>({
       setDataSize,
       setTableData,
       setCurrentPage,
-      disablePaginationBtns,
       setDisablePaginationBtns,
-      tableSectionContainerRef,
-      setSearch,
       setLoading,
     );
   };
@@ -120,14 +134,8 @@ function TableGenerator<T extends RowData = RowData>({
 
   useEffect(() => {
     if (paginationPerPage !== undefined) setRowsPerPage(paginationPerPage);
-    getData()
-      .then(() => {
-        setLoading(false);
-      })
-      .catch(() => {
-        // handled by interceptor
-      });
-  }, [reload, orderBy]);
+    void getData();
+  }, [reload, orderBy, paginationPerPage, queryObj.query]);
 
   return (
     <>
@@ -177,14 +185,11 @@ function TableGenerator<T extends RowData = RowData>({
             setSearchObj,
             tableData,
             setTableData,
-            search,
             sortDirection,
             setSortDirection,
-            tableSectionContainerRef,
             queryObj,
             setDataSize,
             setCurrentPage,
-            disablePaginationBtns,
             setDisablePaginationBtns,
             setLoading,
             setOrderBy,

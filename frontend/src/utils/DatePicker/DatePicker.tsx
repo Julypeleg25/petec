@@ -1,7 +1,37 @@
-import { getFormattedDateFromDBdate } from "../FormattingUtil";
+import {
+  getDateForInput,
+  getFormattedDateFromDBdate,
+} from "../DateFormattingUtil";
 import "./DatePicker.css";
 
 import { DatePickerProps } from "./DatePicker.types";
+
+const toInputDateValue = (value?: string | Date | null): string => {
+  if (!value) {
+    return "";
+  }
+
+  if (value instanceof Date) {
+    return Number.isFinite(value.getTime()) ? getDateForInput(value) : "";
+  }
+
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    return "";
+  }
+
+  const [datePart] = trimmedValue.split("T");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+    return datePart;
+  }
+
+  const parsedDate = new Date(trimmedValue);
+  if (!Number.isFinite(parsedDate.getTime())) {
+    return "";
+  }
+
+  return getDateForInput(parsedDate);
+};
 
 function DatePicker({
   labelText,
@@ -36,11 +66,11 @@ function DatePicker({
           placeholder={placeholder + (isRequired ? " *" : "")}
           name={name}
           required={isRequired}
-          value={state}
+          value={toInputDateValue(state)}
           onChange={(e) => {
             if (setState) {
-              if (setStateParams) setState(e, setStateParams);
-              else setState(e);
+              const params = setStateParams ?? name;
+              setState(e.target.value, params, name);
             }
 
             if (afterChange) afterChange(e.target.value);

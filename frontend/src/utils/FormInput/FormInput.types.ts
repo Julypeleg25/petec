@@ -5,10 +5,8 @@ export interface FormInputProps {
     name?: string;
     labelText?: string;
     isRequired?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setState?: React.SetStateAction<any>;
+    state?: string | number | null;
+    setState?: (val: string, params?: object | string | number, fieldName?: string) => void;
     width?: string;
     minLength?: number;
     maxLength?: number;
@@ -16,7 +14,7 @@ export interface FormInputProps {
     max?: number | string;
     id?: string;
     disabled?: boolean;
-    setStateParams?: any;
+    setStateParams?: object | string | number;
     className?: string;
     isLink?: boolean;
 }

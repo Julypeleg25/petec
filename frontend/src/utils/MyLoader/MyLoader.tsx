@@ -1,6 +1,5 @@
 import { RotatingLines } from "react-loader-spinner";
 import "./MyLoader.css";
-
 import { MyLoaderProps } from "./MyLoader.types";
 
 function MyLoader({ size = "70" }: MyLoaderProps) {

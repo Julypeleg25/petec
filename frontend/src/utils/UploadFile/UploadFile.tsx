@@ -2,19 +2,19 @@ import Modal from "../Modal/Modal";
 import "./UploadFile.css";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { apiClient } from "../../lib/api-client";
 
 import { UploadFileProps } from "./UploadFile.types";
 
 function UploadFile({
   setIsOpen,
   message,
-  uploadRequestUrl,
+  uploadHandler,
   afterUpload,
 }: UploadFileProps) {
   const hiddenFileInput = useRef<HTMLInputElement>(null);
-  const [fileUploaded, setFileUploaded] = useState<FormData>();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleClick = () => {
     hiddenFileInput.current?.click();
@@ -26,38 +26,29 @@ function UploadFile({
     const FILE_MAX_SIZE_IN_BYTES = 10_000_000;
     if (file.size < FILE_MAX_SIZE_IN_BYTES) {
       setFileName(file.name);
-      const formData = new FormData();
-      formData.append("file", file);
-      setFileUploaded(formData);
+      setSelectedFile(file);
     } else {
       toast.error("10MB -הקובץ חייב להיות קטן מ");
     }
   };
 
   const upload = async () => {
-    if (fileUploaded === undefined) {
+    if (!selectedFile) {
       toast.error("לא נבחר קובץ להעלאה");
       return;
     }
 
-    disableUploadBtn(true);
+    setIsUploading(true);
     try {
-      await apiClient.post(uploadRequestUrl, fileUploaded, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await uploadHandler(selectedFile);
       toast.success("הקובץ הועלה בהצלחה");
     } catch {
       toast.error("שגיאה בהעלאת הקובץ");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const disableUploadBtn = (disabled: boolean) => {
-    const btn = document.getElementById("upload-file-btn");
-    if (btn) {
-      if (disabled) btn.setAttribute("disabled", disabled.valueOf().toString());
-      else btn.removeAttribute("disabled");
-    }
-  };
 
   return (
     <Modal
@@ -80,17 +71,17 @@ function UploadFile({
               ref={hiddenFileInput}
               onChange={(e) => {
                 handleChange(e);
-                disableUploadBtn(false);
+                setIsUploading(false);
               }}
             />
           </button>
           {fileName !== "" && fileName}
-          {fileUploaded && (
+          {selectedFile && (
             <div>
               <button
                 id="upload-file-btn"
                 className="btn table-btn btn-active upload-file-btn"
-                disabled={fileUploaded === undefined}
+                disabled={!selectedFile || isUploading}
                 onClick={() => {
                   upload()
                     .then(() => {
@@ -98,7 +89,6 @@ function UploadFile({
                       setIsOpen(false);
                     })
                     .catch(() => {
-                      // handled by toast
                     });
                 }}
               >

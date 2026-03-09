@@ -4,9 +4,9 @@ import { FormTextareaProps } from "./FormTextarea.types";
 export const growHeightOnInput = (textarea: HTMLTextAreaElement) => {
   const element = textarea;
   if (element && textarea) {
-    element.style.height = "auto"; // Reset the height to auto to recalculate
+    element.style.height = "auto";
     if (textarea.value.length !== 0)
-      element.style.height = element.scrollHeight + "px"; // Set the height to the scrollHeight
+      element.style.height = element.scrollHeight + "px";
   }
 };
 
@@ -51,12 +51,12 @@ function FormTextarea({
           placeholder={(isRequired ? "* " : "") + placeholder}
           name={name}
           required={isRequired}
-          value={state}
+          value={state ?? ""}
           defaultValue={defaultValue}
           onChange={(e) => {
             if (setState) {
-              if (setStateParams) setState(e, setStateParams);
-              else setState(e);
+              const params = setStateParams ?? name;
+              setState(e.target.value, params, name);
             }
 
             if (afterChange) afterChange();

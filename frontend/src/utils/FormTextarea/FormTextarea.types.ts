@@ -3,10 +3,8 @@ export interface FormTextareaProps {
     name?: string;
     labelText?: string;
     isRequired?: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    state?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setState?: React.SetStateAction<any>;
+    state?: string | null;
+    setState?: (val: string, params?: object | string | number, fieldName?: string) => void;
     width?: string;
     minWidth?: string;
     maxWidth?: string;
@@ -18,7 +16,7 @@ export interface FormTextareaProps {
     id?: string;
     disabled?: boolean;
     isGrowHeightOnInput?: boolean;
-    setStateParams?: any;
+    setStateParams?: object | string | number;
     readOnly?: boolean;
     defaultValue?: string;
     afterChange?: () => void;

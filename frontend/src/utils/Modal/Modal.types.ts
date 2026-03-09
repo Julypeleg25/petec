@@ -3,4 +3,6 @@ export interface ModalProps {
     component: JSX.Element;
     style?: React.CSSProperties;
     closeWhenClickOutside?: boolean;
+    size?: "sm" | "md" | "lg" | "fullscreen";
+    className?: string;
 }

@@ -10,10 +10,12 @@ function SearchBar({ placeholder, state, setState, onEnter }: SearchBarProps) {
         <input
           type={"text"}
           placeholder={placeholder}
-          value={state}
-          onChange={(e) => setState(e.target.value)}
+          value={state ?? ""}
+          onChange={(e) => setState?.(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") if (onEnter) onEnter(e);
+            if (e.key === "Enter") {
+              onEnter?.(e);
+            }
           }}
         />
         <span className="search-input-icon">

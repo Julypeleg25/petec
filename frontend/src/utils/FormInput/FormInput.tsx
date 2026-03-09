@@ -49,11 +49,11 @@ function FormInput({
           placeholder={(isRequired ? "* " : "") + placeholder}
           name={name}
           required={isRequired}
-          value={state}
+          value={state === null ? "" : state}
           onChange={(e) => {
             if (setState) {
-              if (setStateParams) setState(e, setStateParams);
-              else setState(e);
+              const params = setStateParams ?? name;
+              setState(e.target.value, params, name);
             }
           }}
           style={isLink || type === "password" ? { paddingLeft: "40px" } : {}}
@@ -66,7 +66,7 @@ function FormInput({
           className={`${className ? className : ""}`}
         />
         {isLink && (
-          <a href={state} target="_blank" className="form-input-link" rel="noreferrer">
+          <a href={state as string} target="_blank" className="form-input-link" rel="noreferrer">
             <FaExternalLinkAlt />
           </a>
         )}

@@ -4,6 +4,7 @@ import {
     RowData,
     SearchObj,
     PaginationBtns,
+    TableFilterValue,
 } from "../TableGenerator/TableGenerator.types";
 
 export interface IPaginationProps<T extends RowData = RowData> {
@@ -12,20 +13,17 @@ export interface IPaginationProps<T extends RowData = RowData> {
     getDataByQuery: (
         queryObj: QueryObj,
         pageNumber: number,
-        filters: Record<string, string | number | boolean>,
+        filters: Record<string, TableFilterValue>,
         setDataSize: Dispatch<SetStateAction<number>>,
         setTableData: Dispatch<SetStateAction<T[]>>,
         setCurrentPage: Dispatch<SetStateAction<number>> | undefined,
-        disablePaginationBtns: PaginationBtns,
         setDisablePaginationBtns: Dispatch<SetStateAction<PaginationBtns>>,
-        tableSectionContainerRef: RefObject<HTMLDivElement | null>,
-        setSearch: Dispatch<SetStateAction<T[]>> | undefined,
         setLoading: Dispatch<SetStateAction<boolean>>
     ) => Promise<void>;
     dataSize: number;
     rowsPerPage: number;
     queryObj: QueryObj;
-    filters: Record<string, string | number | boolean>;
+    filters: Record<string, TableFilterValue>;
     setDataSize: Dispatch<SetStateAction<number>>;
     setTableData: Dispatch<SetStateAction<T[]>>;
     currentPage: number;

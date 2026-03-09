@@ -36,21 +36,31 @@
   cursor: pointer;
   z-index: 2;
 }
-
 .upload-image-img {
-  display: none;
+  display: block;
   width: 100%;
   height: 100%;
   position: absolute;
+  top: 0;
+  left: 0;
   z-index: 1;
   border-radius: 17px;
   object-fit: cover;
-  background-color: black;
+  background-color: transparent;
 }
 
 .upload-image-img-default {
   background: transparent;
 }
+
+.upload-image-default-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 
 .capture-image-btn {
   margin-top: 0.8em;
