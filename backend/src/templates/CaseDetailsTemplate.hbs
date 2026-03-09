@@ -1,0 +1,558 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Patient Form</title>
+    <style>
+      @page {
+            size: A4 landscape; /* Adjust page size if needed */
+            margin: 0;
+          }
+
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .details-table {
+        width: 95%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+        word-break: break-word;
+        padding-top: 0.2em;
+        padding-bottom: 0.2em;
+      }
+
+      .case-details,
+      .case-after-release-details,
+      .case-after-release-medicines {
+        display: flex;
+        flex-wrap: wrap;
+        width: 95%;
+        margin: 1em auto;
+        justify-content: flex-start;
+        flex-direction: row-reverse;
+        row-gap: 1em;
+      }
+
+      .case-details div,
+      .case-after-release-details div,
+      .case-after-release-medicines div {
+        margin-left: 1em;
+        font-size: 1rem;
+        display: flex;
+        justify-content: flex-start;
+      }
+
+      .case-details div span:first-child,
+      .case-after-release-details div span:first-child,
+      .case-after-release-medicines div span:first-child {
+        border-bottom: 2px solid black;
+        text-align: center;
+        margin-right: 0.2em;
+        min-width: 80px;
+      }
+
+      .case-after-release-medicines-container {
+        display: flex;
+        flex-direction: row-reverse;
+        width: 95%;
+        margin: 0em auto;
+      }
+
+      .case-after-release-medicines-container .case-after-release-medicines {
+        margin: 0;
+      }
+
+      .case-after-release-medicines-container-title {
+        width: 120px;
+        text-align: right;
+      }
+
+      .row-title {
+        min-width: 150px;
+        font-weight: 400;
+      }
+
+      .row-title-medicine-name{
+        font-weight: 600;
+      }
+
+      .puke-details p {
+        margin-top: 0;
+      }
+
+      .medicine-empty-row {
+        background-color: #f3f3f3;
+      }
+
+      .medicine-empty-row .row-title {
+        background-color: white;
+      }
+
+      th {
+        min-width: 50px;
+        font-size: 0.9rem;
+      }
+
+      td {
+        max-width: 100px;
+        font-size: 0.9rem;
+        position: relative;
+      }
+
+      .required-cell {
+        background-color: rgb(255, 0, 0, 0.5);
+      }
+
+      .un-editable-cell {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        right: 0;
+        z-index: 1;
+        background-color: rgb(255, 255, 255, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="case-details">
+      <div><span>{{date}}</span><span>:תאריך</span></div>
+      <div><span>{{ownerName}}</span><span>:שם הבעלים</span></div>
+      <div><span>{{ownerPhoneNumber}}</span><span>:מספר טלפון בעלים</span></div>
+      <div><span>{{insurance}}</span><span>:ביטוח</span></div>
+      <div><span>{{caseId}}</span><span>:מספר תיק</span></div>
+      <div><span>{{animalName}}</span><span>:שם בע"ח</span></div>
+      <div><span>{{weight}}</span><span>:משקל</span></div>
+      <div><span>{{gender}}</span><span>:מין</span></div>
+      <div><span>{{type}}</span><span>:סוג</span></div>
+      <div><span>{{color}}</span><span> :צבע</span></div>
+      <div><span style="direction: rtl;">{{age}}</span><span>:גיל</span></div>
+      <div><span>{{hospitalizationReason}}</span><span>:סיבת אשפוז</span></div>
+      <div><span>{{allergicComments}}</span><span>:אלרגיה הערות</span></div>
+      <div><span>{{foodType}}</span><span>:סוג האוכל</span></div>
+      <div><span>{{catheterDate}}</span><span>:תאריך הכנסת קטטר</span></div>
+      <div><span>{{procedureDate}}</span><span>:תאריך פרוצדורה</span></div>
+      <div>
+        <input type="checkbox" {{#if isAMB}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>AMB</span>
+      </div>
+       <div>
+        <input type="checkbox" {{#if isHeartMurmur}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>אוושה</span>
+      </div>
+       <div>
+        <input type="checkbox" {{#if isRiskAnesthesia}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>הרדמה בסיכון</span>
+      </div>
+       <div>
+        <input type="checkbox" {{#if isNPO}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>NPO</span>
+      </div>
+      <div>
+        <input type="checkbox" {{#if isEscapePotential}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>ברחן</span>
+      </div>
+      <div>
+        <input type="checkbox" {{#if isAggressive}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>תוקפן</span>
+      </div>
+      <div>
+        <input type="checkbox" {{#if isCerenia}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>סרניה</span>
+      </div>
+      <div>
+        <input type="checkbox" {{#if isConvenia}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>קונבניה</span>
+      </div>
+      <div>
+        <input type="checkbox" {{#if isAllergic}}checked{{/if}}
+        style="margin-right: 0.5em;"><span>אלרגיה</span>
+      </div>
+    </div>
+    <table class="details-table">
+      <tr>
+        <th>{{hour13}}</th>
+        <th>{{hour12}}</th>
+        <th>{{hour11}}</th>
+        <th>{{hour10}}</th>
+        <th>{{hour9}}</th>
+        <th>{{hour8}}</th>
+        <th>{{hour7}}</th>
+        <th>{{hour6}}</th>
+        <th>{{hour5}}</th>
+        <th>{{hour4}}</th>
+        <th>{{hour3}}</th>
+        <th>{{hour2}}</th>
+        <th>{{hour1}}</th>
+        <th></th>
+      </tr>
+      <tr>
+        <td class="{{#if comments_is_required_hour13}}required-cell{{/if}}">{{comments_hour13}}{{{comments_is_editable_hour13}}}</td>
+        <td class="{{#if comments_is_required_hour12}}required-cell{{/if}}">{{comments_hour12}}{{{comments_is_editable_hour12}}}</td>
+        <td class="{{#if comments_is_required_hour11}}required-cell{{/if}}">{{comments_hour11}}{{{comments_is_editable_hour11}}}</td>
+        <td class="{{#if comments_is_required_hour10}}required-cell{{/if}}">{{comments_hour10}}{{{comments_is_editable_hour10}}}</td>
+        <td class="{{#if comments_is_required_hour9}}required-cell{{/if}}">{{comments_hour9}}{{{comments_is_editable_hour9}}}</td>
+        <td class="{{#if comments_is_required_hour8}}required-cell{{/if}}">{{comments_hour8}}{{{comments_is_editable_hour8}}}</td>
+        <td class="{{#if comments_is_required_hour7}}required-cell{{/if}}">{{comments_hour7}}{{{comments_is_editable_hour7}}}</td>
+        <td class="{{#if comments_is_required_hour6}}required-cell{{/if}}">{{comments_hour6}}{{{comments_is_editable_hour6}}}</td>
+        <td class="{{#if comments_is_required_hour5}}required-cell{{/if}}">{{comments_hour5}}{{{comments_is_editable_hour5}}}</td>
+        <td class="{{#if comments_is_required_hour4}}required-cell{{/if}}">{{comments_hour4}}{{{comments_is_editable_hour4}}}</td>
+        <td class="{{#if comments_is_required_hour3}}required-cell{{/if}}">{{comments_hour3}}{{{comments_is_editable_hour3}}}</td>
+        <td class="{{#if comments_is_required_hour2}}required-cell{{/if}}">{{comments_hour2}}{{{comments_is_editable_hour2}}}</td>
+        <td class="{{#if comments_is_required_hour1}}required-cell{{/if}}">{{comments_hour1}}{{{comments_is_editable_hour1}}}</td>
+        <th class="row-title">הערות</th>
+      </tr>
+      <tr>
+        <td class="{{#if temp_is_required_hour13}}required-cell{{/if}}">{{temp_hour13}}{{{temp_is_editable_hour13}}}</td>
+        <td class="{{#if temp_is_required_hour12}}required-cell{{/if}}">{{temp_hour12}}{{{temp_is_editable_hour12}}}</td>
+        <td class="{{#if temp_is_required_hour11}}required-cell{{/if}}">{{temp_hour11}}{{{temp_is_editable_hour11}}}</td>
+        <td class="{{#if temp_is_required_hour10}}required-cell{{/if}}">{{temp_hour10}}{{{temp_is_editable_hour10}}}</td>
+        <td class="{{#if temp_is_required_hour9}}required-cell{{/if}}">{{temp_hour9}}{{{temp_is_editable_hour9}}}</td>
+        <td class="{{#if temp_is_required_hour8}}required-cell{{/if}}">{{temp_hour8}}{{{temp_is_editable_hour8}}}</td>
+        <td class="{{#if temp_is_required_hour7}}required-cell{{/if}}">{{temp_hour7}}{{{temp_is_editable_hour7}}}</td>
+        <td class="{{#if temp_is_required_hour6}}required-cell{{/if}}">{{temp_hour6}}{{{temp_is_editable_hour6}}}</td>
+        <td class="{{#if temp_is_required_hour5}}required-cell{{/if}}">{{temp_hour5}}{{{temp_is_editable_hour5}}}</td>
+        <td class="{{#if temp_is_required_hour4}}required-cell{{/if}}">{{temp_hour4}}{{{temp_is_editable_hour4}}}</td>
+        <td class="{{#if temp_is_required_hour3}}required-cell{{/if}}">{{temp_hour3}}{{{temp_is_editable_hour3}}}</td>
+        <td class="{{#if temp_is_required_hour2}}required-cell{{/if}}">{{temp_hour2}}{{{temp_is_editable_hour2}}}</td>
+        <td class="{{#if temp_is_required_hour1}}required-cell{{/if}}">{{temp_hour1}}{{{temp_is_editable_hour1}}}</td>
+        <th class="row-title">T</th>
+      </tr>
+      <tr>
+        <td class="{{#if pulse_is_required_hour13}}required-cell{{/if}}">{{pulse_hour13}}{{{pulse_is_editable_hour13}}}</td>
+        <td class="{{#if pulse_is_required_hour12}}required-cell{{/if}}">{{pulse_hour12}}{{{pulse_is_editable_hour12}}}</td>
+        <td class="{{#if pulse_is_required_hour11}}required-cell{{/if}}">{{pulse_hour11}}{{{pulse_is_editable_hour11}}}</td>
+        <td class="{{#if pulse_is_required_hour10}}required-cell{{/if}}">{{pulse_hour10}}{{{pulse_is_editable_hour10}}}</td>
+        <td class="{{#if pulse_is_required_hour9}}required-cell{{/if}}">{{pulse_hour9}}{{{pulse_is_editable_hour9}}}</td>
+        <td class="{{#if pulse_is_required_hour8}}required-cell{{/if}}">{{pulse_hour8}}{{{pulse_is_editable_hour8}}}</td>
+        <td class="{{#if pulse_is_required_hour7}}required-cell{{/if}}">{{pulse_hour7}}{{{pulse_is_editable_hour7}}}</td>
+        <td class="{{#if pulse_is_required_hour6}}required-cell{{/if}}">{{pulse_hour6}}{{{pulse_is_editable_hour6}}}</td>
+        <td class="{{#if pulse_is_required_hour5}}required-cell{{/if}}">{{pulse_hour5}}{{{pulse_is_editable_hour5}}}</td>
+        <td class="{{#if pulse_is_required_hour4}}required-cell{{/if}}">{{pulse_hour4}}{{{pulse_is_editable_hour4}}}</td>
+        <td class="{{#if pulse_is_required_hour3}}required-cell{{/if}}">{{pulse_hour3}}{{{pulse_is_editable_hour3}}}</td>
+        <td class="{{#if pulse_is_required_hour2}}required-cell{{/if}}">{{pulse_hour2}}{{{pulse_is_editable_hour2}}}</td>
+        <td class="{{#if pulse_is_required_hour1}}required-cell{{/if}}">{{pulse_hour1}}{{{pulse_is_editable_hour1}}}</td>
+        <th class="row-title">P</th>
+      </tr>
+      <tr>
+        <td class="{{#if respiration_is_required_hour13}}required-cell{{/if}}">{{respiration_hour13}}{{{respiration_is_editable_hour13}}}</td>
+        <td class="{{#if respiration_is_required_hour12}}required-cell{{/if}}">{{respiration_hour12}}{{{respiration_is_editable_hour12}}}</td>
+        <td class="{{#if respiration_is_required_hour11}}required-cell{{/if}}">{{respiration_hour11}}{{{respiration_is_editable_hour11}}}</td>
+        <td class="{{#if respiration_is_required_hour10}}required-cell{{/if}}">{{respiration_hour10}}{{{respiration_is_editable_hour10}}}</td>
+        <td class="{{#if respiration_is_required_hour9}}required-cell{{/if}}">{{respiration_hour9}}{{{respiration_is_editable_hour9}}}</td>
+        <td class="{{#if respiration_is_required_hour8}}required-cell{{/if}}">{{respiration_hour8}}{{{respiration_is_editable_hour8}}}</td>
+        <td class="{{#if respiration_is_required_hour7}}required-cell{{/if}}">{{respiration_hour7}}{{{respiration_is_editable_hour7}}}</td>
+        <td class="{{#if respiration_is_required_hour6}}required-cell{{/if}}">{{respiration_hour6}}{{{respiration_is_editable_hour6}}}</td>
+        <td class="{{#if respiration_is_required_hour5}}required-cell{{/if}}">{{respiration_hour5}}{{{respiration_is_editable_hour5}}}</td>
+        <td class="{{#if respiration_is_required_hour4}}required-cell{{/if}}">{{respiration_hour4}}{{{respiration_is_editable_hour4}}}</td>
+        <td class="{{#if respiration_is_required_hour3}}required-cell{{/if}}">{{respiration_hour3}}{{{respiration_is_editable_hour3}}}</td>
+        <td class="{{#if respiration_is_required_hour2}}required-cell{{/if}}">{{respiration_hour2}}{{{respiration_is_editable_hour2}}}</td>
+        <td class="{{#if respiration_is_required_hour1}}required-cell{{/if}}">{{respiration_hour1}}{{{respiration_is_editable_hour1}}}</td>
+        <th class="row-title">R</th>
+      </tr>
+      <tr class="medicine-empty-row">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th class="row-title">נוזלים</th>
+      </tr>
+      {{{fluids}}}
+      <tr class="medicine-empty-row">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th class="row-title">תרופות</th>
+      </tr>
+      {{{medicines}}}
+       <tr class="medicine-empty-row">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th class="row-title">בדיקות</th>
+      </tr>
+      {{{examinations}}}
+      <tr class="medicine-empty-row">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th class="row-title">פרוצדורות</th>
+      </tr>
+      {{{procedures}}}
+      <tr class="medicine-empty-row">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th class="row-title">תוספות לאוכל</th>
+      </tr>
+      {{{foodExtras}}}
+      <tr>
+        <td class="{{#if food_and_water_is_required_hour13}}required-cell{{/if}}">{{food_and_water_hour13}}{{{food_and_water_is_editable_hour13}}}</td>
+        <td class="{{#if food_and_water_is_required_hour12}}required-cell{{/if}}">{{food_and_water_hour12}}{{{food_and_water_is_editable_hour12}}}</td>
+        <td class="{{#if food_and_water_is_required_hour11}}required-cell{{/if}}">{{food_and_water_hour11}}{{{food_and_water_is_editable_hour11}}}</td>
+        <td class="{{#if food_and_water_is_required_hour10}}required-cell{{/if}}">{{food_and_water_hour10}}{{{food_and_water_is_editable_hour10}}}</td>
+        <td class="{{#if food_and_water_is_required_hour9}}required-cell{{/if}}">{{food_and_water_hour9}}{{{food_and_water_is_editable_hour9}}}</td>
+        <td class="{{#if food_and_water_is_required_hour8}}required-cell{{/if}}">{{food_and_water_hour8}}{{{food_and_water_is_editable_hour8}}}</td>
+        <td class="{{#if food_and_water_is_required_hour7}}required-cell{{/if}}">{{food_and_water_hour7}}{{{food_and_water_is_editable_hour7}}}</td>
+        <td class="{{#if food_and_water_is_required_hour6}}required-cell{{/if}}">{{food_and_water_hour6}}{{{food_and_water_is_editable_hour6}}}</td>
+        <td class="{{#if food_and_water_is_required_hour5}}required-cell{{/if}}">{{food_and_water_hour5}}{{{food_and_water_is_editable_hour5}}}</td>
+        <td class="{{#if food_and_water_is_required_hour4}}required-cell{{/if}}">{{food_and_water_hour4}}{{{food_and_water_is_editable_hour4}}}</td>
+        <td class="{{#if food_and_water_is_required_hour3}}required-cell{{/if}}">{{food_and_water_hour3}}{{{food_and_water_is_editable_hour3}}}</td>
+        <td class="{{#if food_and_water_is_required_hour2}}required-cell{{/if}}">{{food_and_water_hour2}}{{{food_and_water_is_editable_hour2}}}</td>
+        <td class="{{#if food_and_water_is_required_hour1}}required-cell{{/if}}">{{food_and_water_hour1}}{{{food_and_water_is_editable_hour1}}}</td>
+        <th class="row-title">אוכל + מים</th>
+      </tr>
+      <tr>
+        <td class="{{#if urine_is_required_hour13}}required-cell{{/if}}">{{urine_hour13}}{{{urine_is_editable_hour13}}}</td>
+        <td class="{{#if urine_is_required_hour12}}required-cell{{/if}}">{{urine_hour12}}{{{urine_is_editable_hour12}}}</td>
+        <td class="{{#if urine_is_required_hour11}}required-cell{{/if}}">{{urine_hour11}}{{{urine_is_editable_hour11}}}</td>
+        <td class="{{#if urine_is_required_hour10}}required-cell{{/if}}">{{urine_hour10}}{{{urine_is_editable_hour10}}}</td>
+        <td class="{{#if urine_is_required_hour9}}required-cell{{/if}}">{{urine_hour9}}{{{urine_is_editable_hour9}}}</td>
+        <td class="{{#if urine_is_required_hour8}}required-cell{{/if}}">{{urine_hour8}}{{{urine_is_editable_hour8}}}</td>
+        <td class="{{#if urine_is_required_hour7}}required-cell{{/if}}">{{urine_hour7}}{{{urine_is_editable_hour7}}}</td>
+        <td class="{{#if urine_is_required_hour6}}required-cell{{/if}}">{{urine_hour6}}{{{urine_is_editable_hour6}}}</td>
+        <td class="{{#if urine_is_required_hour5}}required-cell{{/if}}">{{urine_hour5}}{{{urine_is_editable_hour5}}}</td>
+        <td class="{{#if urine_is_required_hour4}}required-cell{{/if}}">{{urine_hour4}}{{{urine_is_editable_hour4}}}</td>
+        <td class="{{#if urine_is_required_hour3}}required-cell{{/if}}">{{urine_hour3}}{{{urine_is_editable_hour3}}}</td>
+        <td class="{{#if urine_is_required_hour2}}required-cell{{/if}}">{{urine_hour2}}{{{urine_is_editable_hour2}}}</td>
+        <td class="{{#if urine_is_required_hour1}}required-cell{{/if}}">{{urine_hour1}}{{{urine_is_editable_hour1}}}</td>
+        <th class="row-title">שתן</th>
+      </tr>
+      <tr>
+        <td class="{{#if feces_is_required_hour13}}required-cell{{/if}}">{{feces_hour13}}{{{feces_is_editable_hour13}}}</td>
+        <td class="{{#if feces_is_required_hour12}}required-cell{{/if}}">{{feces_hour12}}{{{feces_is_editable_hour12}}}</td>
+        <td class="{{#if feces_is_required_hour11}}required-cell{{/if}}">{{feces_hour11}}{{{feces_is_editable_hour11}}}</td>
+        <td class="{{#if feces_is_required_hour10}}required-cell{{/if}}">{{feces_hour10}}{{{feces_is_editable_hour10}}}</td>
+        <td class="{{#if feces_is_required_hour9}}required-cell{{/if}}">{{feces_hour9}}{{{feces_is_editable_hour9}}}</td>
+        <td class="{{#if feces_is_required_hour8}}required-cell{{/if}}">{{feces_hour8}}{{{feces_is_editable_hour8}}}</td>
+        <td class="{{#if feces_is_required_hour7}}required-cell{{/if}}">{{feces_hour7}}{{{feces_is_editable_hour7}}}</td>
+        <td class="{{#if feces_is_required_hour6}}required-cell{{/if}}">{{feces_hour6}}{{{feces_is_editable_hour6}}}</td>
+        <td class="{{#if feces_is_required_hour5}}required-cell{{/if}}">{{feces_hour5}}{{{feces_is_editable_hour5}}}</td>
+        <td class="{{#if feces_is_required_hour4}}required-cell{{/if}}">{{feces_hour4}}{{{feces_is_editable_hour4}}}</td>
+        <td class="{{#if feces_is_required_hour3}}required-cell{{/if}}">{{feces_hour3}}{{{feces_is_editable_hour3}}}</td>
+        <td class="{{#if feces_is_required_hour2}}required-cell{{/if}}">{{feces_hour2}}{{{feces_is_editable_hour2}}}</td>
+        <td class="{{#if feces_is_required_hour1}}required-cell{{/if}}">{{feces_hour1}}{{{feces_is_editable_hour1}}}</td>
+        <th class="row-title">צואה</th>
+      </tr>
+      <tr>
+        <td class="{{#if is_travel_is_required_hour13}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour13}}checked{{/if}}>{{{is_travel_is_editable_hour13}}}</td>
+        <td class="{{#if is_travel_is_required_hour12}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour12}}checked{{/if}}>{{{is_travel_is_editable_hour12}}}</td>
+        <td class="{{#if is_travel_is_required_hour11}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour11}}checked{{/if}}>{{{is_travel_is_editable_hour11}}}</td>
+        <td class="{{#if is_travel_is_required_hour10}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour10}}checked{{/if}}>{{{is_travel_is_editable_hour10}}}</td>
+        <td class="{{#if is_travel_is_required_hour9}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour9}}checked{{/if}}>{{{is_travel_is_editable_hour9}}}</td>
+        <td class="{{#if is_travel_is_required_hour8}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour8}}checked{{/if}}>{{{is_travel_is_editable_hour8}}}</td>
+        <td class="{{#if is_travel_is_required_hour7}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour7}}checked{{/if}}>{{{is_travel_is_editable_hour7}}}</td>
+        <td class="{{#if is_travel_is_required_hour6}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour6}}checked{{/if}}>{{{is_travel_is_editable_hour6}}}</td>
+        <td class="{{#if is_travel_is_required_hour5}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour5}}checked{{/if}}>{{{is_travel_is_editable_hour5}}}</td>
+        <td class="{{#if is_travel_is_required_hour4}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour4}}checked{{/if}}>{{{is_travel_is_editable_hour4}}}</td>
+        <td class="{{#if is_travel_is_required_hour3}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour3}}checked{{/if}}>{{{is_travel_is_editable_hour3}}}</td>
+        <td class="{{#if is_travel_is_required_hour2}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour2}}checked{{/if}}>{{{is_travel_is_editable_hour2}}}</td>
+        <td class="{{#if is_travel_is_required_hour1}}required-cell{{/if}}"><input type="checkbox" {{#if is_travel_hour1}}checked{{/if}}>{{{is_travel_is_editable_hour1}}}</td>
+        <th class="row-title">טיול</th>
+      </tr>
+      <tr>
+        <td class="{{#if is_box_clean_is_required_hour13}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour13}}checked{{/if}}>{{{is_box_clean_is_editable_hour13}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour12}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour12}}checked{{/if}}>{{{is_box_clean_is_editable_hour12}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour11}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour11}}checked{{/if}}>{{{is_box_clean_is_editable_hour11}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour10}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour10}}checked{{/if}}>{{{is_box_clean_is_editable_hour10}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour9}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour9}}checked{{/if}}>{{{is_box_clean_is_editable_hour9}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour8}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour8}}checked{{/if}}>{{{is_box_clean_is_editable_hour8}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour7}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour7}}checked{{/if}}>{{{is_box_clean_is_editable_hour7}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour6}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour6}}checked{{/if}}>{{{is_box_clean_is_editable_hour6}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour5}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour5}}checked{{/if}}>{{{is_box_clean_is_editable_hour5}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour4}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour4}}checked{{/if}}>{{{is_box_clean_is_editable_hour4}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour3}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour3}}checked{{/if}}>{{{is_box_clean_is_editable_hour3}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour2}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour2}}checked{{/if}}>{{{is_box_clean_is_editable_hour2}}}</td>
+        <td class="{{#if is_box_clean_is_required_hour1}}required-cell{{/if}}"><input type="checkbox"{{#if is_box_clean_hour1}}checked{{/if}}>{{{is_box_clean_is_editable_hour1}}}</td>
+        <th class="row-title">ניקוי ארגז</th>
+      </tr>
+       <tr>
+        <td class="{{#if is_release_is_required_hour13}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour13}}checked{{/if}}>{{{is_release_is_editable_hour13}}}</td>
+        <td class="{{#if is_release_is_required_hour12}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour12}}checked{{/if}}>{{{is_release_is_editable_hour12}}}</td>
+        <td class="{{#if is_release_is_required_hour11}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour11}}checked{{/if}}>{{{is_release_is_editable_hour11}}}</td>
+        <td class="{{#if is_release_is_required_hour10}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour10}}checked{{/if}}>{{{is_release_is_editable_hour10}}}</td>
+        <td class="{{#if is_release_is_required_hour9}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour9}}checked{{/if}}>{{{is_release_is_editable_hour9}}}</td>
+        <td class="{{#if is_release_is_required_hour8}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour8}}checked{{/if}}>{{{is_release_is_editable_hour8}}}</td>
+        <td class="{{#if is_release_is_required_hour7}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour7}}checked{{/if}}>{{{is_release_is_editable_hour7}}}</td>
+        <td class="{{#if is_release_is_required_hour6}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour6}}checked{{/if}}>{{{is_release_is_editable_hour6}}}</td>
+        <td class="{{#if is_release_is_required_hour5}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour5}}checked{{/if}}>{{{is_release_is_editable_hour5}}}</td>
+        <td class="{{#if is_release_is_required_hour4}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour4}}checked{{/if}}>{{{is_release_is_editable_hour4}}}</td>
+        <td class="{{#if is_release_is_required_hour3}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour3}}checked{{/if}}>{{{is_release_is_editable_hour3}}}</td>
+        <td class="{{#if is_release_is_required_hour2}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour2}}checked{{/if}}>{{{is_release_is_editable_hour2}}}</td>
+        <td class="{{#if is_release_is_required_hour1}}required-cell{{/if}}"><input type="checkbox"{{#if is_release_hour1}}checked{{/if}}>{{{is_release_is_editable_hour1}}}</td>
+        <th class="row-title">תרופות לשחרור</th>
+      </tr>
+      <tr>
+        <td class="{{#if owner_update_is_required_hour13}}required-cell{{/if}}">{{owner_update_hour13}}{{{owner_update_is_editable_hour13}}}</td>
+        <td class="{{#if owner_update_is_required_hour12}}required-cell{{/if}}">{{owner_update_hour12}}{{{owner_update_is_editable_hour12}}}</td>
+        <td class="{{#if owner_update_is_required_hour11}}required-cell{{/if}}">{{owner_update_hour11}}{{{owner_update_is_editable_hour11}}}</td>
+        <td class="{{#if owner_update_is_required_hour10}}required-cell{{/if}}">{{owner_update_hour10}}{{{owner_update_is_editable_hour10}}}</td>
+        <td class="{{#if owner_update_is_required_hour9}}required-cell{{/if}}">{{owner_update_hour9}}{{{owner_update_is_editable_hour9}}}</td>
+        <td class="{{#if owner_update_is_required_hour8}}required-cell{{/if}}">{{owner_update_hour8}}{{{owner_update_is_editable_hour8}}}</td>
+        <td class="{{#if owner_update_is_required_hour7}}required-cell{{/if}}">{{owner_update_hour7}}{{{owner_update_is_editable_hour7}}}</td>
+        <td class="{{#if owner_update_is_required_hour6}}required-cell{{/if}}">{{owner_update_hour6}}{{{owner_update_is_editable_hour6}}}</td>
+        <td class="{{#if owner_update_is_required_hour5}}required-cell{{/if}}">{{owner_update_hour5}}{{{owner_update_is_editable_hour5}}}</td>
+        <td class="{{#if owner_update_is_required_hour4}}required-cell{{/if}}">{{owner_update_hour4}}{{{owner_update_is_editable_hour4}}}</td>
+        <td class="{{#if owner_update_is_required_hour3}}required-cell{{/if}}">{{owner_update_hour3}}{{{owner_update_is_editable_hour3}}}</td>
+        <td class="{{#if owner_update_is_required_hour2}}required-cell{{/if}}">{{owner_update_hour2}}{{{owner_update_is_editable_hour2}}}</td>
+        <td class="{{#if owner_update_is_required_hour1}}required-cell{{/if}}">{{owner_update_hour1}}{{{owner_update_is_editable_hour1}}}</td>
+        <th class="row-title">עדכון בעלים</th>
+      </tr>
+      <tr>
+        <td class="{{#if weigh_is_required_hour13}}required-cell{{/if}}">{{weigh_hour13}}{{{weigh_is_editable_hour13}}}</td>
+        <td class="{{#if weigh_is_required_hour12}}required-cell{{/if}}">{{weigh_hour12}}{{{weigh_is_editable_hour12}}}</td>
+        <td class="{{#if weigh_is_required_hour11}}required-cell{{/if}}">{{weigh_hour11}}{{{weigh_is_editable_hour11}}}</td>
+        <td class="{{#if weigh_is_required_hour10}}required-cell{{/if}}">{{weigh_hour10}}{{{weigh_is_editable_hour10}}}</td>
+        <td class="{{#if weigh_is_required_hour9}}required-cell{{/if}}">{{weigh_hour9}}{{{weigh_is_editable_hour9}}}</td>
+        <td class="{{#if weigh_is_required_hour8}}required-cell{{/if}}">{{weigh_hour8}}{{{weigh_is_editable_hour8}}}</td>
+        <td class="{{#if weigh_is_required_hour7}}required-cell{{/if}}">{{weigh_hour7}}{{{weigh_is_editable_hour7}}}</td>
+        <td class="{{#if weigh_is_required_hour6}}required-cell{{/if}}">{{weigh_hour6}}{{{weigh_is_editable_hour6}}}</td>
+        <td class="{{#if weigh_is_required_hour5}}required-cell{{/if}}">{{weigh_hour5}}{{{weigh_is_editable_hour5}}}</td>
+        <td class="{{#if weigh_is_required_hour4}}required-cell{{/if}}">{{weigh_hour4}}{{{weigh_is_editable_hour4}}}</td>
+        <td class="{{#if weigh_is_required_hour3}}required-cell{{/if}}">{{weigh_hour3}}{{{weigh_is_editable_hour3}}}</td>
+        <td class="{{#if weigh_is_required_hour2}}required-cell{{/if}}">{{weigh_hour2}}{{{weigh_is_editable_hour2}}}</td>
+        <td class="{{#if weigh_is_required_hour1}}required-cell{{/if}}">{{weigh_hour1}}{{{weigh_is_editable_hour1}}}</td>
+        <th class="row-title">שקילה</th>
+      </tr>
+      <tr>
+         <td class="puke-details {{#if puke_is_required_hour13}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour13}}checked{{/if}}>
+          <p>{{puke_comments_hour13}}</p>
+          {{{puke_is_editable_hour13}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour12}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour12}}checked{{/if}}>
+          <p>{{puke_comments_hour12}}</p>
+          {{{puke_is_editable_hour12}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour11}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour11}}checked{{/if}}>
+          <p>{{puke_comments_hour11}}</p>
+          {{{puke_is_editable_hour11}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour10}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour10}}checked{{/if}}>
+          <p>{{puke_comments_hour10}}</p>
+          {{{puke_is_editable_hour10}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour9}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour9}}checked{{/if}}>
+          <p>{{puke_comments_hour9}}</p>
+          {{{puke_is_editable_hour9}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour8}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour8}}checked{{/if}}>
+          <p>{{puke_comments_hour8}}</p>
+          {{{puke_is_editable_hour8}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour7}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour7}}checked{{/if}}>
+          <p>{{puke_comments_hour7}}</p>
+          {{{puke_is_editable_hour7}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour6}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour6}}checked{{/if}}>
+          <p>{{puke_comments_hour6}}</p>
+          {{{puke_is_editable_hour6}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour5}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour5}}checked{{/if}}>
+          <p>{{puke_comments_hour5}}</p>
+          {{{puke_is_editable_hour5}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour4}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour4}}checked{{/if}}>
+          <p>{{puke_comments_hour4}}</p>
+          {{{puke_is_editable_hour4}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour3}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour3}}checked{{/if}}>
+          <p>{{puke_comments_hour3}}</p>
+          {{{puke_is_editable_hour3}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour2}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour2}}checked{{/if}}>
+          <p>{{puke_comments_hour2}}</p>
+          {{{puke_is_editable_hour2}}}
+        </td>
+        <td class="puke-details {{#if puke_is_required_hour1}}required-cell{{/if}}">
+          <input type="checkbox" {{#if is_puke_hour1}}checked{{/if}}>
+          <p>{{puke_comments_hour1}}</p>
+          {{{puke_is_editable_hour1}}}
+        </td>
+        <th class="row-title">הקאות</th>
+      </tr>
+    </table>
+
+    <div class="case-after-release-details">
+      <div><span>{{releaseDate}}</span><span>:תאריך שחרור</span></div>
+      <div><span>{{nextInspectionDate}}</span><span>:תאריך ביקורת</span></div>
+      <div>
+        <span>{{stitchesRemovalDate}}</span><span>:תאריך הסרת תפרים</span>
+      </div>
+      <div><span>{{doctor}}</span><span>:רופא מטפל</span></div>
+      <div><span>{{referringDoctor}}</span><span>:רופא מפנה</span></div>
+    </div>
+    <div class="case-after-release-medicines-container">
+      <div class="case-after-release-medicines-container-title">:תרופות לשחרור</div>
+      <div class="case-after-release-medicines">{{{releaseMedicines}}}</div>
+    </div>
+  </body>
+</html>
