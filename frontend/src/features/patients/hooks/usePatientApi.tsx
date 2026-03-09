@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { patientsApi } from "./patients.api";
+import { patientsApi } from "../patients.api";
 import type {
     NewPatientDTO,
     EditPatientDTO,
@@ -13,18 +13,19 @@ import type {
 
 export const patientKeys = {
     all: ["patients"] as const,
-    case: (caseId: string) => ["patients", "case", caseId] as const,
+    case: (masterCaseId: string, caseId: string) =>
+        ["patients", "case", masterCaseId, caseId] as const,
     documents: (patientId: string) => ["patients", "documents", patientId] as const,
     anesthesia: (caseId: string) => ["patients", "anesthesia", caseId] as const,
     releaseData: (caseId: string) => ["patients", "releaseData", caseId] as const,
     charts: (caseId: string) => ["patients", "charts", caseId] as const,
 };
 
-export const useCaseDetails = (caseId: string) =>
+export const useCaseDetails = (caseId: string, masterCaseId: string) =>
     useQuery({
-        queryKey: patientKeys.case(caseId),
-        queryFn: () => patientsApi.getCaseDetails(caseId),
-        enabled: !!caseId,
+        queryKey: patientKeys.case(masterCaseId, caseId),
+        queryFn: () => patientsApi.getCaseDetails(caseId, masterCaseId),
+        enabled: !!caseId && !!masterCaseId,
     });
 
 export const usePatientDocuments = (patientId: string) =>
@@ -57,11 +58,15 @@ export const useChartsData = (caseId: string) =>
 
 export const usePatientApi = () => {
     const qc = useQueryClient();
+    const invalidatePatientRelatedLists = (): void => {
+        qc.invalidateQueries({ queryKey: patientKeys.all });
+        qc.invalidateQueries({ queryKey: ["table"] });
+    };
 
     const createPatient = useMutation({
         mutationFn: (dto: NewPatientDTO) => patientsApi.createPatient(dto),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: patientKeys.all });
+            invalidatePatientRelatedLists();
             toast.success("המטופל נוסף בהצלחה");
         },
     });
@@ -69,7 +74,7 @@ export const usePatientApi = () => {
     const updatePatient = useMutation({
         mutationFn: (dto: EditPatientDTO) => patientsApi.updatePatient(dto),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: patientKeys.all });
+            invalidatePatientRelatedLists();
             toast.success("פרטי המטופל עודכנו בהצלחה");
         },
     });
@@ -77,7 +82,7 @@ export const usePatientApi = () => {
     const releasePatient = useMutation({
         mutationFn: (dto: ReleasePatientDTO) => patientsApi.releasePatient(dto),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: patientKeys.all });
+            invalidatePatientRelatedLists();
             toast.success("המטופל שוחרר בהצלחה");
         },
     });
@@ -85,7 +90,7 @@ export const usePatientApi = () => {
     const deleteCase = useMutation({
         mutationFn: (dto: DeletePatientCaseDTO) => patientsApi.deleteCase(dto),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: patientKeys.all });
+            invalidatePatientRelatedLists();
             toast.success("הרשומה נמחקה");
         },
     });
@@ -93,8 +98,8 @@ export const usePatientApi = () => {
     const archivePatient = useMutation({
         mutationFn: (dto: ArchivePatientDTO) => patientsApi.archivePatient(dto),
         onSuccess: () => {
-            qc.invalidateQueries({ queryKey: patientKeys.all });
-            toast.success("המטופל הועבר לארכיון");
+            invalidatePatientRelatedLists();
+            toast.success("סטטוס הארכיון עודכן בהצלחה");
         },
     });
 
@@ -115,6 +120,14 @@ export const usePatientApi = () => {
         },
     });
 
+    const uploadPatientPhoto = useMutation({
+        mutationFn: ({ patientId, file }: { patientId: string; file: File }) =>
+            patientsApi.uploadPatientPhoto(patientId, file),
+        onSuccess: () => {
+            invalidatePatientRelatedLists();
+        },
+    });
+
     const upsertAnesthesiaForm = useMutation({
         mutationFn: ({ caseId, dto }: { caseId: string; dto: CreateAnesthesiaProcedureFormDTO }) =>
             patientsApi.upsertAnesthesiaForm(caseId, dto),
@@ -125,7 +138,7 @@ export const usePatientApi = () => {
     });
 
     const exportCase = useMutation({
-        mutationFn: (caseId: string) => patientsApi.exportCase(caseId),
+        mutationFn: ({ caseId, date }: { caseId: string; date?: string }) => patientsApi.exportCase(caseId, date),
     });
 
     return {
@@ -135,6 +148,7 @@ export const usePatientApi = () => {
         deleteCase,
         archivePatient,
         uploadDocument,
+        uploadPatientPhoto,
         deleteDocument,
         upsertAnesthesiaForm,
         exportCase,
