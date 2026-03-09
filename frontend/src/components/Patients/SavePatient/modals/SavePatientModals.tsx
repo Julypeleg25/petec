@@ -1,17 +1,40 @@
 import React from "react";
-import Modal from "../../../utils/Modal/Modal";
-import ReleasePatient from "../../ReleasePatient/ReleasePatient";
-import DeletePatient from "../../DeletePatient/DeletePatient";
-import PatientDocuments from "../../PatientDocuments/PatientDocuments";
-import PatientCharts from "../../PatientCharts/PatientCharts";
-import CatheterReplacement from "../../CatheterReplacement/CatheterReplacement";
+import Modal from "../../../../utils/Modal/Modal";
+import ReleasePatient from "../../../ReleasePatient/ReleasePatient";
+import DeletePatient from "../../../DeletePatient/DeletePatient";
+import PatientDocuments from "../../../PatientDocuments/PatientDocuments";
+import PatientCharts from "../../../PatientCharts/PatientCharts";
+import CatheterReplacement from "../../../CatheterReplacement/CatheterReplacement";
 
-import { SavePatientModalsProps } from "./SavePatientModals.types";
+interface SavePatientModalsProps {
+  isEdit: boolean;
+  caseIdString: string;
+  caseSerialId: string;
+  patientId: string;
+  weightKg?: number;
+  catheterDate: Date | null;
+  isReleased: boolean;
+  setIsReleased: React.Dispatch<React.SetStateAction<boolean>>;
+  showReleasePatientModal: boolean;
+  setShowReleasePatientModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showDeletePatientCaseModal: boolean;
+  setShowDeletePatientCaseModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showPatientDocumentsModal: boolean;
+  setShowPatientDocumentsModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showPatientChartsModal: boolean;
+  setShowPatientChartsModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showArchiveConfirmationModal: boolean;
+  setShowArchiveConfirmationModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isArchived: boolean;
+  archivePatient: () => void;
+  showCatheterReplacementModal: boolean;
+  setShowCatheterReplacementModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
 export function SavePatientModals({
   isEdit,
   caseIdString,
-  masterCaseId,
+  caseSerialId,
   patientId,
   weightKg,
   catheterDate,
@@ -42,6 +65,7 @@ export function SavePatientModals({
           component={
             <ReleasePatient
               caseId={caseIdString}
+              caseSerialId={caseSerialId}
               setShowReleasePatientModal={setShowReleasePatientModal}
               isReleased={isReleased}
               setIsReleased={setIsReleased}
@@ -56,7 +80,7 @@ export function SavePatientModals({
           setIsOpen={setShowDeletePatientCaseModal}
           component={
             <DeletePatient
-              patientId={patientId}
+              caseId={caseSerialId}
               setShowDeletePatientCaseModal={setShowDeletePatientCaseModal}
             />
           }
@@ -66,25 +90,16 @@ export function SavePatientModals({
         <Modal
           setIsOpen={setShowPatientDocumentsModal}
           component={
-            <PatientDocuments caseId={caseIdString} masterCaseId={masterCaseId ?? ""} />
+            <PatientDocuments caseId={caseIdString} patientId={patientId} caseSerialId={caseSerialId} />
           }
-          style={{
-            width: "90%",
-            height: "90%",
-            maxHeight: "90%",
-            maxWidth: "900px",
-          }}
+          size="lg"
         />
       )}
       {showPatientChartsModal && (
         <Modal
           setIsOpen={setShowPatientChartsModal}
           component={<PatientCharts caseId={caseIdString} />}
-          style={{
-            width: "90%",
-            height: "90%",
-            maxHeight: "90%",
-          }}
+          size="fullscreen"
         />
       )}
       {showArchiveConfirmationModal && (

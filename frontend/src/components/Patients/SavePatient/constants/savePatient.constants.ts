@@ -1,9 +1,5 @@
 import { SYSTEM_TYPE_NAMES } from "@petec/shared";
 
-export const SAVE_PATIENT_ROUTES = {
-  PATIENTS_LIST: "/patients/patientsList",
-} as const;
-
 export const SAVE_PATIENT_ELEMENT_IDS = {
   TABLE_HOUR_SELECT: "table-hour-select",
   PAINT_BUTTON: "paintButton",
@@ -13,14 +9,10 @@ export const SAVE_PATIENT_ELEMENT_IDS = {
 export const SAVE_PATIENT_DEFAULTS = {
   EMPTY_VALUE: "",
   CASE_DATE_FALLBACK: "-1",
-  INITIAL_PATIENT_ID: -1,
+  INITIAL_PATIENT_ID: "",
   HOUR_PADDING_LENGTH: 1,
   MAX_PARENT_HOPS: 10,
   CATHETER_REPLACEMENT_DAYS_THRESHOLD: 3,
-  PDF_FILE_NAME: "output.pdf",
-  PDF_MIME_TYPE: "application/pdf",
-  DEFAULT_PATIENT_IMAGE: "assets/images/default-patient-image.jpg",
-  NEW_PATIENT_PATH_SEGMENT: "newPatient",
 } as const;
 
 export const SAVE_PATIENT_SYSTEM_TYPE_NAMES = {
@@ -30,3 +22,9 @@ export const SAVE_PATIENT_SYSTEM_TYPE_NAMES = {
   INSURANCE: SYSTEM_TYPE_NAMES.INSURANCE_TYPES,
   FOOD: SYSTEM_TYPE_NAMES.FOOD_TYPES,
 } as const;
+
+export type SavePatientSystemTypeName =
+  (typeof SAVE_PATIENT_SYSTEM_TYPE_NAMES)[keyof typeof SAVE_PATIENT_SYSTEM_TYPE_NAMES];
+
+export const SAVE_PATIENT_CATHETER_DATE_FIELD_NAME = "dates.catheterDate";
+export const SAVE_PATIENT_PROCEDURE_DATE_FIELD_NAME = "dates.procedureDate";
