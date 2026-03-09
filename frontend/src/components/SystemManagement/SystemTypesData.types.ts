@@ -1,31 +1,13 @@
-import type { SystemTypeName } from "@petec/shared";
+import { type SystemTypeName } from "@petec/shared";
 import type { ColumnDef } from "../../types";
-
-export enum SystemTypes {
-  MEDICINE = "MEDICINE",
-  ANIMAL_COLOR = "ANIMAL_COLOR",
-  ANIMAL_TYPE = "ANIMAL_TYPE",
-  FECES_TYPE = "FECES_TYPE",
-  URINE_TYPE = "URINE_TYPE",
-  FOOD_TYPE = "FOOD_TYPE",
-  GENDER_TYPE = "GENDER_TYPE",
-  RACE_TYPE = "RACE_TYPE",
-  MEASURE_UNIT_TYPE = "MEASURE_UNIT_TYPE",
-  DOSAGE_FREQUENCY_TYPE = "DOSAGE_FREQUENCY_TYPE",
-  INSURANCE_TYPE = "INSURANCE_TYPE",
-  FOOD_EXTRAS_TYPE = "FOOD_EXTRAS_TYPE",
-  EXAMINATION_TYPE = "EXAMINATION_TYPE",
-  ROUTE_OF_ADMINISTRATION = "ROUTE_OF_ADMINISTRATION",
-  PROCEDURE_TYPE = "PROCEDURE_TYPE",
-  ANIMAL_VITALS = "ANIMAL_VITALS",
-}
+import type { OrderByObj } from "../../utils/TableGenerator/TableGenerator.types";
 
 export interface SystemTypeConfig {
-  query: string;
+  label: string;
+  query: SystemTypeName;
   columnsData: ColumnDef[];
-  orderBy?: Record<string, "ASC" | "DESC">;
+  orderBy?: OrderByObj;
   deleteMessage: string;
   deleteUrl: string;
-  systemType: SystemTypes;
   typeName: SystemTypeName;
 }
