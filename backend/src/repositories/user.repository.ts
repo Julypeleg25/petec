@@ -58,7 +58,7 @@ export class UserRepository extends BaseRepository<IUser> {
   }
 
   async findByRole(role: Role): Promise<UserDocument[]> {
-    return this.model.find({ role, status: UserStatus.ACTIVE }).exec();
+    return this.model.find({ role, status: UserStatus.ACTIVE, isDeleted: { $ne: true } }).exec();
   }
 }
 
