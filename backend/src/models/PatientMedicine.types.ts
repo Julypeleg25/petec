@@ -12,7 +12,7 @@ export interface IPatientMedicine {
   notes?: string;
   startDate?: Date;
   endDate?: Date;
-  isActive?: boolean;
+  isDeleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

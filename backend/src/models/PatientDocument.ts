@@ -34,6 +34,7 @@ const patientDocumentSchema = new Schema<IPatientDocument, Model<IPatientDocumen
 export const PatientDocumentModel = mongoose.model<IPatientDocument>(
     "PatientDocument",
     patientDocumentSchema,
+    "patientDocuments"
 );
 
 export type { IPatientDocument, PatientDocumentDocument } from "./PatientDocument.types";

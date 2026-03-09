@@ -3,11 +3,6 @@ import type { IMasterCase } from "./MasterCase.types";
 
 const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
     {
-        patientId: {
-            type: Schema.Types.ObjectId,
-            ref: "Patient",
-            index: true,
-        },
         caseIds: {
             type: [{ type: Schema.Types.ObjectId, ref: "Case" }],
             default: [],
@@ -20,6 +15,6 @@ const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
     },
 );
 
-export const MasterCaseModel = mongoose.model<IMasterCase>("MasterCase", masterCaseSchema);
+export const MasterCaseModel = mongoose.model<IMasterCase>("MasterCase", masterCaseSchema, "masterCases");
 
 export type { IMasterCase, MasterCaseDocument } from "./MasterCase.types";
