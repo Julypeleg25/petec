@@ -1,15 +1,15 @@
 import type { Request, Response, NextFunction } from "express";
-import { medicineService } from "@services/medicine.service";
 import { sendSuccess } from "@utils/apiResponse";
 import { getValidatedParams } from "@utils/request.utils";
-import type { CategoryIdParamsDTO } from "@petec/shared";
+import type { CategoryTypeParamsDTO } from "@petec/shared";
 import {
   SimpleSystemTypeListResponseDTOSchema,
   MedicineListResponseDTOSchema,
 } from "@petec/shared";
+import { medicineService } from "@services/medicine.service";
 
 export class MedicineController {
-  async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await medicineService.getAll();
       sendSuccess(res, result, MedicineListResponseDTOSchema);
@@ -20,15 +20,15 @@ export class MedicineController {
 
   async getAllByCategoryType(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { categoryId } = getValidatedParams<CategoryIdParamsDTO>(req);
-      const result = await medicineService.getAllByCategoryType(categoryId);
+      const { categoryType } = getValidatedParams<CategoryTypeParamsDTO>(req);
+      const result = await medicineService.getAllByCategoryType(categoryType);
       sendSuccess(res, result, MedicineListResponseDTOSchema);
     } catch (err) {
       next(err);
     }
   }
 
-  async getAllCategoryTypes(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAllCategoryTypes(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await medicineService.getAllCategoryTypes();
       sendSuccess(res, result, SimpleSystemTypeListResponseDTOSchema);
@@ -37,7 +37,7 @@ export class MedicineController {
     }
   }
 
-  async getMedicinesFrequencies(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getMedicinesFrequencies(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await medicineService.getMedicinesFrequencies();
       sendSuccess(res, result, SimpleSystemTypeListResponseDTOSchema);
@@ -46,7 +46,7 @@ export class MedicineController {
     }
   }
 
-  async getMedicinesRoutesForAdministration(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getMedicinesRoutesForAdministration(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await medicineService.getMedicinesRoutesForAdministration();
       sendSuccess(res, result, SimpleSystemTypeListResponseDTOSchema);
@@ -55,7 +55,7 @@ export class MedicineController {
     }
   }
 
-  async getMeasureUnitTypes(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getMeasureUnitTypes(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await medicineService.getMeasureUnitTypes();
       sendSuccess(res, result, SimpleSystemTypeListResponseDTOSchema);

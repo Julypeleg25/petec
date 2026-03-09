@@ -1,8 +1,14 @@
+import { logger } from "@config/logger";
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "@services/patient.service";
+import { exportService } from "@services/export.service";
+import { patientUploadService } from "@services/patientUpload.service";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
 import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "@utils/request.utils";
-import { HttpStatus } from "@petec/shared";
+import {
+  HttpStatus,
+  buildPatientExportFileName,
+} from "@petec/shared";
 import type {
   NewPatientDTO,
   EditPatientDTO,
@@ -18,6 +24,7 @@ import {
   CreatePatientResponseDTOSchema,
   CaseDetailsResponseDTOSchema,
   PatientDocumentResponseDTOSchema,
+  UploadPatientPhotoResponseDTOSchema,
   PatientDocumentListResponseDTOSchema,
   ReleasePatientDataResponseDTOSchema,
   ChartsDataResponseDTOSchema,
@@ -50,8 +57,8 @@ export class PatientController {
 
   async getCaseDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
-      const result = await patientService.getCaseDetails(caseId);
+      const { caseId, masterCaseId } = getValidatedParams<CaseIdParamsDTO>(req);
+      const result = await patientService.getCaseDetails(caseId, masterCaseId);
       sendSuccess(res, result, CaseDetailsResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -105,9 +112,11 @@ export class PatientController {
     try {
       const dto = getValidatedBody<UploadDocumentDTO>(req);
       const userId = getAuthenticatedUserId(req);
-      const storageKey = `documents/${Date.now()}`;
-      const fileName = (req.file?.originalname) ?? "document";
-      const result = await patientService.uploadDocumentMetadata(dto, storageKey, fileName, userId);
+      const result = await patientUploadService.uploadDocument({
+        dto,
+        userId,
+        file: req.file,
+      });
       sendCreated(res, result, PatientDocumentResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -167,9 +176,8 @@ export class PatientController {
     }
   }
 
-  async getDailyPlan(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getDailyPlan(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      void req;
       const result = await patientService.getDailyPlan();
       sendSuccess(res, result, DailyPlanDetailListResponseDTOSchema);
     } catch (err) {
@@ -190,10 +198,59 @@ export class PatientController {
   async exportCase(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
-      const result = await patientService.exportPatientCase(caseId);
-      res.setHeader("Content-Disposition", `attachment; filename="case-${caseId}.pdf"`);
+      const targetDate = req.query.date as string | undefined;
+      const { pdfPath, caseData } = await exportService.exportCase(caseId, targetDate);
+
+      const fileName = buildPatientExportFileName(caseData.serialId);
+
       res.setHeader("Content-Type", "application/pdf");
-      res.status(HttpStatus.OK).send(result);
+      res.setHeader("X-Filename", fileName);
+
+      res.download(pdfPath, fileName, (err) => {
+        if (err) {
+          logger.error("Error downloading PDF", { error: err });
+        }
+        import("fs").then((fs) => {
+          if (fs.default.existsSync(pdfPath)) {
+            fs.default.unlinkSync(pdfPath);
+          }
+        });
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async uploadPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
+      const userId = getAuthenticatedUserId(req);
+      const photoName = await patientUploadService.uploadPatientPhoto({
+        patientId,
+        userId,
+        file: req.file,
+      });
+      sendSuccess(
+        res,
+        { photoName },
+        UploadPatientPhotoResponseDTOSchema,
+      );
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
+      const result = await patientService.getPatientPhotoStream(patientId);
+      res.setHeader("Content-Type", result.contentType);
+      res.setHeader("Cache-Control", "public, max-age=300");
+      res.status(HttpStatus.OK);
+      result.stream.once("error", (streamError) => {
+        next(streamError);
+      });
+      result.stream.pipe(res);
     } catch (err) {
       next(err);
     }
