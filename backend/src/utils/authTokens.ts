@@ -1,18 +1,18 @@
 import jwt from "jsonwebtoken";
 import { ENV } from "@config/config";
 import { TOKEN_EXPIRY, COOKIE_OPTIONS, COOKIE_NAMES } from "@petec/shared";
-import type { TokenPayload } from "@petec/shared";
+import type { TokenPayload, ResetPasswordTokenPayload } from "@petec/shared";
 import type { Response, CookieOptions } from "express";
 
 export const generateAccessToken = (payload: Omit<TokenPayload, "iat" | "exp">): string => {
   return jwt.sign(payload, ENV.jwtAccessSecret, {
-    expiresIn: TOKEN_EXPIRY.ACCESS_TOKEN,
+    expiresIn: ENV.accessTokenExpiresIn,
   });
 };
 
 export const generateRefreshToken = (payload: Omit<TokenPayload, "iat" | "exp">): string => {
   return jwt.sign(payload, ENV.jwtRefreshSecret, {
-    expiresIn: TOKEN_EXPIRY.REFRESH_TOKEN,
+    expiresIn: ENV.refreshTokenExpiresIn,
   });
 };
 
@@ -30,8 +30,8 @@ export const generateResetPasswordToken = (userId: string): string => {
   });
 };
 
-export const verifyResetPasswordToken = (token: string): { userId: string } => {
-  return jwt.verify(token, ENV.jwtResetPasswordSecret) as { userId: string };
+export const verifyResetPasswordToken = (token: string): ResetPasswordTokenPayload => {
+  return jwt.verify(token, ENV.jwtResetPasswordSecret) as ResetPasswordTokenPayload;
 };
 
 export const setRefreshCookie = (res: Response, token: string): void => {
@@ -39,7 +39,7 @@ export const setRefreshCookie = (res: Response, token: string): void => {
     httpOnly: COOKIE_OPTIONS.HTTP_ONLY,
     secure: ENV.isProduction,
     sameSite: COOKIE_OPTIONS.SAME_SITE,
-    maxAge: COOKIE_OPTIONS.MAX_AGE_MS,
+    maxAge: ENV.refreshTokenExpiresInMs,
     path: COOKIE_OPTIONS.REFRESH_PATH,
   };
   res.cookie(COOKIE_NAMES.REFRESH, token, options);
