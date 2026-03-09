@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { MEDICINE_CATEGORY_TYPE_VALUES } from "../../constants/systemTypes.constants";
 
-export const CategoryIdParamsDTOSchema = z.object({
-    categoryId: z.string().min(1).trim(),
+export const CategoryTypeParamsDTOSchema = z.object({
+    categoryType: z.enum(MEDICINE_CATEGORY_TYPE_VALUES),
 }).strict();
-export type CategoryIdParamsDTO = z.infer<typeof CategoryIdParamsDTOSchema>;
+export type CategoryTypeParamsDTO = z.infer<typeof CategoryTypeParamsDTOSchema>;

@@ -3,6 +3,7 @@ import { objectIdSchema } from "../../utils/index";
 
 export const CaseIdParamsDTOSchema = z.object({
     caseId: objectIdSchema,
+    masterCaseId: objectIdSchema.optional(),
 }).strict();
 export type CaseIdParamsDTO = z.infer<typeof CaseIdParamsDTOSchema>;
 
