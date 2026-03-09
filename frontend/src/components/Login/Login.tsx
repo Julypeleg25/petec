@@ -5,6 +5,7 @@ import FormInput from "../../utils/FormInput/FormInput";
 import { LoginDTOSchema, type LoginDTO } from "@petec/shared";
 import { useLogin } from "../../features/auth/hooks/useLogin";
 import { getSharedResolver } from "../../utils/form";
+import { AppRoutes } from "../../config/appRoutes";
 
 const Login = () => {
   const { mutate, isPending } = useLogin();
@@ -20,31 +21,43 @@ const Login = () => {
   });
 
   const isLoading = isSubmitting || isPending;
+  const login = handleSubmit((values) => mutate(values));
+
+  const handleInputChange = (
+    value: string,
+    params?: object | string | number,
+    fieldName?: string,
+  ) => {
+    const candidateField =
+      typeof fieldName === "string"
+        ? fieldName
+        : typeof params === "string"
+          ? params
+          : undefined;
+
+    if (candidateField === "username" || candidateField === "password") {
+      setValue(candidateField, value, { shouldDirty: true, shouldValidate: true });
+    }
+  };
 
   return (
     <div className="Login">
-      <main className="login-page-main">
+      <div className="login-page-main">
         <img
           className="logo-img"
-          src={"assets/images/logo_reversed.jpg"}
-          alt="logo"
+          src={"/assets/images/petec_logo_v2.jpg"}
+          alt="logo_image"
         />
-        <span className="logo-main-title">PETEC</span>
-        <span className="logo-sub-title">מערכת ניהול בית חולים לבעלי חיים</span>
-        <form
-          className="login-form"
-          onSubmit={handleSubmit((values) => mutate(values))}
-          noValidate
-        >
+        <form className="login-form" onSubmit={login} noValidate>
           <FormInput
-            labelText="שם משתמש"
+            labelText=":שם משתמש"
+            name="username"
             type="text"
-            placeholder="שם משתמש"
+            placeholder="אנא הכנס/י את שם המשתמש שלך"
             isRequired
             state={watch("username")}
-            setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValue("username", e.target.value, { shouldValidate: true })
-            }
+            setState={handleInputChange}
+            minLength={6}
           />
           {errors.username && (
             <p className="form-error" role="alert">
@@ -53,14 +66,14 @@ const Login = () => {
           )}
 
           <FormInput
-            labelText="סיסמה"
+            labelText=":סיסמא"
+            name="password"
             type="password"
-            placeholder="סיסמה"
+            placeholder="אנא הכנס/י את הסיסמא שלך"
             isRequired
             state={watch("password")}
-            setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValue("password", e.target.value, { shouldValidate: true })
-            }
+            setState={handleInputChange}
+            minLength={6}
           />
           {errors.password && (
             <p className="form-error" role="alert">
@@ -68,19 +81,14 @@ const Login = () => {
             </p>
           )}
 
-          <button
-            type="submit"
-            className="btn btn-active login-btn"
-            disabled={isLoading}
-          >
-            {isLoading ? "...מתחבר" : "כניסה"}
+          <button type="submit" className="btn btn-large login-btn" disabled={isLoading}>
+            התחבר/י
           </button>
-
-          <Link className="forgot-password-link" to="/forgotPassword">
-            שכחתי סיסמה
+          <Link to={AppRoutes.ForgotPassword} className="forgot-password-link">
+            ?שכחת סיסמא
           </Link>
         </form>
-      </main>
+      </div>
     </div>
   );
 };

@@ -2,21 +2,13 @@ import "./ResetPassword.css";
 import { useForm } from "react-hook-form";
 import { useParams, Link } from "react-router-dom";
 import FormInput from "../../utils/FormInput/FormInput";
-import { type ResetPasswordDTO } from "@petec/shared";
-import { z } from "zod";
 import { useResetPassword } from "../../features/auth/hooks/useResetPassword";
 import { getSharedResolver } from "../../utils/form";
-
-import { IResetPasswordForm } from "./ResetPassword.types";
-
-const ResetPasswordFormValues = z.object({
-  token: z.string(),
-  password: z.string(),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "הסיסמאות אינן תואמות",
-  path: ["confirmPassword"],
-});
+import { AppRoutes } from "../../config/appRoutes";
+import {
+  ResetPasswordFormDTOSchema,
+  type ResetPasswordFormDTO,
+} from "@petec/shared";
 
 const ResetPassword = () => {
   const { token } = useParams<{ token: string }>();
@@ -27,8 +19,8 @@ const ResetPassword = () => {
     setValue,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<IResetPasswordForm>({
-    resolver: getSharedResolver(ResetPasswordFormValues),
+  } = useForm<ResetPasswordFormDTO>({
+    resolver: getSharedResolver(ResetPasswordFormDTOSchema),
     defaultValues: { token: token || "", password: "", confirmPassword: "" },
   });
 
@@ -39,7 +31,7 @@ const ResetPassword = () => {
       <div className="reset-password-container">
         <img
           className="logo-img"
-          src={"assets/images/logo_reversed.jpg"}
+          src={"/assets/images/petec_logo_v2.jpg"}
           alt="logo"
         />
         <div className="reset-password-form-container">
@@ -54,8 +46,8 @@ const ResetPassword = () => {
               placeholder="סיסמה חדשה"
               isRequired
               state={watch("password")}
-              setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setValue("password", e.target.value, { shouldValidate: true })
+              setState={(val: string) =>
+                setValue("password", val, { shouldDirty: true, shouldValidate: true })
               }
             />
             {errors.password && (
@@ -70,8 +62,9 @@ const ResetPassword = () => {
               placeholder="אישור סיסמה"
               isRequired
               state={watch("confirmPassword")}
-              setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setValue("confirmPassword", e.target.value, {
+              setState={(val: string) =>
+                setValue("confirmPassword", val, {
+                  shouldDirty: true,
                   shouldValidate: true,
                 })
               }
@@ -90,7 +83,7 @@ const ResetPassword = () => {
               {isLoading ? "...מאפס" : "אפס סיסמה"}
             </button>
 
-            <Link className="back-to-login-link" to="/login">
+            <Link className="back-to-login-link" to={AppRoutes.Login}>
               חזרה לכניסה
             </Link>
           </form>

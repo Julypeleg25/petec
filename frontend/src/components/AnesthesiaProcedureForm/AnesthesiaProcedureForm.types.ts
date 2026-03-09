@@ -1,15 +1,24 @@
+import type { AnesthesiaProcedureFormDTO } from "@petec/shared";
+
 export interface AnesthesiaProcedureFormProps {
     caseId: string;
-    masterCaseId: string;
+    caseSerialId: string;
 }
 
-export interface AnesthesiaProcedureFormData {
-    ownerName: string;
-    name: string;
-    plannedProcedure: string;
-    priceEstimate: number;
-    date: string | null;
-    generalComments: string | null;
-    distortionComments: string | null;
-    medicationsSensitiveComments: string | null;
-}
+export type AnesthesiaBooleanFields =
+    | "isFastSinceMidnight"
+    | "isDistortionHistory"
+    | "isMedicationsSensitive"
+    | "isNeedToMarkEar"
+    | "isSterilization";
+
+export type AnesthesiaProcedureFormValues = Omit<
+    AnesthesiaProcedureFormDTO,
+    AnesthesiaBooleanFields
+> & {
+    isFastSinceMidnight?: boolean | null;
+    isDistortionHistory?: boolean | null;
+    isMedicationsSensitive?: boolean | null;
+    isNeedToMarkEar?: boolean | null;
+    isSterilization?: boolean | null;
+};

@@ -3,6 +3,7 @@ import type { Role } from "@petec/shared";
 export interface AuthUser {
   userId: string;
   username: string;
+  fullName: string;
   role: Role;
 }
 

@@ -4,9 +4,11 @@ import FormInput from "../../utils/FormInput/FormInput";
 import { ForgotPasswordDTOSchema, type ForgotPasswordDTO } from "@petec/shared";
 import { useForgotPassword } from "../../features/auth/hooks/useForgotPassword";
 import { getSharedResolver } from "../../utils/form";
+import { AppRoutes } from "../../config/appRoutes";
+import { toHebrewErrorMessage } from "../../lib/errorMessages";
 
 const ForgotPassword = () => {
-  const { mutate, isPending } = useForgotPassword();
+  const { mutate, isPending, error } = useForgotPassword();
 
   const {
     watch,
@@ -25,7 +27,7 @@ const ForgotPassword = () => {
       <main className="login-page-main">
         <img
           className="logo-img"
-          src={"assets/images/logo_reversed.jpg"}
+          src={"/assets/images/petec_logo_v2.jpg"}
           alt="logo"
         />
         <span className="logo-main-title">PETEC</span>
@@ -41,13 +43,18 @@ const ForgotPassword = () => {
             placeholder="אימייל"
             isRequired
             state={watch("email")}
-            setState={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setValue("email", e.target.value, { shouldValidate: true })
+            setState={(val: string) =>
+              setValue("email", val, { shouldDirty: true, shouldValidate: true })
             }
           />
           {errors.email && (
             <p className="form-error" role="alert">
               {errors.email.message}
+            </p>
+          )}
+          {!errors.email && error && (
+            <p className="form-error" role="alert">
+              {toHebrewErrorMessage(error)}
             </p>
           )}
 
@@ -59,7 +66,10 @@ const ForgotPassword = () => {
             {isLoading ? "...שולח" : "שלח הוראות לאיפוס"}
           </button>
 
-          <Link className="back-to-login-link forgot-password-link" to="/login">
+          <Link
+            className="back-to-login-link forgot-password-link"
+            to={AppRoutes.Login}
+          >
             חזרה לכניסה
           </Link>
         </form>

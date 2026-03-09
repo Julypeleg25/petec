@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { tableApi } from "./table.api";
+import { tableApi } from "../table.api";
 import type { GetTableDataDTO } from "@petec/shared";
 
 export const tableKeys = {

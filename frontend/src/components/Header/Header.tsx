@@ -3,11 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../../features/auth/AuthProvider";
 import { authApi } from "../../features/auth/auth.api";
-import { Role } from "@petec/shared";
+import { roles } from "@petec/shared";
+import { AppRoutes } from "../../config/appRoutes";
+import {
+  MAIN_PAGE_TYPES,
+  type MainPageType,
+} from "../MainPage/MainPage.constants";
 
-import { IHeaderProps } from "./Header.types";
+interface HeaderProps {
+  type: MainPageType;
+}
 
-function Header({ type }: IHeaderProps) {
+function Header({ type }: HeaderProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -15,7 +22,7 @@ function Header({ type }: IHeaderProps) {
     mutationFn: authApi.logout,
     onSettled: () => {
       logout();
-      navigate("/login", { replace: true });
+      navigate(AppRoutes.Login, { replace: true });
     },
   });
 
@@ -23,8 +30,7 @@ function Header({ type }: IHeaderProps) {
     <header className="main-page-header">
       <div className="logout-and-hello-user-container">
         <div className="hello-user">
-          <span>,שלום</span>{" "}
-          <span>{user?.username}</span>
+          <span>,שלום</span> <span>{user?.fullName}</span>
         </div>
         <button
           className="btn logout-btn btn-active"
@@ -38,31 +44,33 @@ function Header({ type }: IHeaderProps) {
       <div className="logo-and-navbar-container">
         <img
           className="logo-and-navbar-logo-img"
-          src={"assets/images/logo_reversed.jpg"}
+          src={"/assets/images/petec_logo_v2.jpg"}
           alt="logo_image"
         />
         <nav className="navbar header-navbar">
-          {user?.role === Role.ADMIN && (
+          {user?.role === roles.ADMIN && (
             <button
               className={`btn ${
-                type === "system-management" ? "btn-active" : ""
+                type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT ? "btn-active" : ""
               }`}
               title="system-management"
               onClick={() => {
-                navigate("/systemManagement/users");
+                navigate(AppRoutes.SystemManagement.Users);
               }}
-              disabled={type === "system-management"}
+              disabled={type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT}
             >
               ניהול מערכת
             </button>
           )}
           <button
-            className={`btn ${type === "patients" ? "btn-active" : ""}`}
+            className={`btn ${
+              type === MAIN_PAGE_TYPES.PATIENTS ? "btn-active" : ""
+            }`}
             title="patients"
             onClick={() => {
-              navigate("/patients/patientsList");
+              navigate(AppRoutes.Patients.List);
             }}
-            disabled={type === "patients"}
+            disabled={type === MAIN_PAGE_TYPES.PATIENTS}
           >
             מטופלים
           </button>

@@ -1,15 +1,23 @@
 import Header from "../Header/Header";
 import Patients from "../Patients/Patients";
 import SystemManagement from "../SystemManagement/SystemManagement";
+import type {
+  MainPageType,
+  SystemManagementTabType,
+} from "./MainPage.constants";
 import "./MainPage.css";
 
-import { IMainPageProps } from "./MainPage.types";
+interface MainPageProps {
+  type: MainPageType;
+  systemManagementType?: SystemManagementTabType;
+  patientsNavType?: string;
+}
 
 function MainPage({
   type,
   systemManagementType,
   patientsNavType,
-}: IMainPageProps) {
+}: MainPageProps) {
   return (
     <div className="main-page">
       <Header type={type} />

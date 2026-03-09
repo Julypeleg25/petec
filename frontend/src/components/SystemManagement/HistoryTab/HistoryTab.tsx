@@ -4,9 +4,20 @@ import type { RowData } from "../../../utils/TableGenerator/TableGenerator";
 import { FaEye } from "react-icons/fa";
 import { TableFormattingOptionsEnum } from "../../../utils/TableGenerator/TableFormattingOptionsEnum";
 import HistoryItemDetails from "../HistoryItemDetails/HistoryItemDetails";
+import type { HistoryItem } from "../HistoryItemDetails/HistoryItemDetails";
+import { getCaseSerialPrefix } from "../../../features/patients/utils/patients.utils";
+
+const isHistoryItem = (row: RowData): row is HistoryItem =>
+  typeof row.subject === "string" &&
+  typeof row.description === "string" &&
+  typeof row.created_at === "string" &&
+  typeof row.created_by_name === "string";
+
+const toHistoryItemOrNull = (row: RowData): HistoryItem | null =>
+  isHistoryItem(row) ? row : null;
 
 export default function HistoryTab() {
-  const [historyObj, setHistoryObj] = useState<RowData | null>(null);
+  const [historyObj, setHistoryObj] = useState<HistoryItem | null>(null);
   const [showHistoryDetails, setShowHistoryDetails] = useState(false);
 
   const historyColumnsData = [
@@ -16,11 +27,13 @@ export default function HistoryTab() {
     { colName: "משתמש", searchObjField: "created_by_name", minWidth: "200px" },
     {
       colName: "מספר תיק",
-      searchObjField: "case_id",
+      searchObjField: "case_serial_id",
       minWidth: "200px",
-      formatter: (cellValue: unknown) => {
-        if (cellValue === undefined || cellValue === null) return "";
-        return String(cellValue).split("-")[0];
+      formatter: (
+        cellValue?: string | number | boolean | object | null,
+      ) => {
+        if (!cellValue) return "";
+        return getCaseSerialPrefix(String(cellValue));
       },
     },
     { colName: "שם מטופל", searchObjField: "patient_name", minWidth: "200px" },
@@ -32,19 +45,19 @@ export default function HistoryTab() {
       btnText: <FaEye />,
       btnClassName: "btn btn-round table-btn",
       onClick: (rowData: RowData) => {
-        setHistoryObj(rowData);
+        const item = toHistoryItemOrNull(rowData);
+        if (!item) return;
+        setHistoryObj(item);
         setShowHistoryDetails(true);
       },
       activate: () => true,
     },
   ];
 
-  if (showHistoryDetails) {
-    // Note: This disables strict equality validation on the prop by casting to any 
-    // because HistoryItemDetails interface defines a very specific prop structure.
+  if (showHistoryDetails && historyObj) {
     return (
       <HistoryItemDetails
-        historyObj={historyObj as any}
+        historyObj={historyObj}
         setShowHistoryDetails={setShowHistoryDetails}
       />
     );
@@ -54,7 +67,7 @@ export default function HistoryTab() {
     <div className="system-management-history-table">
       <TableGenerator
         queryObj={{
-          query: "audit_logs",
+          query: "auditLogs",
           orderBy: { id: "DESC" },
           filters: {},
           args: [],
@@ -64,9 +77,15 @@ export default function HistoryTab() {
         }}
         columnsData={historyColumnsData}
         btns={tableBtns}
-        setOnRowClicked={(row: RowData) => setHistoryObj(row)}
+        setOnRowClicked={(row: RowData) => {
+          const item = toHistoryItemOrNull(row);
+          if (!item) return;
+          setHistoryObj(item);
+        }}
         setOnDoubleRowClicked={(row: RowData) => {
-          setHistoryObj(row);
+          const item = toHistoryItemOrNull(row);
+          if (!item) return;
+          setHistoryObj(item);
           setShowHistoryDetails(true);
         }}
         paginationPerPage={20}
