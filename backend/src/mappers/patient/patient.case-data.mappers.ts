@@ -1,0 +1,272 @@
+import { Types } from "mongoose";
+import { toObjectId, toOptionalObjectId } from "@utils/objectId.utils";
+import {
+    CASE_DATE_FIELDS,
+    type EditPatientDTO,
+    type NewPatientDTO,
+} from "@petec/shared";
+import type { ICase } from "@models/Case";
+import type {
+    CaseCreateData,
+    CaseRefsData,
+    CaseUpdateData,
+    CaseUpdateSource,
+    PlannedItemData,
+} from "./patient.mappers.types";
+
+type CreateCaseDatesInput = NonNullable<NewPatientDTO["dates"]>;
+type UpdateCaseDatesInput = NonNullable<EditPatientDTO["dates"]>;
+type MappableCaseDateField = keyof ICase["dates"];
+
+const MAPPABLE_CASE_DATE_FIELDS: readonly MappableCaseDateField[] = [
+    CASE_DATE_FIELDS.CATHETER_DATE,
+    CASE_DATE_FIELDS.PROCEDURE_DATE,
+    CASE_DATE_FIELDS.NEXT_INSPECTION_DATE,
+    CASE_DATE_FIELDS.STITCHES_REMOVAL_DATE,
+];
+
+const hasOwnCaseDateField = (
+    dates: UpdateCaseDatesInput,
+    field: MappableCaseDateField,
+): boolean => Object.prototype.hasOwnProperty.call(dates, field);
+
+const assignCaseDateValue = (
+    target: ICase["dates"],
+    key: MappableCaseDateField,
+    value: Date | null | undefined,
+): void => {
+    if (value === null) {
+        delete target[key];
+        return;
+    }
+
+    if (value instanceof Date && Number.isFinite(value.getTime())) {
+        target[key] = value;
+    }
+};
+
+const mapCaseDatesForCreate = (
+    dates: CreateCaseDatesInput,
+): ICase["dates"] | undefined => {
+    const mappedDates: ICase["dates"] = {};
+
+    for (const field of MAPPABLE_CASE_DATE_FIELDS) {
+        assignCaseDateValue(mappedDates, field, dates[field]);
+    }
+
+    return Object.keys(mappedDates).length > 0 ? mappedDates : undefined;
+};
+
+const mapCaseDatesForUpdate = (
+    currentDates: ICase["dates"] | undefined,
+    dates: UpdateCaseDatesInput,
+): ICase["dates"] => {
+    const mappedDates: ICase["dates"] = { ...(currentDates ?? {}) };
+
+    for (const field of MAPPABLE_CASE_DATE_FIELDS) {
+        if (hasOwnCaseDateField(dates, field)) {
+            assignCaseDateValue(mappedDates, field, dates[field]);
+        }
+    }
+
+    return mappedDates;
+};
+
+const toCaseObject = (caseSource: CaseUpdateSource): ICase =>
+    typeof caseSource.toObject === "function"
+        ? caseSource.toObject()
+        : caseSource;
+
+export const mapRefsToObjectIds = (
+    refs: NonNullable<NewPatientDTO["refs"]>,
+): CaseRefsData => {
+    const result: CaseRefsData = {};
+
+    if (refs.animalTypeId) {
+        result.animalTypeId = toObjectId(refs.animalTypeId);
+    }
+
+    if (refs.genderTypeId) {
+        result.genderTypeId = toObjectId(refs.genderTypeId);
+    }
+
+    if (refs.raceTypeId) {
+        result.raceTypeId = toObjectId(refs.raceTypeId);
+    }
+
+    if (refs.animalColorId) {
+        result.animalColorId = toObjectId(refs.animalColorId);
+    }
+
+    if (refs.insuranceTypeId) {
+        result.insuranceTypeId = toObjectId(refs.insuranceTypeId);
+    }
+
+    if (refs.foodTypeId) {
+        result.foodTypeId = toObjectId(refs.foodTypeId);
+    }
+
+    return result;
+};
+
+export const mapPlannedItems = (
+    planned: NonNullable<NewPatientDTO["planned"]>,
+): PlannedItemData => ({
+    medicines: (planned.medicines ?? []).map((medicine) => ({
+        ...medicine,
+        medicineId: toObjectId(medicine.medicineId),
+        doseAmount:
+            typeof medicine.doseAmount === "string"
+                ? Number(medicine.doseAmount)
+                : medicine.doseAmount,
+        measureUnitTypeId: toOptionalObjectId(medicine.measureUnitTypeId),
+        dosageFrequencyId: toOptionalObjectId(medicine.dosageFrequencyId),
+        routeOfAdministrationId: toOptionalObjectId(
+            medicine.routeOfAdministrationId,
+        ),
+        startDate: medicine.startDate ? new Date(medicine.startDate) : undefined,
+        endDate: medicine.endDate ? new Date(medicine.endDate) : undefined,
+        isDeleted: medicine.isDeleted ?? false,
+    })),
+    procedures: (planned.procedures ?? []).map((procedure) => ({
+        ...procedure,
+        procedureTypeId: toObjectId(procedure.procedureTypeId),
+        scheduledFor: procedure.scheduledFor
+            ? new Date(procedure.scheduledFor)
+            : undefined,
+        status: procedure.status ?? "planned",
+    })),
+    foodExtras: (planned.foodExtras ?? []).map((foodExtra) => ({
+        foodExtraTypeId: toObjectId(foodExtra.foodExtraTypeId),
+        amount: foodExtra.amount,
+        measureUnitTypeId: toOptionalObjectId(foodExtra.measureUnitTypeId),
+        frequencyId: toOptionalObjectId(foodExtra.frequencyId),
+        notes: foodExtra.notes,
+    })),
+    examinations: (planned.examinations ?? []).map((examination) => ({
+        ...examination,
+        examinationTypeId: toObjectId(examination.examinationTypeId),
+        scheduledFor: examination.scheduledFor
+            ? new Date(examination.scheduledFor)
+            : undefined,
+    })),
+});
+
+export const mapNewPatientDtoToCaseData = (
+    dto: NewPatientDTO,
+    patientId: Types.ObjectId,
+    masterCaseId: Types.ObjectId,
+    userId: string,
+): CaseCreateData => {
+    const caseData: CaseCreateData = {
+        patientId,
+        masterCaseId,
+        serialId: dto.caseId,
+        createdByUserId: toObjectId(userId),
+    };
+
+    if (dto.doctorUserId) {
+        caseData.doctorUserId = toObjectId(dto.doctorUserId);
+    }
+
+    if (dto.nurseUserId) {
+        caseData.nurseUserId = toObjectId(dto.nurseUserId);
+    }
+
+    if (dto.admission) {
+        caseData.admission = dto.admission;
+    }
+
+    if (dto.patientSnapshot) {
+        caseData.patientSnapshot = dto.patientSnapshot;
+    }
+
+    if (dto.flags) {
+        caseData.flags = dto.flags;
+    }
+
+    if (dto.dates) {
+        const mappedDates = mapCaseDatesForCreate(dto.dates);
+        if (mappedDates) {
+            caseData.dates = mappedDates;
+        }
+    }
+
+    if (dto.comments) {
+        caseData.comments = dto.comments;
+    }
+
+    if (dto.dailyPlan) {
+        caseData.dailyPlan = dto.dailyPlan;
+    }
+
+    if (dto.refs) {
+        caseData.refs = mapRefsToObjectIds(dto.refs);
+    }
+
+    if (dto.planned) {
+        caseData.planned = mapPlannedItems(dto.planned);
+    }
+
+    return caseData;
+};
+
+export const mapEditDtoToCaseUpdate = (
+    dto: EditPatientDTO,
+    existingCase: CaseUpdateSource,
+): CaseUpdateData => {
+    const caseObject = toCaseObject(existingCase);
+    const update: CaseUpdateData = {};
+
+    if (dto.admission) {
+        update.admission = { ...caseObject.admission, ...dto.admission };
+    }
+
+    if (dto.patientSnapshot) {
+        update.patientSnapshot = {
+            ...caseObject.patientSnapshot,
+            ...dto.patientSnapshot,
+        };
+    }
+
+    if (dto.flags) {
+        update.flags = { ...caseObject.flags, ...dto.flags };
+    }
+
+    if (dto.dates) {
+        update.dates = mapCaseDatesForUpdate(caseObject.dates, dto.dates);
+    }
+
+    if (dto.doctorUserId) {
+        update.doctorUserId = toObjectId(dto.doctorUserId);
+    }
+
+    if (dto.nurseUserId) {
+        update.nurseUserId = toObjectId(dto.nurseUserId);
+    }
+
+    if (dto.comments !== undefined) {
+        update.comments = dto.comments;
+    }
+
+    if (dto.dailyPlan) {
+        update.dailyPlan = {
+            ...caseObject.dailyPlan,
+            ...dto.dailyPlan,
+            updatedAt: new Date(),
+        };
+    }
+
+    if (dto.refs) {
+        update.refs = {
+            ...caseObject.refs,
+            ...mapRefsToObjectIds(dto.refs),
+        };
+    }
+
+    if (dto.planned) {
+        update.planned = mapPlannedItems(dto.planned);
+    }
+
+    return update;
+};
