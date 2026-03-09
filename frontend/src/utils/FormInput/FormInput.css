@@ -3,6 +3,7 @@
   display: -webkit-flex; /* Safari */
   flex-direction: column;
   align-items: flex-start;
+  direction: rtl;
   justify-content: flex-start;
   width: 80%;
   position: relative;
