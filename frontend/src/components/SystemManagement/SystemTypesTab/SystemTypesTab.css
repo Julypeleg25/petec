@@ -1,0 +1,62 @@
+.system-management-system-types-table {
+  direction: rtl;
+}
+
+.system-types-toolbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9em;
+  margin-bottom: 0.6em;
+  direction: rtl;
+}
+
+.system-types-toolbar__selector {
+  display: flex;
+  align-items: flex-end;
+}
+
+.system-types-toolbar__selector .form-select {
+  width: 260px;
+  margin: 0;
+  align-items: flex-end;
+}
+
+.system-types-toolbar__selector .form-select-label {
+  width: 100%;
+  margin: 0 0 0.35em;
+  font-size: 0.95rem;
+  color: #2d3a45;
+  text-align: right;
+}
+
+/* Dropdown styling moved to SystemManagement.css for consistency across the module */
+
+.system-types-toolbar__selected-type {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4d5964;
+  font-weight: 500;
+  text-align: right;
+}
+
+.system-types-toolbar__selected-type span {
+  color: #1f2b37;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .system-types-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .system-types-toolbar__selector .form-select {
+    width: 100%;
+  }
+
+  .system-types-toolbar__selected-type {
+    text-align: right;
+  }
+}
