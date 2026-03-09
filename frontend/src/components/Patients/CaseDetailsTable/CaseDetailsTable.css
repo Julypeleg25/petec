@@ -81,6 +81,7 @@
   min-width: min-content;
 }
 
+
 .case-details-table-body .case-details-table-body-row {
   display: flex;
   display: -webkit-flex; /* Safari */
@@ -176,7 +177,7 @@
   border: 3px solid var(--color-main);
   padding: 5px 0;
   position: absolute;
-  z-index: 4;
+  z-index: 10;
   bottom: 95%;
   left: 50%;
   margin-left: -60px;
