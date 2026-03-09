@@ -1,5 +1,8 @@
 export const AppRoutes = {
+    Root: "/",
     Login: "/login",
+    Unauthorized: "/unauthorized",
+    CatchAll: "*",
     ForgotPassword: "/forgot-password",
     ResetPassword: {
         path: "/reset-password/:token",
@@ -9,8 +12,9 @@ export const AppRoutes = {
     Patients: {
         List: "/patients/patientsList",
         Details: {
-            path: "/patients/patientCase/:masterId/:caseId",
-            build: (masterId: string, caseId: string) => `/patients/patientCase/${masterId}/${caseId}`,
+            path: "/patients/patientCase/:masterCaseId/:caseId",
+            build: (masterCaseId: string, caseId: string) =>
+                `/patients/patientCase/${masterCaseId}/${caseId}`,
         },
         Archive: "/patients/archive",
         NewPatient: "/patients/newPatient",

@@ -1,4 +1,9 @@
-import { ROUTES, type SystemTypeName } from "@petec/shared";
+import {
+    ROUTES,
+    SYSTEM_TYPE_NAMES,
+    type MedicineCategoryType,
+    type SystemTypeName,
+} from "@petec/shared";
 
 const AUTH = ROUTES.AUTH + "/";
 const TABLE = ROUTES.TABLE + "/";
@@ -24,7 +29,6 @@ export const API_ROUTES = {
         logout: AUTH + "logout",
         forgotPassword: AUTH + "forgot-password",
         resetPassword: AUTH + "reset-password",
-        userRoles: AUTH + "userRoles",
     },
     table: {
         getData: TABLE,
@@ -48,28 +52,28 @@ export const API_ROUTES = {
             byAnimalType: (typeName: SystemTypeName, animalTypeId: string) =>
                 typeRoute(typeName) + "/animal/" + animalTypeId,
         },
-        medicine: makeTypeAliases("medicines"),
-        animalColor: makeTypeAliases("animal_colors"),
-        animalType: makeTypeAliases("animal_types"),
+        medicine: makeTypeAliases(SYSTEM_TYPE_NAMES.MEDICINES),
+        animalColor: makeTypeAliases(SYSTEM_TYPE_NAMES.ANIMAL_COLORS),
+        animalType: makeTypeAliases(SYSTEM_TYPE_NAMES.ANIMAL_TYPES),
         animalVitals: {
-            ...makeTypeAliases("animal_vitals"),
-            allByAnimalId: ADMIN + "types/animal_vitals/animal",
+            ...makeTypeAliases(SYSTEM_TYPE_NAMES.ANIMAL_VITALS),
+            allByAnimalId: ADMIN + "types/" + SYSTEM_TYPE_NAMES.ANIMAL_VITALS + "/animal",
         },
-        fecesType: makeTypeAliases("feces_types"),
-        urineType: makeTypeAliases("urine_types"),
-        foodType: makeTypeAliases("food_types"),
-        genderType: makeTypeAliases("gender_types"),
+        fecesType: makeTypeAliases(SYSTEM_TYPE_NAMES.FECES_TYPES),
+        urineType: makeTypeAliases(SYSTEM_TYPE_NAMES.URINE_TYPES),
+        foodType: makeTypeAliases(SYSTEM_TYPE_NAMES.FOOD_TYPES),
+        genderType: makeTypeAliases(SYSTEM_TYPE_NAMES.GENDER_TYPES),
         raceType: {
-            ...makeTypeAliases("race_types"),
-            allByAnimalId: ADMIN + "types/race_types/animal",
+            ...makeTypeAliases(SYSTEM_TYPE_NAMES.RACE_TYPES),
+            allByAnimalId: ADMIN + "types/" + SYSTEM_TYPE_NAMES.RACE_TYPES + "/animal",
         },
-        measureUnitType: makeTypeAliases("measure_unit_types"),
-        dosageFrequencyType: makeTypeAliases("dosage_frequencies"),
-        insuranceType: makeTypeAliases("insurance_types"),
-        foodExtrasType: makeTypeAliases("food_extra_types"),
-        proceduresTypes: makeTypeAliases("procedure_types"),
-        examinationType: makeTypeAliases("examination_types"),
-        routeOfAdministration: makeTypeAliases("routes_of_administration"),
+        measureUnitType: makeTypeAliases(SYSTEM_TYPE_NAMES.MEASURE_UNIT_TYPES),
+        dosageFrequencyType: makeTypeAliases(SYSTEM_TYPE_NAMES.DOSAGE_FREQUENCIES),
+        insuranceType: makeTypeAliases(SYSTEM_TYPE_NAMES.INSURANCE_TYPES),
+        foodExtrasType: makeTypeAliases(SYSTEM_TYPE_NAMES.FOOD_EXTRA_TYPES),
+        proceduresTypes: makeTypeAliases(SYSTEM_TYPE_NAMES.PROCEDURE_TYPES),
+        examinationType: makeTypeAliases(SYSTEM_TYPE_NAMES.EXAMINATION_TYPES),
+        routeOfAdministration: makeTypeAliases(SYSTEM_TYPE_NAMES.ROUTES_OF_ADMINISTRATION),
         downloadBulkTemplate: ADMIN + "types/bulk/download",
         uploadBulkTemplate: ADMIN + "types/bulk/upload",
     },
@@ -80,26 +84,33 @@ export const API_ROUTES = {
     patient: {
         create: PATIENT + "new",
         edit: PATIENT + "edit",
-        caseDetails: (caseId: string) => PATIENT + "case/details/" + caseId,
+        caseDetails: (caseId: string) =>
+            PATIENT + "case/caseDailyDetails/" + caseId,
+        caseDetailsWithMaster: (masterCaseId: string, caseId: string) =>
+            PATIENT + "case/caseDailyDetails/" + masterCaseId + "/" + caseId,
         release: PATIENT + "case/release",
-        releaseData: (caseId: string) => PATIENT + "case/release/" + caseId,
-        releasePatientData: PATIENT + "case/release",
+        releaseData: (caseId: string) =>
+            PATIENT + "case/release/" + caseId,
         archiveCase: PATIENT + "case/archive",
         deleteCase: PATIENT + "case/delete",
         delete: PATIENT + "case/delete",
         documents: (patientId: string) => PATIENT + "documents/" + patientId,
         documentsUpload: PATIENT + "documents/upload",
         documentsDelete: (id: string) => PATIENT + "documents/" + id,
-        anesthesia: (caseId: string) => PATIENT + "case/anesthesia/" + caseId,
-        chartsData: (caseId: string) => PATIENT + "case/charts/" + caseId,
-        exportCase: (caseId: string) => PATIENT + "case/export/" + caseId,
+        photo: (patientId: string) => PATIENT + "photo/" + patientId,
+        anesthesia: (caseId: string) =>
+            PATIENT + "case/anesthesia/" + caseId,
+        chartsData: (caseId: string) =>
+            PATIENT + "case/charts/" + caseId,
+        exportCase: (caseId: string) =>
+            PATIENT + "case/export/" + caseId,
         case: {
             anesthesiaProcedureForm: PATIENT + "case/anesthesia",
             anesthesiaProcedureFormNew: PATIENT + "case/anesthesia",
             anesthesiaProcedureFormEdit: PATIENT + "case/anesthesia",
-            examinations: ADMIN + "types/examination_types",
-            proceduresTypes: ADMIN + "types/procedure_types",
-            foodExtrasTypes: ADMIN + "types/food_extra_types",
+            examinations: ADMIN + "types/" + SYSTEM_TYPE_NAMES.EXAMINATION_TYPES,
+            proceduresTypes: ADMIN + "types/" + SYSTEM_TYPE_NAMES.PROCEDURE_TYPES,
+            foodExtrasTypes: ADMIN + "types/" + SYSTEM_TYPE_NAMES.FOOD_EXTRA_TYPES,
         },
         dailyPlan: {
             get: PATIENT + "dailyPlan",
@@ -108,7 +119,8 @@ export const API_ROUTES = {
     },
     medicine: {
         getAll: MEDICINE + "all",
-        getAllByCategoryType: (categoryId: string) => MEDICINE + "getAllByCategoryType/" + categoryId,
+        getAllByCategoryType: (categoryType: MedicineCategoryType) =>
+            MEDICINE + "getAllByCategoryType/" + categoryType,
         getAllCategoryTypes: MEDICINE + "getAllCategoryTypes",
         frequencies: MEDICINE + "medicinesFrequencies",
         routesOfAdministration: MEDICINE + "medicinesRoutesForAdministration",
