@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import type { LoginDTO, LoginResponseDTO } from "@petec/shared";
 import type { TypedAxiosError } from "../../../types";
-import { AppRoutes } from "../../../config/app-routes";
+import { AppRoutes } from "../../../config/appRoutes";
 
 export function useLogin() {
     const { login } = useAuth();

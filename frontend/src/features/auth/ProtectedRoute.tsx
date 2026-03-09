@@ -1,15 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import type { Role } from "@petec/shared";
+import { AppRoutes } from "../../config/appRoutes";
 
 import { ProtectedRouteProps } from "./ProtectedRoute.types";
 
-/**
- * Route guard: redirects unauthenticated users to /login.
- * We rely on React context state and the `isLoading` flag to avoid
- * racing the initial async token hydration rather than checking storage,
- * as our access token is kept in-memory to prevent XSS.
- */
 export function ProtectedRoute({
   allowedRoles,
   children,
@@ -17,18 +11,16 @@ export function ProtectedRoute({
   const { isAuthenticated, user, isLoading } = useAuth();
 
   if (isLoading) {
-    return null; // Don't redirect while hydrating auth
+    return null;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={AppRoutes.Login} replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <Navigate to={AppRoutes.Unauthorized} replace />;
   }
 
-  // Supports both wrapper-style (<ProtectedRoute><Child/></ProtectedRoute>)
-  // and layout route style (no children → renders <Outlet>)
   return children ? <>{children}</> : <Outlet />;
 }

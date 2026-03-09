@@ -3,9 +3,9 @@ import { authApi } from "../auth.api";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import type { ResetPasswordDTO } from "@petec/shared";
-import { AppRoutes } from "../../../config/app-routes";
+import { AppRoutes } from "../../../config/appRoutes";
 
-export function useResetPassword(token: string | undefined) {
+export function useResetPassword(token?: string) {
     const navigate = useNavigate();
     return useMutation({
         mutationFn: (values: ResetPasswordDTO) => {
