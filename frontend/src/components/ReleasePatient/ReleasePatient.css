@@ -1,45 +1,54 @@
+/* ReleasePatient.css */
+
 .ReleasePatient {
-  min-width: 400px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5em;
+  padding: 1em;
+  direction: rtl;
 }
 
 .release-patient-label {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-main);
   text-align: center;
-  margin-bottom: 0.3em;
-}
-
-.release-patient-form {
-  display: flex;
-  display: -webkit-flex; /* Safari */
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  text-decoration: underline;
   width: 100%;
 }
 
 .release-patient-details-container {
-  overflow-y: scroll;
-  max-height: 500px;
   display: flex;
-  display: -webkit-flex; /* Safari */
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
+  gap: 1em;
+}
+
+.release-patient-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: 0.8em;
+  text-align: right;
+}
+
+.release-patient-form > div {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .release-patient-medicines {
   width: 100%;
+  text-align: right;
 }
 
-.ReleasePatient .medicine-inputs-container .form-select {
-  margin-top: 0;
-}
-
-.ReleasePatient input[type="range"] {
-  transform: rotate(360deg); /* Flip the slider */
-  transform-origin: center center; /* Keep the slider centered */
-}
-
-.ReleasePatient .range-slider-limits {
-  flex-direction: row-reverse;
+.save-entity-form-btn {
+  min-width: 120px;
+  align-self: center;
+  margin-top: 0.5em;
 }

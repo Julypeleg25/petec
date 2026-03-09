@@ -39,11 +39,10 @@
   width: 100%;
   display: flex;
   display: -webkit-flex; /* Safari */
-  justify-content: space-evenly;
+  gap: 5em;
   align-items: center;
   margin-bottom: 0.5em;
   margin-right: 0.7em;
-  flex-direction: row-reverse;
 }
 
 .medicine-inputs-container > div {
