@@ -2,17 +2,24 @@ import "./DeletePatient.css";
 import { patientsApi } from "../../features/patients/patients.api";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { AppRoutes } from "../../config/appRoutes";
 
-import { DeletePatientProps } from "./DeletePatient.types";
+interface DeletePatientProps {
+  caseId: string;
+  setShowDeletePatientCaseModal: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-function DeletePatient({ patientId, setShowDeletePatientCaseModal }: DeletePatientProps) {
+function DeletePatient({
+  caseId,
+  setShowDeletePatientCaseModal,
+}: DeletePatientProps) {
   const navigate = useNavigate();
 
   const deletePatient = async () => {
     try {
-      await patientsApi.deleteCase({ caseId: String(patientId) });
+      await patientsApi.deleteCase({ caseId });
       toast.success("המטופל נמחק בהצלחה");
-      navigate("/patients/patientsList", { replace: true });
+      navigate(AppRoutes.Patients.List, { replace: true });
       setShowDeletePatientCaseModal(false);
     } catch {
       toast.error("שגיאה במחיקת המטופל");
@@ -26,13 +33,7 @@ function DeletePatient({ patientId, setShowDeletePatientCaseModal }: DeletePatie
         ?האם אתה בטוח ברצונך למחוק את המטופל
       </div>
 
-      <button
-        type="submit"
-        className="btn btn-small"
-        onClick={() => {
-          deletePatient();
-        }}
-      >
+      <button type="submit" className="btn btn-small" onClick={deletePatient}>
         מחק
       </button>
     </div>

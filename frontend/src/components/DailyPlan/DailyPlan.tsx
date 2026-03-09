@@ -5,10 +5,10 @@ import FormCheckbox from "../../utils/FormCheckbox/FormCheckbox";
 import MyLoader from "../../utils/MyLoader/MyLoader";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
 import toast from "react-hot-toast";
+import type { DailyPlanDetailDTO } from "@petec/shared";
+import { getCaseSerialPrefix } from "../../features/patients/utils/patients.utils";
 
 import { DailyPlanFormData, ExaminationItem, ProcedureItem, OwnerUpdateItem, ReleaseMedicineItem } from "./DailyPlan.types";
-
-type DailyPlanDetailDTO = Awaited<ReturnType<typeof patientsApi.getDailyPlan>>[number];
 
 function DailyPlan() {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +20,10 @@ function DailyPlan() {
       const data = await patientsApi.getDailyPlan();
       const details: DailyPlanFormData = {};
       for (const item of data) {
-        details[item.case_id] = { caseId: item.case_id, comments: item.daily_plan_comments };
+        details[item.case_id] = {
+          caseId: item.serial_id,
+          comments: item.daily_plan_comments,
+        };
       }
       setDailyPlanFormData(details);
       setDailyPlanDetails(data);
@@ -82,7 +85,7 @@ function DailyPlan() {
               {dailyPlanDetails.map((dailyPlanDetail: DailyPlanDetailDTO, index: number) => (
                 <div key={index} className="daily-plan-table-body-row">
                   <div className="daily-plan-table-body-cell">
-                    {dailyPlanDetail.master_case_id}
+                    {getCaseSerialPrefix(dailyPlanDetail.serial_id)}
                   </div>
                   <div className="daily-plan-table-body-cell">
                     {dailyPlanDetail.name}
@@ -166,7 +169,7 @@ function DailyPlan() {
                                 ) : (
                                   ownerUpdate.value
                                 )}
-                              </span>{" "}
+                              </span>
                             </span>
                             <span>{ownerUpdate.date}</span>
                           </div>
@@ -198,12 +201,15 @@ function DailyPlan() {
                   <div className="daily-plan-table-body-cell daily-plan-table-body-cell-large">
                     <FormTextarea
                       state={dailyPlanFormData[dailyPlanDetail.case_id].comments}
-                      setState={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                        const val = e.target.value;
-                        dailyPlanFormData[dailyPlanDetail.case_id].comments = val;
-                        setDailyPlanFormData(
-                          Object.assign({}, dailyPlanFormData)
-                        );
+                      setState={(val: string) => {
+                        setDailyPlanFormData((prevState) => ({
+                          ...prevState,
+                          [dailyPlanDetail.case_id]: {
+                            ...prevState[dailyPlanDetail.case_id],
+                            caseId: dailyPlanDetail.serial_id,
+                            comments: val,
+                          },
+                        }));
                       }}
                       maxLength={300}
                       isGrowHeightOnInput={true}
