@@ -1,3 +1,4 @@
+
 export const BCRYPT_SALT_ROUNDS = 12;
 
 export const TOKEN_EXPIRY = {
@@ -12,7 +13,7 @@ export const COOKIE_OPTIONS = {
   REFRESH_PATH: "/api/v1/auth",
   MAX_AGE_MS: TOKEN_EXPIRY.REFRESH_TOKEN_MS,
   HTTP_ONLY: true,
-  SAME_SITE: "strict" as const,
+  SAME_SITE: "strict",
 } as const;
 
 export const COOKIE_NAMES = {

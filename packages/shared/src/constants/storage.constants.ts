@@ -1,5 +1,7 @@
+
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: "accessToken",
+  AUTH_USER: "authUser",
   USER_ID: "userId",
   USER_ROLE: "userRole",
 } as const;

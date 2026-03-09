@@ -1,26 +1,20 @@
-export const TABLE_ALLOW_LIST = [
+import { SYSTEM_TYPE_NAMES_VALUES } from "./systemTypes.constants";
+
+export const BASE_TABLE_NAMES = [
   "patients",
   "cases",
-  "audit_logs",
+  "auditLogs",
   "users",
-  "animal_types",
-  "race_types",
-  "animal_colors",
-  "animal_vitals",
-  "gender_types",
-  "insurance_types",
-  "food_types",
-  "food_extra_types",
-  "examination_types",
-  "feces_types",
-  "urine_types",
-  "dosage_frequencies",
-  "measure_unit_types",
-  "procedure_types",
-  "medicines",
-  "medicine_categories",
-  "routes_of_administration",
-  "patient_document_types",
+] as const;
+
+export const TABLE_ALLOW_LIST = [
+  ...BASE_TABLE_NAMES,
+  ...SYSTEM_TYPE_NAMES_VALUES,
+] as const;
+
+export const PATIENT_CARD_TABLE_NAMES = [
+  BASE_TABLE_NAMES[0],
+  BASE_TABLE_NAMES[1],
 ] as const;
 
 export const SortOrders = {
@@ -36,3 +30,21 @@ export const SORT_DIRECTIONS = {
 } as const;
 
 export const TABLE_DEFAULT_SORT_BY = "createdAt";
+
+export const TABLE_SEARCH_FILTER_KEYS = {
+  SEARCH: "search",
+  MASTER_CASE_ID: "masterCaseId",
+} as const;
+
+export const TABLE_QUERY_KEYS = {
+  PATIENTS: "patients",
+  CASES: "cases",
+  PROCEDURES: "procedures",
+} as const;
+
+export const TABLE_SORT_FIELDS = {
+  CREATED_AT: "created_at",
+  CREATED_BY_NAME: "created_by_name",
+  CASE_SERIAL_ID: "case_serial_id",
+  PATIENT_NAME: "patient_name",
+} as const;

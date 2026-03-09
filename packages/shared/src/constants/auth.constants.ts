@@ -1,20 +1,10 @@
-export const Role = {
+export const roles = {
   ADMIN: "ADMIN",
   DOCTOR: "DOCTOR",
   ASSISTANT: "ASSISTANT",
   RECEPTION: "RECEPTION",
 } as const;
-
-export type Role = (typeof Role)[keyof typeof Role];
-
-export const ROLES = Object.values(Role);
-
-export const ROLES_TUPLE: readonly [Role, ...Role[]] = [
-  Role.ADMIN,
-  Role.DOCTOR,
-  Role.ASSISTANT,
-  Role.RECEPTION,
-];
+export type Role = (typeof roles)[keyof typeof roles];
 
 export const Permission = {
   READ_PATIENT: "read:patient",
@@ -33,8 +23,8 @@ export const Permission = {
 export type Permission = (typeof Permission)[keyof typeof Permission];
 
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
-  [Role.ADMIN]: [Permission.WILDCARD],
-  [Role.DOCTOR]: [
+  [roles.ADMIN]: [Permission.WILDCARD],
+  [roles.DOCTOR]: [
     Permission.READ_PATIENT,
     Permission.WRITE_PATIENT,
     Permission.READ_CASE,
@@ -43,13 +33,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.MANAGE_DOCUMENTS,
     Permission.READ_AUDIT,
   ],
-  [Role.ASSISTANT]: [
+  [roles.ASSISTANT]: [
     Permission.READ_PATIENT,
     Permission.READ_CASE,
     Permission.WRITE_CASE_DAILY,
     Permission.MANAGE_DOCUMENTS,
   ],
-  [Role.RECEPTION]: [
+  [roles.RECEPTION]: [
     Permission.READ_PATIENT,
     Permission.WRITE_DEMOGRAPHICS,
     Permission.READ_CASE,
