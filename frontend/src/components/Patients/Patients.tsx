@@ -1,29 +1,29 @@
-import type { PatientCardRowDTO } from "@petec/shared";
+import {
+  PatientCardRowDTO,
+  TABLE_QUERY_KEYS,
+  TABLE_SORT_FIELDS,
+} from "@petec/shared";
 import SearchBar from "../../utils/SearchBar/SearchBar";
 import TableGenerator from "../../utils/TableGenerator/TableGenerator";
+import { TABLE_SORT_DIRECTIONS } from "../../utils/TableGenerator/TableGenerator.types";
 import SavePatient from "./SavePatient/SavePatient";
 import FormCheckbox from "../../utils/FormCheckbox/FormCheckbox";
 import DailyPlan from "../DailyPlan/DailyPlan";
-import { AppRoutes } from "../../config/app-routes";
-import { usePatients } from "./usePatients";
+import { AppRoutes } from "../../config/appRoutes";
+import { usePatients } from "./hooks/usePatients";
 import "./Patients.css";
-import { IPatientsProps } from "./Patients.types";
 import {
-  CARD_LAYOUT,
-  PATIENTS_NAV_TYPES,
-  PATIENT_TABLE_TYPES,
-  SEARCH_FILTER_KEYS,
-  TABLE_ORDER_BY,
-  TABLE_QUERY_KEYS,
-} from "./patients.constants";
+  buildCaseSearchFilters,
+  buildPatientsArgs,
+  getButtonClassName,
+} from "../../features/patients/utils/patients.utils";
+import { PATIENTS_NAV_TYPES } from "../../features/patients/constants/patients.constants";
 
-const toPatientsArgs = (value: boolean, isArchive: boolean): string[] => [
-  String(value),
-  String(value),
-  String(isArchive),
-];
+interface PatientsProps {
+  patientsNavType?: string;
+}
 
-function Patients({ patientsNavType }: IPatientsProps) {
+function Patients({ patientsNavType }: PatientsProps) {
   const {
     navigate,
     isArchive,
@@ -59,9 +59,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
     <div className="Patients">
       <nav className="navbar patients-navbar">
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN)}
             title="יומי plan"
             onClick={() => {
               navigate(AppRoutes.Patients.DailyPlan);
@@ -71,7 +69,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             יומי plan
           </button>
           <button
-            className={`btn ${isArchive ? "" : "btn-active"}`}
+            className={getButtonClassName(isArchive)}
             title="ארכיון"
             onClick={() => {
               resetPatientCards(true);
@@ -82,9 +80,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             ארכיון
           </button>
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT)}
             title="הוספת מטופל"
             onClick={() => {
               navigate(AppRoutes.Patients.NewPatient);
@@ -94,9 +90,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
             הוספת מטופל
           </button>
           <button
-            className={`btn ${
-              patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "" : "btn-active"
-            }`}
+            className={getButtonClassName(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST)}
             title="רשימת מטופלים"
             onClick={() => {
               resetPatientCards(false);
@@ -111,22 +105,22 @@ function Patients({ patientsNavType }: IPatientsProps) {
         patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES) && (
         <nav className="nav-patients-cards">
           <button
-            className={`btn ${tableType === PATIENT_TABLE_TYPES.PROCEDURES ? "" : "btn-active"}`}
+            className={getButtonClassName(tableType === TABLE_QUERY_KEYS.PROCEDURES)}
             title="פרוצדרות"
             onClick={() => {
-              setTableType(PATIENT_TABLE_TYPES.PROCEDURES);
+              setTableType(TABLE_QUERY_KEYS.PROCEDURES);
             }}
-            disabled={tableType === PATIENT_TABLE_TYPES.PROCEDURES}
+            disabled={tableType === TABLE_QUERY_KEYS.PROCEDURES}
           >
             פרוצדרות
           </button>
           <button
-            className={`btn ${tableType === PATIENT_TABLE_TYPES.PATIENTS ? "" : "btn-active"}`}
+            className={getButtonClassName(tableType === TABLE_QUERY_KEYS.PATIENTS)}
             title="אשפוז"
             onClick={() => {
-              setTableType(PATIENT_TABLE_TYPES.PATIENTS);
+              setTableType(TABLE_QUERY_KEYS.PATIENTS);
             }}
-            disabled={tableType === PATIENT_TABLE_TYPES.PATIENTS}
+            disabled={tableType === TABLE_QUERY_KEYS.PATIENTS}
           >
             אשפוז
           </button>
@@ -135,18 +129,18 @@ function Patients({ patientsNavType }: IPatientsProps) {
       <main className="patients-main-section">
         {(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST || isArchive) && (
           <>
-            {(!isShowOneTable || tableType === PATIENT_TABLE_TYPES.PROCEDURES) && (
+            {(!isShowOneTable || tableType === TABLE_QUERY_KEYS.PROCEDURES) && (
               <div className="patients-cards">
                 <div className="patients-section-title">פרוצדרות</div>
                 <div className="procedures-search-section">
                   <SearchBar
-                    placeholder="חפש לפי מספר תיק"
+                    placeholder="חפש לפי מספר תיק / שם / שם בעלים / טלפון"
                     state={proceduresSearch}
                     setState={setProceduresSearch}
                     onEnter={(e) => {
-                      setProceduresFilters({
-                        [SEARCH_FILTER_KEYS.MASTER_CASE_ID]: e.target.value,
-                      });
+                      setProceduresFilters(
+                        buildCaseSearchFilters(e.currentTarget.value, isArchive),
+                      );
                       setReloadProceduresCards((prev) => !prev);
                     }}
                   />
@@ -155,7 +149,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     setChecked={setShowOnlyProceduresWithAlerts}
                     labelText="הצג רק מטופלים עם התראות"
                     afterChange={(isChecked) => {
-                      setPatientsArgs(toPatientsArgs(isChecked, isArchive));
+                      setPatientsArgs(buildPatientsArgs(isChecked, isArchive));
                       setReloadProceduresCards((prev) => !prev);
                     }}
                   />
@@ -164,7 +158,10 @@ function Patients({ patientsNavType }: IPatientsProps) {
                   <TableGenerator<PatientCardRowDTO>
                     queryObj={{
                       query: TABLE_QUERY_KEYS.CASES,
-                      orderBy: { [TABLE_ORDER_BY.CREATED_AT]: TABLE_ORDER_BY.DESC },
+                      orderBy: {
+                        [TABLE_SORT_FIELDS.CREATED_AT]:
+                          TABLE_SORT_DIRECTIONS.DESC,
+                      },
                       filters: proceduresFilters,
                       args: patientsArgs,
                       formatting: {},
@@ -174,25 +171,25 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     reload={reloadProceduresCards}
                     isCards={true}
                     customCard={patientCard}
-                    hiddenCardWidth={CARD_LAYOUT.WIDTH}
-                    hiddenCardMargin={CARD_LAYOUT.MARGIN}
+                    hiddenCardWidth="230px"
+                    hiddenCardMargin="1em"
                   />
                 </div>
               </div>
             )}
             {!isShowOneTable && <div className="cards-devider"></div>}
-            {(!isShowOneTable || tableType === PATIENT_TABLE_TYPES.PATIENTS) && (
+            {(!isShowOneTable || tableType === TABLE_QUERY_KEYS.PATIENTS) && (
               <div className="procedures-cards">
                 <div className="patients-section-title">אשפוז</div>
                 <div className="procedures-search-section">
                   <SearchBar
-                    placeholder="חפש לפי מספר תיק"
+                    placeholder="חפש לפי מספר תיק / שם / שם בעלים / טלפון"
                     state={patientSearch}
                     setState={setPatientSearch}
                     onEnter={(e) => {
-                      setPatientsFilters({
-                        [SEARCH_FILTER_KEYS.MASTER_CASE_ID]: e.target.value,
-                      });
+                      setPatientsFilters(
+                        buildCaseSearchFilters(e.currentTarget.value, isArchive),
+                      );
                       setReloadPatientsCards((prev) => !prev);
                     }}
                   />
@@ -201,7 +198,7 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     setChecked={setShowOnlyPatientsWithAlerts}
                     labelText="הצג רק מטופלים עם התראות"
                     afterChange={(isChecked) => {
-                      setPatientsArgs(toPatientsArgs(isChecked, isArchive));
+                      setPatientsArgs(buildPatientsArgs(isChecked, isArchive));
                       setReloadPatientsCards((prev) => !prev);
                     }}
                   />
@@ -210,7 +207,10 @@ function Patients({ patientsNavType }: IPatientsProps) {
                   <TableGenerator<PatientCardRowDTO>
                     queryObj={{
                       query: TABLE_QUERY_KEYS.PATIENTS,
-                      orderBy: { [TABLE_ORDER_BY.CREATED_AT]: TABLE_ORDER_BY.DESC },
+                      orderBy: {
+                        [TABLE_SORT_FIELDS.CREATED_AT]:
+                          TABLE_SORT_DIRECTIONS.DESC,
+                      },
                       filters: patientsFilters,
                       args: patientsArgs,
                       formatting: {},
@@ -220,8 +220,8 @@ function Patients({ patientsNavType }: IPatientsProps) {
                     reload={reloadPatientsCards}
                     isCards={true}
                     customCard={patientCard}
-                    hiddenCardWidth={CARD_LAYOUT.WIDTH}
-                    hiddenCardMargin={CARD_LAYOUT.MARGIN}
+                    hiddenCardWidth="230px"
+                    hiddenCardMargin="1em"
                   />
                 </div>
               </div>
