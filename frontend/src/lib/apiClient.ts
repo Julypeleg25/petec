@@ -9,18 +9,21 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import {
   STORAGE_KEYS,
+  HttpStatus,
   ApiResponse,
   RefreshResponseDTO,
   RefreshResponseSchema,
   type ApiErrorResponse,
 } from "@petec/shared";
-import { env } from "../config/env";
-import { API_ROUTES } from "../config/api-routes";
-import { AppRoutes } from "../config/app-routes";
-import type { RetryableConfig } from "./api-client.types";
+import { API_ROUTES } from "../config/apiRoutes";
+import { AppRoutes } from "../config/appRoutes";
+import { logger } from "./logger";
+import type { RetryableConfig } from "./apiClient.types";
+import { toHebrewErrorMessage } from "./errorMessages";
+import { ENV } from "src/config/config";
 
 export const apiClient = axios.create({
-  baseURL: env.BASE_URL,
+  baseURL: ENV.API_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
@@ -36,6 +39,7 @@ const setAccessToken = (token: string): void => {
 
 const clearAuth = (): void => {
   memoryAccessToken = null;
+  localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
   localStorage.removeItem(STORAGE_KEYS.USER_ID);
   localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
 };
@@ -47,7 +51,6 @@ const redirectToLogin = (): void => {
 const AUTH_REFRESH_EXCLUDED_PATHS = [
   API_ROUTES.auth.login,
   API_ROUTES.auth.refresh,
-  API_ROUTES.auth.register,
   API_ROUTES.auth.forgotPassword,
   API_ROUTES.auth.resetPassword,
   API_ROUTES.auth.logout,
@@ -62,6 +65,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    logger.debug(`API Request: [${config.method?.toUpperCase()}] ${config.url}`, config.data);
     return config;
   },
   (error: AxiosError) => Promise.reject(error),
@@ -77,15 +81,21 @@ apiClient.interceptors.response.use(
     ) {
       response.data = response.data.data;
     }
+    logger.info(`API Response Success: [${response.config.method?.toUpperCase()}] ${response.config.url}`);
     return response;
   },
-  async (error: AxiosError) => {
+  async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as RetryableConfig | undefined;
     const requestUrl =
       typeof originalRequest?.url === "string" ? originalRequest.url : "";
 
+    logger.error(`API Request Failed: [${originalRequest?.method?.toUpperCase() || "UNKNOWN"}] ${requestUrl}`, error, {
+      status: error.response?.status,
+      responseData: error.response?.data ?? null,
+    });
+
     if (
-      error.response?.status === 401 &&
+      error.response?.status === HttpStatus.UNAUTHORIZED &&
       originalRequest &&
       !originalRequest._retry &&
       shouldAttemptRefresh(requestUrl)
@@ -96,7 +106,7 @@ apiClient.interceptors.response.use(
         if (!refreshPromise) {
           refreshPromise = axios
             .post<ApiResponse<RefreshResponseDTO>>(
-              env.BASE_URL + API_ROUTES.auth.refresh,
+              ENV.API_URL + API_ROUTES.auth.refresh,
               {},
               { withCredentials: true },
             )
@@ -106,7 +116,7 @@ apiClient.interceptors.response.use(
                 : null;
               const token = parsed?.success ? parsed.data.accessToken : undefined;
               if (!token) {
-                throw new Error("Refresh response contained no access token");
+                throw new Error("לא התקבל אסימון גישה חדש מהשרת");
               }
               setAccessToken(token);
               return token;
@@ -132,11 +142,8 @@ apiClient.interceptors.response.use(
 
 export { clearAuth, setAccessToken, getAccessToken };
 
-const extractErrorMsg = (err: AxiosError<ApiErrorResponse>): string => {
-  const errData = err.response?.data?.error;
-  if (typeof errData?.message === "string") return errData.message;
-  return "הפעולה נכשלה";
-};
+const extractErrorMsg = (err: AxiosError<ApiErrorResponse>): string =>
+  toHebrewErrorMessage(err);
 
 export const makeRequest = async <TBody = Record<string, never>>(
   method: Method,
@@ -229,7 +236,10 @@ export const requestFormDataWithResponseSchema = async <TResponse>(
   const response = await apiClient.request<TResponse>({
     ...config,
     data: formData,
-    headers: { "Content-Type": "multipart/form-data", ...config.headers },
+    headers: {
+      ...config.headers,
+      "Content-Type": undefined,
+    },
   });
   return responseSchema.parse(response.data);
 };
