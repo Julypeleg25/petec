@@ -9,9 +9,8 @@ Everything you need to migrate the legacy Postgres dump (`PETEC-SCRIPT.pgsql`) i
 - `compute_case_notifications.js` Sample aggregation replacing the legacy VIEW `case_notifications`.
 - `.env.example`                  Env template.
 - `package.json`                  Dependencies + scripts.
-- `README_CONVERTER.md`           Notes about the converter.
 
-## Quick start
+## Quick Start
 ```bash
 npm i
 cp .env.example .env

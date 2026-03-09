@@ -14,17 +14,18 @@ function parseArgs() {
 
 async function ensureIndexes(db) {
   await db.collection("patients").createIndexes([
-    { key: { legacyId: 1 }, name: "patients_legacyId_uq", unique: true, sparse: true },
+    { key: { serialId: 1 }, name: "patients_serialId_uq", unique: true },
     { key: { "owner.phone": 1 }, name: "patients_owner_phone" },
     { key: { name: 1 }, name: "patients_name" },
   ]);
 
   await db.collection("cases").createIndexes([
-    { key: { legacyCaseId: 1 }, name: "cases_legacyCaseId_uq", unique: true, sparse: true },
+    { key: { serialId: 1 }, name: "cases_serialId_uq", unique: true },
     { key: { patientId: 1, isDeleted: 1 }, name: "cases_patient_isDeleted" },
     { key: { masterCaseId: 1 }, name: "cases_masterCaseId" },
     { key: { isArchived: 1, releaseDate: -1 }, name: "cases_archived_releaseDate" },
     { key: { createdAt: -1 }, name: "cases_createdAt" },
+    { key: { "caseDetailsGrid.dateTime": -1 }, name: "cases_grid_dateTime" },
   ]);
 
   await db.collection("master_cases").createIndexes([
@@ -43,7 +44,7 @@ async function ensureIndexes(db) {
   ]);
 
   await db.collection("patient_medicines").createIndexes([
-    { key: { patientId: 1, isActive: 1 }, name: "patient_meds_patient_active" },
+    { key: { patientId: 1, isDeleted: 1 }, name: "patient_meds_patient_deleted" },
     { key: { caseId: 1 }, name: "patient_meds_caseId" },
   ]);
 
@@ -61,8 +62,8 @@ async function ensureIndexes(db) {
   for (const c of typeCollections) {
     await db.collection(c).createIndexes([
       { key: { name: 1 }, name: `${c}_name_uq`, unique: true },
-      { key: { legacyId: 1 }, name: `${c}_legacyId_uq`, unique: true, sparse: true },
-      { key: { isActive: 1 }, name: `${c}_isActive` },
+      { key: { serialId: 1 }, name: `${c}_serialId_uq`, unique: true },
+      { key: { isDeleted: 1 }, name: `${c}_isDeleted` },
     ]);
   }
 }

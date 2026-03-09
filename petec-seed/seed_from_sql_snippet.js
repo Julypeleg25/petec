@@ -28,26 +28,38 @@ async function main() {
   await client.connect();
   const db = client.db(dbName);
 
-  const medicineCategories = db.collection("medicine_categories");
-  await upsertByName(medicineCategories, { name: "תרופות", isActive: true });
-  await upsertByName(medicineCategories, { name: "נוזלים", isActive: true });
-  await upsertByName(medicineCategories, { name: "תוספות לנוזלים", isActive: true });
+  const medicineCategories = db.collection("medicineCategories");
+  await upsertByName(medicineCategories, {
+    name: "תרופות",
+    type: "medicine",
+    isDeleted: false,
+  });
+  await upsertByName(medicineCategories, {
+    name: "נוזלים",
+    type: "fluid",
+    isDeleted: false,
+  });
+  await upsertByName(medicineCategories, {
+    name: "תוספות לנוזלים",
+    type: "fluidExtra",
+    isDeleted: false,
+  });
 
-  const routes = db.collection("routes_of_administration");
-  await upsertByName(routes, { name: "SIV", description: "מתן וורידי איטי", isActive: true });
-  await upsertByName(routes, { name: "IV", description: "מתן וורידי", isActive: true });
-  await upsertByName(routes, { name: "IM", description: "מתן שרירי", isActive: true });
+  const routes = db.collection("routesOfAdministration");
+  await upsertByName(routes, { name: "SIV", description: "מתן וורידי איטי", isDeleted: false });
+  await upsertByName(routes, { name: "IV", description: "מתן וורידי", isDeleted: false });
+  await upsertByName(routes, { name: "IM", description: "מתן שרירי", isDeleted: false });
 
-  const docTypes = db.collection("patient_document_types");
+  const docTypes = db.collection("patientDocumentTypes");
   const now = new Date();
   await docTypes.updateOne(
     { legacyId: 1 },
-    { $setOnInsert: { legacyId: 1, name: "blood-test", isActive: true, createdAt: now, updatedAt: now } },
+    { $setOnInsert: { legacyId: 1, name: "blood-test", isDeleted: false, createdAt: now, updatedAt: now } },
     { upsert: true }
   );
   await docTypes.updateOne(
     { legacyId: 2 },
-    { $setOnInsert: { legacyId: 2, name: "xray", isActive: true, createdAt: now, updatedAt: now } },
+    { $setOnInsert: { legacyId: 2, name: "xray", isDeleted: false, createdAt: now, updatedAt: now } },
     { upsert: true }
   );
 

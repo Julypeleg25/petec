@@ -23,13 +23,14 @@ const { MongoClient, ObjectId } = require("mongodb");
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const out = { dry: false };
+  const out = { dry: false, mult: 1 };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--input") out.input = args[++i];
     else if (a === "--mongo") out.mongo = args[++i];
     else if (a === "--db") out.db = args[++i];
     else if (a === "--dry") out.dry = true;
+    else if (a === "--mult") out.mult = Math.max(1, Number(args[++i] ?? 1) || 1);
   }
   if (!out.input) throw new Error("Missing --input <path-to-pgsql>");
   if (!out.dry) {
@@ -93,6 +94,31 @@ function toDate(v) {
   // Fallback to JS parse (ISO w/ TZ etc)
   const d = new Date(s);
   return Number.isFinite(d.getTime()) ? d : null;
+}
+
+function toDateOnlyString(v) {
+  const parsed = toDate(v);
+  if (!parsed) return null;
+  return parsed.toISOString().slice(0, 10);
+}
+
+function normalizeTimeString(v) {
+  if (v == null) return "";
+  const s = String(v).trim();
+  const match = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return s;
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
+}
+
+function parseFoodAndWaterFlags(v) {
+  if (v == null) return { foodGiven: undefined, waterGiven: undefined };
+  const text = String(v).toLowerCase();
+  const hasFood = text.includes("food") || text.includes("אוכל");
+  const hasWater = text.includes("water") || text.includes("מים");
+  return {
+    foodGiven: hasFood ? true : undefined,
+    waterGiven: hasWater ? true : undefined,
+  };
 }
 
 function normalizeTableName(schema, table) {
@@ -210,6 +236,24 @@ function buildV2Docs(tables) {
     role_priv: "petec.user_role_user_privilege",
   };
 
+  const getMappedRefId = (legacyValue, targetTable) =>
+    legacyValue != null ? idMap.get(targetTable, legacyValue) : undefined;
+
+  const mapLegacyTaxonomyRefs = (row, fallbackRefs = {}) => ({
+    animalTypeId:
+      getMappedRefId(row.animal_id ?? row.animal_type_id, T.animal_type) ?? fallbackRefs.animalTypeId,
+    genderTypeId:
+      getMappedRefId(row.gender_id ?? row.gender_type_id, T.gender_type) ?? fallbackRefs.genderTypeId,
+    raceTypeId:
+      getMappedRefId(row.race_id ?? row.race_type_id, T.race_type) ?? fallbackRefs.raceTypeId,
+    animalColorId:
+      getMappedRefId(row.animal_color_id ?? row.color_id, T.animal_color) ?? fallbackRefs.animalColorId,
+    foodTypeId:
+      getMappedRefId(row.food_type_id ?? row.food_id, T.food_type) ?? fallbackRefs.foodTypeId,
+    insuranceTypeId:
+      getMappedRefId(row.insurance_id ?? row.insurance_type_id, T.insurance_type) ?? fallbackRefs.insuranceTypeId,
+  });
+
   /** @type {Record<string, any[]>} */
   const out = {
     users: [],
@@ -268,21 +312,26 @@ function buildV2Docs(tables) {
       const legacyId = r.id ?? r.ID ?? r.Id;
       const doc = {
         _id: idMap.get(legacyTable, legacyId),
-        legacyId: legacyId != null ? Number(legacyId) : undefined,
+        serialId: legacyId != null ? String(legacyId) : undefined,
         name: r.name ?? r.title ?? r.value ?? r.type ?? r.description ?? null,
         description: r.description ?? undefined,
-        isActive: r.is_active != null ? (toBool(r.is_active) ?? true) : true,
+        isDeleted:
+          r.is_deleted != null
+            ? (toBool(r.is_deleted) ?? false)
+            : false,
         createdAt: toDate(r.created_at) ?? undefined,
         updatedAt: toDate(r.updated_at) ?? undefined,
       };
       if (legacyTable === T.race_type) {
-        if (r.animal_type_id != null) doc.animalTypeId = idMap.get(T.animal_type, r.animal_type_id);
+        const raceAnimalTypeId = r.animal_type_id ?? r.animal_id;
+        if (raceAnimalTypeId != null) doc.animalTypeId = idMap.get(T.animal_type, raceAnimalTypeId);
       }
       if (legacyTable === T.medicine) {
         if (r.medicine_category_id != null) doc.categoryId = idMap.get(T.medicine_category, r.medicine_category_id);
       }
       if (legacyTable === T.animal_vitals) {
-        if (r.animal_id != null) doc.animalTypeId = idMap.get(T.animal_type, r.animal_id);
+        const vitalsAnimalTypeId = r.animal_id ?? r.animal_type_id;
+        if (vitalsAnimalTypeId != null) doc.animalTypeId = idMap.get(T.animal_type, vitalsAnimalTypeId);
         if (r.vitals_type != null) doc.vitalsType = r.vitals_type; // 'T','P','R'
         if (r.range_min != null) doc.rangeMin = toNumber(r.range_min) ?? r.range_min;
         if (r.range_max != null) doc.rangeMax = toNumber(r.range_max) ?? r.range_max;
@@ -291,7 +340,16 @@ function buildV2Docs(tables) {
     });
   }
 
-  // Users (dump: created_by etc naming)
+  
+  // Fast lookups for migration enrichment
+  const medicineDocByLegacyId = new Map(out.medicines.map((m) => [String(m.serialId), m]));
+  const roaByLegacyId = new Map(out.routes_of_administration.map((r) => [String(r.serialId), r]));
+  const freqByLegacyId = new Map(out.dosage_frequencies.map((r) => [String(r.serialId), r]));
+  const unitByLegacyId = new Map(out.measure_unit_types.map((r) => [String(r.serialId), r]));
+  const examTypeByLegacyId = new Map(out.examination_types.map((r) => [String(r.serialId), r]));
+  const procTypeByLegacyId = new Map(out.procedure_types.map((r) => [String(r.serialId), r]));
+  const foodExtraTypeByLegacyId = new Map(out.food_extra_types.map((r) => [String(r.serialId), r]));
+// Users (dump: created_by etc naming)
   const roleById = new Map(getRows(T.user_role).map((rr) => [String(rr.id), rr]));
   const privById = new Map(getRows(T.user_privilege).map((pp) => [String(pp.id), pp]));
   const privsByRoleId = new Map();
@@ -308,7 +366,7 @@ function buildV2Docs(tables) {
     const legacyId = r.id;
     const doc = {
       _id: idMap.get(T.user, legacyId),
-      legacyId: legacyId != null ? Number(legacyId) : undefined,
+      serialId: legacyId != null ? String(legacyId) : undefined,
       username: r.username ?? undefined,
       firstName: r.first_name ?? undefined,
       lastName: r.last_name ?? undefined,
@@ -316,7 +374,7 @@ function buildV2Docs(tables) {
       passwordHash: r.password ?? r.password_hash ?? null,
       role: "ASSISTANT",
       privileges: [],
-      status: toBool(r.is_active) === false ? "INACTIVE" : "ACTIVE",
+      status: toBool(r.is_deleted) === true ? "INACTIVE" : "ACTIVE",
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
       __legacyRoleId: r.role_id ?? r.user_role_id ?? null,
@@ -340,39 +398,39 @@ function buildV2Docs(tables) {
   }
 
   // Patients (dump contains many refs; keep them)
+  const patientRefsByLegacyPatientId = new Map();
   for (const r of getRows(T.patient)) {
     const legacyId = r.id;
+    const patientRefs = mapLegacyTaxonomyRefs(r);
     out.patients.push({
       _id: idMap.get(T.patient, legacyId),
-      legacyId: legacyId != null ? Number(legacyId) : undefined,
+      serialId: legacyId != null ? String(legacyId) : undefined,
       name: r.name ?? null,
       owner: {
         name: r.owner_name ?? null,
         phone: r.owner_phone_number ?? null,
       },
       photoName: r.photo_name ?? null,
-      refs: {
-        animalTypeId: r.animal_id != null ? idMap.get(T.animal_type, r.animal_id) : undefined,
-        genderTypeId: r.gender_id != null ? idMap.get(T.gender_type, r.gender_id) : undefined,
-        raceTypeId: r.race_id != null ? idMap.get(T.race_type, r.race_id) : undefined,
-        animalColorId: r.animal_color_id != null ? idMap.get(T.animal_color, r.animal_color_id) : undefined,
-        foodTypeId: r.food_type_id != null ? idMap.get(T.food_type, r.food_type_id) : undefined,
-        insuranceTypeId: r.insurance_id != null ? idMap.get(T.insurance_type, r.insurance_id) : undefined,
-      },
+      refs: patientRefs,
       createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
       updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
     });
+    if (legacyId != null) {
+      patientRefsByLegacyPatientId.set(String(legacyId), patientRefs);
+    }
   }
 
   // Cases
   const caseDocByLegacyId = new Map();
   for (const r of getRows(T.case)) {
     const legacyCaseId = r.id;
+    const patientFallbackRefs =
+      r.patient_id != null ? patientRefsByLegacyPatientId.get(String(r.patient_id)) : undefined;
     const doc = {
       _id: idMap.get(T.case, legacyCaseId),
-      legacyCaseId: legacyCaseId != null ? String(legacyCaseId) : undefined,
+      serialId: legacyCaseId != null ? String(legacyCaseId) : undefined,
       patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : null,
       masterCaseId: null,
 
@@ -418,8 +476,7 @@ function buildV2Docs(tables) {
         nextInspectionDate: toDate(r.next_inspection_date) ?? undefined,
         stitchesRemovalDate: toDate(r.stitches_removal_date) ?? undefined,
       },
-      // IMPORTANT: in this dump, most patient taxonomy is on PATIENT, not case. Keep case refs only if you add them later.
-      refs: {},
+      refs: mapLegacyTaxonomyRefs(r, patientFallbackRefs),
       comments: r.comments ?? null,
       dailyPlan: {
         comments: r.daily_plan_comments ?? null,
@@ -440,7 +497,7 @@ function buildV2Docs(tables) {
     const legacyId = r.id;
     const doc = {
       _id: idMap.get(T.master_case, legacyId),
-      legacyId: legacyId != null ? String(legacyId) : undefined,
+      serialId: legacyId != null ? String(legacyId) : undefined,
       patientId: r.patient_id != null ? idMap.get(T.patient, r.patient_id) : undefined,
       caseIds: [],
       createdAt: toDate(r.created_at) ?? undefined,
@@ -467,6 +524,8 @@ function buildV2Docs(tables) {
     const item = {
       _id: idMap.get(T.case_meds, r.id),
       medicineId: r.medicine_id != null ? idMap.get(T.medicine, r.medicine_id) : undefined,
+      name: r.medicine_id != null ? (medicineDocByLegacyId.get(String(r.medicine_id))?.name ?? null) : null,
+      measureUnitTypeId: r.medicine_id != null ? (medicineDocByLegacyId.get(String(r.medicine_id))?.measureUnitTypeId ?? undefined) : undefined,
       doseAmount: r.dose_amount ?? null,
       dosageText: r.dosage ?? null, // not present in this dump; keep for forward compatibility
       dosageFrequencyId: r.frequency_id != null ? idMap.get(T.dosage_frequency, r.frequency_id) : undefined,
@@ -529,154 +588,272 @@ function buildV2Docs(tables) {
     caseExamById.set(String(r.id), item);
   }
 
-  // Daily grid rows
-  const dailyById = new Map();
-  for (const r of getRows(T.case_daily_details)) {
-    const c = caseDocByLegacyId.get(String(r.case_id));
-    if (!c) continue;
+  const medicineNameById = new Map(out.medicines.map((item) => [String(item._id), item.name ?? ""]));
+  const procedureNameById = new Map(out.procedure_types.map((item) => [String(item._id), item.name ?? ""]));
+  const foodExtraNameById = new Map(out.food_extra_types.map((item) => [String(item._id), item.name ?? ""]));
+  const examinationNameById = new Map(out.examination_types.map((item) => [String(item._id), item.name ?? ""]));
 
-    const row = {
-      _id: idMap.get(T.case_daily_details, r.id),
-      date: toDate(r.date),
-      time: r.time ?? null,
-      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
-      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
 
-      vitals: {
-        temp: toNumber(r.temp) ?? undefined,
-        tempIsRequired: toBool(r.temp_is_required) ?? undefined,
-        tempIsEditable: toBool(r.temp_is_editable) ?? undefined,
-        pulse: toNumber(r.pulse) ?? undefined,
-        pulseIsRequired: toBool(r.pulse_is_required) ?? undefined,
-        pulseIsEditable: toBool(r.pulse_is_editable) ?? undefined,
-        respiration: toNumber(r.respiration) ?? undefined,
-        respirationIsRequired: toBool(r.respiration_is_required) ?? undefined,
-        respirationIsEditable: toBool(r.respiration_is_editable) ?? undefined,
-      },
+// Daily grid rows: preserve every SQL row, but compute the logical sheet date/index correctly.
+// Old Petec day sheets are anchored at 10:00 and advance in 2-hour slots for 24h.
+// So rows from 00:00..08:00 belong to the PREVIOUS sheet date, and 10:00 next day is slot 12.
+const SHEET_START_HOUR = 10;
+const SLOT_MINUTES = 120;
+const SLOTS_PER_SHEET = 13;
 
-      urine: {
-        urineTypeId: r.urine_type_id != null ? idMap.get(T.urine_type, r.urine_type_id) : undefined,
-        comments: r.urine_comments ?? null,
-        isRequired: toBool(r.urine_is_required) ?? undefined,
-        isEditable: toBool(r.urine_is_editable) ?? undefined,
-      },
-      feces: {
-        fecesTypeId: r.feces_type_id != null ? idMap.get(T.feces_type, r.feces_type_id) : undefined,
-        comments: r.feces_comments ?? null,
-        isRequired: toBool(r.feces_is_required) ?? undefined,
-        isEditable: toBool(r.feces_is_editable) ?? undefined,
-      },
+/** @type {Map<string, any>} legacyId -> rowRef */
+const dailyByLegacyId = new Map();
 
-      boxClean: {
-        value: toBool(r.is_box_clean) ?? undefined,
-        isRequired: toBool(r.is_box_clean_is_required) ?? undefined,
-        isEditable: toBool(r.is_box_clean_is_editable) ?? undefined,
-      },
-      releaseRow: {
-        value: toBool(r.is_release) ?? undefined,
-        isRequired: toBool(r.is_release_is_required) ?? undefined,
-        isEditable: toBool(r.is_release_is_editable) ?? undefined,
-      },
+function computeSheetPlacement(dateValue, timeValue) {
+  const actualDate = toDateOnlyString(dateValue);
+  const actualTime = normalizeTimeString(timeValue);
+  if (!actualDate || !actualTime) {
+    return { sheetDate: actualDate, actualTime, actualDateTime: undefined, index: undefined };
+  }
 
-      walkTrip: r.is_walk_trip != null ? { value: toBool(r.is_walk_trip), isRequired: toBool(r.is_walk_trip_is_required) ?? undefined, isEditable: toBool(r.is_walk_trip_is_editable) ?? undefined } : undefined,
-      puke: r.is_puke != null ? { value: toBool(r.is_puke), comments: r.puke_comments ?? null, isRequired: toBool(r.puke_is_required) ?? undefined, isEditable: toBool(r.puke_is_editable) ?? undefined } : undefined,
-      weigh: r.weigh != null ? { value: toNumber(r.weigh) ?? undefined, isRequired: toBool(r.weigh_is_required) ?? undefined, isEditable: toBool(r.weigh_is_editable) ?? undefined } : undefined,
-      foodAndWater: r.food_and_water != null ? { value: r.food_and_water, isRequired: toBool(r.food_and_water_is_required) ?? undefined, isEditable: toBool(r.food_and_water_is_editable) ?? undefined } : undefined,
-      comments: r.comments != null ? { value: r.comments, isRequired: toBool(r.comments_is_required) ?? undefined, isEditable: toBool(r.comments_is_editable) ?? undefined } : undefined,
-      ownerUpdate: r.owner_update != null ? { value: r.owner_update, isRequired: toBool(r.owner_update_is_required) ?? undefined, isEditable: toBool(r.owner_update_is_editable) ?? undefined } : undefined,
+  const actualDateTime = toUtcDateTime(actualDate, actualTime);
+  const anchor = new Date(Date.UTC(
+    actualDateTime.getUTCFullYear(),
+    actualDateTime.getUTCMonth(),
+    actualDateTime.getUTCDate(),
+    SHEET_START_HOUR, 0, 0, 0
+  ));
 
-      // Daily items are derived from their CASE planned tables via the *_id links
+  if (actualDateTime < anchor) {
+    anchor.setUTCDate(anchor.getUTCDate() - 1);
+  }
+
+  const diffMinutes = Math.round((actualDateTime.getTime() - anchor.getTime()) / 60000);
+  const index = Math.max(0, Math.min(SLOTS_PER_SHEET - 1, Math.round(diffMinutes / SLOT_MINUTES)));
+  const sheetDate = anchor.toISOString().slice(0, 10);
+
+  return { sheetDate, actualTime, actualDateTime, index };
+}
+
+for (const r of getRows(T.case_daily_details)) {
+  const c = caseDocByLegacyId.get(String(r.case_id));
+  if (!c) continue;
+
+  const placement = computeSheetPlacement(r.date, r.time);
+  if (!placement.sheetDate || placement.index == null) continue;
+
+  const fw = parseFoodAndWaterFlags(r.food_and_water);
+  const row = {
+      id: newObjectIdString(),
+      dateTime: placement.actualDateTime ?? undefined,
+
+      date: placement.sheetDate,
+      time: placement.actualTime,
+      index: placement.index,
+
+      temperature: toNumber(r.temp) ?? undefined,
+      temperatureIsRequired: toBool(r.temp_is_required) ?? undefined,
+      temperatureIsEditable: toBool(r.temp_is_editable) ?? undefined,
+
+      pulse: toNumber(r.pulse) ?? undefined,
+      pulseIsRequired: toBool(r.pulse_is_required) ?? undefined,
+      pulseIsEditable: toBool(r.pulse_is_editable) ?? undefined,
+
+      respiration: toNumber(r.respiration) ?? undefined,
+      respirationIsRequired: toBool(r.respiration_is_required) ?? undefined,
+      respirationIsEditable: toBool(r.respiration_is_editable) ?? undefined,
+
+      urineTypeId: r.urine_id != null ? idMap.get(T.urine_type, r.urine_id) : undefined,
+      urineComments: r.urine_comments ?? undefined,
+      urineIsRequired: toBool(r.urine_is_required) ?? undefined,
+      urineIsEditable: toBool(r.urine_is_editable) ?? undefined,
+
+      fecesTypeId: r.feces_id != null ? idMap.get(T.feces_type, r.feces_id) : undefined,
+      fecesComments: r.feces_comments ?? undefined,
+      fecesIsRequired: toBool(r.feces_is_required) ?? undefined,
+      fecesIsEditable: toBool(r.feces_is_editable) ?? undefined,
+
+      isBoxClean: toBool(r.is_box_clean) ?? undefined,
+      isBoxCleanIsRequired: toBool(r.box_clean_is_required) ?? undefined,
+      isBoxCleanIsEditable: toBool(r.box_clean_is_editable) ?? undefined,
+
+      isRelease: toBool(r.is_release) ?? undefined,
+      isReleaseIsRequired: toBool(r.release_is_required) ?? undefined,
+      isReleaseIsEditable: toBool(r.release_is_editable) ?? undefined,
+
+      isTravel: toBool(r.is_walk_trip) ?? undefined,
+      isTravelIsRequired: toBool(r.walk_trip_is_required) ?? undefined,
+      isTravelIsEditable: toBool(r.walk_trip_is_editable) ?? undefined,
+
+      weigh: toNumber(r.weigh) ?? undefined,
+      weighIsRequired: toBool(r.weigh_is_required) ?? undefined,
+      weighIsEditable: toBool(r.weigh_is_editable) ?? undefined,
+
+      isPuke: toBool(r.is_puke) ?? undefined,
+      pukeComments: r.puke_comments ?? undefined,
+      pukeIsRequired: toBool(r.puke_is_required) ?? undefined,
+      pukeIsEditable: toBool(r.puke_is_editable) ?? undefined,
+
+      rowComments: r.comments ?? undefined,
+      rowCommentsIsRequired: toBool(r.comments_is_required) ?? undefined,
+      rowCommentsIsEditable: toBool(r.comments_is_editable) ?? undefined,
+
+      ownerUpdate: r.owner_update ?? undefined,
+      ownerUpdateIsRequired: toBool(r.owner_update_is_required) ?? undefined,
+      ownerUpdateIsEditable: toBool(r.owner_update_is_editable) ?? undefined,
+
+      foodGiven: fw.foodGiven,
+      waterGiven: fw.waterGiven,
+
+      fluids: [],
       medicines: [],
       procedures: [],
       examinations: [],
       foodExtras: [],
 
+      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
+      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
       createdAt: toDate(r.created_at) ?? undefined,
       updatedAt: toDate(r.updated_at) ?? undefined,
-    };
+  };
 
-    c.caseDetailsGrid.push(row);
-    dailyById.set(String(r.id), row);
-  }
+  c.caseDetailsGrid.push(row);
+  dailyByLegacyId.set(String(r.id), row);
+}
 
-  // Daily medicines: link to case_medicines
-  for (const r of getRows(T.cdd_meds)) {
-    const row = dailyById.get(String(r.case_daily_details_id));
-    if (!row) continue;
-    const base = caseMedicineById.get(String(r.case_medicines_id));
-    row.medicines.push({
-      caseMedicineId: base?._id,
-      medicineId: base?.medicineId,
-      doseAmount: base?.doseAmount ?? null,
-      dosageFrequencyId: base?.dosageFrequencyId,
-      routeOfAdministrationId: base?.routeOfAdministrationId,
-      isGiven: toBool(r.is_given) ?? undefined,
-      isRequired: toBool(r.is_required) ?? undefined,
-      isEditable: toBool(r.is_editable) ?? undefined,
-      comment: r.comment ?? null,
-      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
-      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
-      createdAt: toDate(r.created_at) ?? undefined,
-      updatedAt: toDate(r.updated_at) ?? undefined,
-    });
-  }
-  for (const r of getRows(T.cdd_procs)) {
-    const row = dailyById.get(String(r.case_daily_details_id));
-    if (!row) continue;
-    const base = caseProcedureById.get(String(r.case_procedures_id));
-    row.procedures.push({
-      caseProcedureId: base?._id,
-      procedureTypeId: base?.procedureTypeId,
-      isGiven: toBool(r.is_given) ?? undefined,
-      isRequired: toBool(r.is_required) ?? undefined,
-      isEditable: toBool(r.is_editable) ?? undefined,
-      comment: r.comment ?? null,
-      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
-      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
-      createdAt: toDate(r.created_at) ?? undefined,
-      updatedAt: toDate(r.updated_at) ?? undefined,
-    });
-  }
-  for (const r of getRows(T.cdd_food)) {
-    const row = dailyById.get(String(r.case_daily_details_id));
-    if (!row) continue;
-    const base = caseFoodById.get(String(r.case_food_extras_id));
-    row.foodExtras.push({
-      caseFoodExtraId: base?._id,
-      foodExtraTypeId: base?.foodExtraTypeId,
-      isGiven: toBool(r.is_given) ?? undefined,
-      isRequired: toBool(r.is_required) ?? undefined,
-      isEditable: toBool(r.is_editable) ?? undefined,
-      comment: r.comment ?? null,
-      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
-      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
-      createdAt: toDate(r.created_at) ?? undefined,
-      updatedAt: toDate(r.updated_at) ?? undefined,
-    });
-  }
-  for (const r of getRows(T.cdd_exams)) {
-    const row = dailyById.get(String(r.case_daily_details_id));
-    if (!row) continue;
-    const base = caseExamById.get(String(r.case_examinations_id));
-    row.examinations.push({
-      caseExaminationId: base?._id,
-      examinationTypeId: base?.examinationTypeId,
-      isRequired: toBool(r.is_required) ?? undefined,
-      isEditable: toBool(r.is_editable) ?? undefined,
-      value: r.value ?? null,
-      comment: r.comment ?? null,
-      createdByUserId: r.created_by != null ? idMap.get(T.user, r.created_by) : undefined,
-      updatedByUserId: r.updated_by != null ? idMap.get(T.user, r.updated_by) : undefined,
-      createdAt: toDate(r.created_at) ?? undefined,
-      updatedAt: toDate(r.updated_at) ?? undefined,
-    });
+// Ensure stable order: logical sheet date, then slot index, then actual timestamp.
+for (const caseDoc of out.cases) {
+  caseDoc.caseDetailsGrid.sort((a, b) => {
+    if (a.date !== b.date) return String(a.date).localeCompare(String(b.date));
+    if ((a.index ?? 999) !== (b.index ?? 999)) return (a.index ?? 999) - (b.index ?? 999);
+    const at = a.dateTime ? new Date(a.dateTime).getTime() : 0;
+    const bt = b.dateTime ? new Date(b.dateTime).getTime() : 0;
+    return at - bt;
+  });
+}
+
+// Daily medicines: link to case_medicines
+let attachedDailyMeds = 0;
+for (const r of getRows(T.cdd_meds)) {
+  const row = dailyByLegacyId.get(String(r.case_daily_details_id));
+  if (!row) continue;
+
+  const base = caseMedicineById.get(String(r.case_medicines_id));
+  if (!base?.medicineId) {
+    throw new Error(`Daily medicine row ${r.id} references missing planned case_medicines_id=${r.case_medicines_id}`);
   }
 
-  // Anesthesia forms
+  // Resolve canonical medicine name + unit from migrated medicines
+  const legacyMedId = getRows(T.case_meds).find((x) => String(x.id) === String(r.case_medicines_id))?.medicine_id;
+  const medDoc = legacyMedId != null ? medicineDocByLegacyId.get(String(legacyMedId)) : undefined;
+
+  row.medicines.push({
+    id: newObjectIdString(),
+    medicineId: base.medicineId,
+    doseAmount: base.doseAmount ?? null,
+    measureUnitTypeId: base.measureUnitTypeId ?? medDoc?.measureUnitTypeId ?? undefined,
+    dosageFrequencyId: base.dosageFrequencyId ?? undefined,
+    routeOfAdministrationId: base.routeOfAdministrationId ?? undefined,
+    isGiven: toBool(r.is_given) ?? undefined,
+    isRequired: toBool(r.is_required) ?? false,
+    isEditable: toBool(r.is_editable) ?? true,
+    comment: r.comment ?? null,
+  });
+  attachedDailyMeds++;
+}
+
+
+// Daily procedures
+let attachedDailyProcs = 0;
+for (const r of getRows(T.cdd_procs)) {
+  const row = dailyByLegacyId.get(String(r.case_daily_details_id));
+  if (!row) continue;
+  const base = caseProcedureById.get(String(r.case_procedures_id));
+  if (!base?.procedureTypeId) {
+    throw new Error(`Daily procedure row ${r.id} references missing planned case_procedures_id=${r.case_procedures_id}`);
+  }
+  row.procedures.push({
+    id: newObjectIdString(),
+    typeId: base.procedureTypeId,
+    name: null,
+    isGiven: toBool(r.is_given) ?? undefined,
+    isRequired: toBool(r.is_required) ?? false,
+    isEditable: toBool(r.is_editable) ?? true,
+    comment: r.comment ?? null,
+  });
+  attachedDailyProcs++;
+}
+
+// Daily food extras
+
+
+for (const r of getRows(T.cdd_food)) {
+  const row = dailyByLegacyId.get(String(r.case_daily_details_id));
+  if (!row) continue;
+  const base = caseFoodById.get(String(r.case_food_extras_id));
+  if (!base?.foodExtraTypeId) {
+    throw new Error(`Daily food extra row ${r.id} references missing planned case_food_extras_id=${r.case_food_extras_id}`);
+  }
+  row.foodExtras.push({
+    id: newObjectIdString(),
+    typeId: base.foodExtraTypeId,
+    name: null,
+    isGiven: toBool(r.is_given) ?? undefined,
+    isRequired: toBool(r.is_required) ?? false,
+    isEditable: toBool(r.is_editable) ?? true,
+    comment: r.comment ?? null,
+  });
+}
+
+// Daily examinations: value is stored as comment in V2 grid
+
+
+for (const r of getRows(T.cdd_exams)) {
+  const row = dailyByLegacyId.get(String(r.case_daily_details_id));
+  if (!row) continue;
+  const base = caseExamById.get(String(r.case_examinations_id));
+  if (!base?.examinationTypeId) {
+    throw new Error(`Daily exam row ${r.id} references missing planned case_examinations_id=${r.case_examinations_id}`);
+  }
+  row.examinations.push({
+    id: newObjectIdString(),
+    typeId: base.examinationTypeId,
+    name: null,
+    isGiven: undefined,
+    isRequired: toBool(r.is_required) ?? false,
+    isEditable: toBool(r.is_editable) ?? true,
+    comment: r.value != null ? String(r.value) : null,
+  });
+}
+
+// Strict data-loss checks for daily attachments
+{
+  const expectedMeds = getRows(T.cdd_meds).length;
+  const expectedProcs = getRows(T.cdd_procs).length;
+  const expectedFood = getRows(T.cdd_food).length;
+  const expectedExams = getRows(T.cdd_exams).length;
+
+  let actualMeds = 0, actualProcs = 0, actualFood = 0, actualExams = 0;
+  for (const c of out.cases) {
+    for (const row of c.caseDetailsGrid) {
+      actualMeds += row.medicines?.length ?? 0;
+      actualProcs += row.procedures?.length ?? 0;
+      actualFood += row.foodExtras?.length ?? 0;
+      actualExams += row.examinations?.length ?? 0;
+    }
+  }
+
+  const mismatches = [];
+  if (expectedMeds !== actualMeds) mismatches.push({ table: T.cdd_meds, expected: expectedMeds, actual: actualMeds });
+  if (expectedProcs !== actualProcs) mismatches.push({ table: T.cdd_procs, expected: expectedProcs, actual: actualProcs });
+  if (expectedFood !== actualFood) mismatches.push({ table: T.cdd_food, expected: expectedFood, actual: actualFood });
+  if (expectedExams !== actualExams) mismatches.push({ table: T.cdd_exams, expected: expectedExams, actual: actualExams });
+
+  if (mismatches.length > 0) {
+    throw new Error(`Daily details attachment migration lost data: ${JSON.stringify(mismatches)}`);
+  }
+}
+
+  // Anesthesia forms  // Anesthesia forms
   for (const r of getRows(T.anesthesia)) {
     out.anesthesia_forms.push({
       _id: idMap.get(T.anesthesia, r.id),
-      caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
+      caseId: r.case_id != null ? String(r.case_id) : undefined,
       ownerName: r.owner_name ?? null,
       name: r.name ?? null,
       date: toDate(r.date) ?? null,
@@ -735,6 +912,8 @@ function buildV2Docs(tables) {
       patientId,
       caseId: r.case_id != null ? idMap.get(T.case, r.case_id) : undefined,
       medicineId: r.medicine_id != null ? idMap.get(T.medicine, r.medicine_id) : undefined,
+      name: r.medicine_id != null ? (medicineDocByLegacyId.get(String(r.medicine_id))?.name ?? null) : null,
+      measureUnitTypeId: r.medicine_id != null ? (medicineDocByLegacyId.get(String(r.medicine_id))?.measureUnitTypeId ?? undefined) : undefined,
       dosageFrequencyId: r.frequency_id != null ? idMap.get(T.dosage_frequency, r.frequency_id) : undefined,
       routeOfAdministrationId: r.route_of_administration_id != null ? idMap.get(T.roa, r.route_of_administration_id) : undefined,
       doseAmount: r.dose_amount ?? null,
@@ -787,6 +966,101 @@ function toObjectIdDeep(value, ObjectId) {
   return value;
 }
 
+function redactFailingDoc(doc) {
+  if (!doc || typeof doc !== "object") return doc;
+  const clone = { ...doc };
+  if ("signature" in clone) clone.signature = "[REDACTED]";
+  if ("passwordHash" in clone) clone.passwordHash = "[REDACTED]";
+  return clone;
+}
+
+function deepClonePreserveDates(value) {
+  if (value == null) return value;
+  if (value instanceof Date) return new Date(value.getTime());
+  if (Array.isArray(value)) return value.map(deepClonePreserveDates);
+  if (typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = deepClonePreserveDates(v);
+    return out;
+  }
+  return value;
+}
+
+function remapIdsDeep(value, idMap, parentKey = "") {
+  if (value == null) return value;
+  if (value instanceof Date) return value;
+
+  if (Array.isArray(value)) return value.map((v) => remapIdsDeep(v, idMap, parentKey));
+
+  if (typeof value === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(value)) out[k] = remapIdsDeep(v, idMap, k);
+    return out;
+  }
+
+  if (typeof value === "string" && idMap.has(value)) {
+    const isRefKey =
+      parentKey === "_id" ||
+      parentKey === "id" ||
+      parentKey === "caseId" ||
+      parentKey === "patientId" ||
+      parentKey.endsWith("Id") ||
+      parentKey.endsWith("Ids");
+    if (isRefKey) return idMap.get(value);
+  }
+  return value;
+}
+
+function expandDataset(docsByCollection, mult) {
+  if (!mult || mult <= 1) return docsByCollection;
+
+  // Duplicate only entity collections; keep taxonomy/lookups unchanged.
+  const duplicatable = [
+    "users",
+    "patients",
+    "master_cases",
+    "cases",
+    "anesthesia_forms",
+    "patient_documents",
+    "patient_medicines",
+    "audit_logs",
+  ];
+
+  const out = { ...docsByCollection };
+  for (const name of duplicatable) out[name] = [...(docsByCollection[name] || [])];
+  const base = Object.fromEntries(duplicatable.map((k) => [k, docsByCollection[k] || []]));
+
+  for (let copyIndex = 2; copyIndex <= mult; copyIndex++) {
+    const idMap = new Map();
+
+    const allocIds = (docs) => {
+      for (const d of docs) {
+        if (d?._id) idMap.set(String(d._id), newObjectIdString());
+      }
+    };
+
+    // Allocate new ids for all duplicated collections (so cross-refs can be remapped).
+    for (const name of duplicatable) allocIds(base[name]);
+
+    const cloneAndPush = (collectionName) => {
+      for (const src of base[collectionName]) {
+        const cloned = deepClonePreserveDates(src);
+        const oldId = String(cloned._id);
+        cloned._id = idMap.get(oldId) || newObjectIdString();
+        if (typeof cloned.serialId === "string" && cloned.serialId.length > 0) {
+          cloned.serialId = `${cloned.serialId}-${copyIndex}`;
+        }
+        const remapped = remapIdsDeep(cloned, idMap);
+        out[collectionName].push(remapped);
+      }
+    };
+
+    for (const name of duplicatable) cloneAndPush(name);
+  }
+
+  return out;
+}
+
 async function insertAll(client, dbName, docsByCollection) {
   const db = client.db(dbName);
   const order = [
@@ -808,7 +1082,22 @@ async function insertAll(client, dbName, docsByCollection) {
     const batchSize = 1000;
     for (let i = 0; i < docs.length; i += batchSize) {
       const batch = docs.slice(i, i + batchSize).map((d) => toObjectIdDeep(d, ObjectId));
-      await coll.insertMany(batch, { ordered: false });
+      try {
+        await coll.insertMany(batch, { ordered: false });
+      } catch (error) {
+        const writeErrors = Array.isArray(error?.writeErrors) ? error.writeErrors : [];
+        const firstWriteError = writeErrors.length > 0 ? writeErrors[0] : null;
+        const failingDoc = firstWriteError?.err?.op ?? batch[0] ?? null;
+        const failingMessage =
+          firstWriteError?.errmsg ?? firstWriteError?.err?.errmsg ?? error?.message ?? "insertMany failed";
+
+        console.error("Mongo insert failed", {
+          collection: name,
+          message: failingMessage,
+          failingDocument: redactFailingDoc(failingDoc),
+        });
+        throw error;
+      }
     }
     console.log(`inserted ${docs.length} docs into ${name}`);
   }
@@ -820,7 +1109,12 @@ async function main() {
   const tables = await parsePgDumpCopyBlocks(args.input);
 
   console.log("Building Petec V2 documents (V4 full-fidelity mapping)...");
-  const docsByCollection = buildV2Docs(tables);
+  let docsByCollection = buildV2Docs(tables);
+
+  if (args.mult > 1) {
+    console.log(`Expanding dataset: x${args.mult} (duplicating users/patients/cases/etc)...`);
+    docsByCollection = expandDataset(docsByCollection, args.mult);
+  }
 
   const counts = Object.fromEntries(Object.entries(docsByCollection).map(([k,v]) => [k, (v?.length ?? 0)]));
   const total = Object.values(counts).reduce((a,b)=>a+b,0);
