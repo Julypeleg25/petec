@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
+import { NODE_ENV_VALUES, UPLOAD } from "@petec/shared";
 import { z } from "zod";
 import configFile from "./config.json";
+import {
+  normalizeDurationString,
+  parseDurationToMilliseconds,
+} from "./config.utils";
 
 dotenv.config();
-
-const NODE_ENV_VALUES = ["development", "production", "test"] as const;
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
@@ -16,34 +19,56 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(10),
   JWT_REFRESH_SECRET: z.string().min(10),
   JWT_RESET_PASSWORD_SECRET: z.string().min(10).optional(),
+  REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
+  ACCESS_TOKEN_EXPIRES_IN: z.string().default("30m"),
 
-  MJ_APIKEY_PUBLIC: z.string().optional(),
-  MJ_APIKEY_PRIVATE: z.string().optional(),
+  MJ_APIKEY_PUBLIC: z.string(),
+  MJ_APIKEY_PRIVATE: z.string(),
+  UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse({...process.env,...configFile});
+const parsed = envSchema.safeParse({ ...process.env, ...configFile });
 
 if (!parsed.success) {
-  const formatted = parsed.error.format();
-  throw new Error(`Invalid environment variables: ${JSON.stringify(formatted)}`);
+  const formatted = z.treeifyError(parsed.error);
+  throw new Error(
+    `Invalid environment variables: ${JSON.stringify(formatted)}`,
+  );
 }
 
-const data: ParsedEnv = parsed.data;
+const envs: ParsedEnv = parsed.data;
+const accessTokenExpiresIn = normalizeDurationString(
+  envs.ACCESS_TOKEN_EXPIRES_IN,
+);
+const refreshTokenExpiresIn = normalizeDurationString(
+  envs.REFRESH_TOKEN_EXPIRES_IN,
+);
+const accessTokenExpiresInMs =
+  parseDurationToMilliseconds(accessTokenExpiresIn);
+const refreshTokenExpiresInMs = parseDurationToMilliseconds(
+  refreshTokenExpiresIn,
+);
 
 export const ENV = {
-  port: data.PORT,
-  mongoDBUri: data.MONGODB_URI,
-  nodeEnv: data.NODE_ENV,
-  isProduction: data.NODE_ENV === "production",
-  isDevelopment: data.NODE_ENV === "development",
-  isTest: data.NODE_ENV === "test",
-  frontendUrl: data.FRONTEND_URL,
-  mailAdmin: data.MAIL_ADMIN ?? "",
-  jwtAccessSecret: data.JWT_ACCESS_SECRET,
-  jwtRefreshSecret: data.JWT_REFRESH_SECRET,
-  jwtResetPasswordSecret: data.JWT_RESET_PASSWORD_SECRET ?? data.JWT_ACCESS_SECRET,
-  mailjetPublicKey: data.MJ_APIKEY_PUBLIC ?? "",
-  mailjetPrivateKey: data.MJ_APIKEY_PRIVATE ?? "",
+  port: envs.PORT,
+  mongoDBUri: envs.MONGODB_URI,
+  nodeEnv: envs.NODE_ENV,
+  isProduction: envs.NODE_ENV === "production",
+  isDevelopment: envs.NODE_ENV === "development",
+  isTest: envs.NODE_ENV === "test",
+  frontendUrl: envs.FRONTEND_URL,
+  mailAdmin: envs.MAIL_ADMIN ?? "",
+  jwtAccessSecret: envs.JWT_ACCESS_SECRET,
+  jwtRefreshSecret: envs.JWT_REFRESH_SECRET,
+  jwtResetPasswordSecret:
+    envs.JWT_RESET_PASSWORD_SECRET ?? envs.JWT_ACCESS_SECRET,
+  mailjetPublicKey: envs.MJ_APIKEY_PUBLIC ?? "",
+  mailjetPrivateKey: envs.MJ_APIKEY_PRIVATE ?? "",
+  uploadDir: envs.UPLOAD_DIR,
+  accessTokenExpiresIn,
+  accessTokenExpiresInMs,
+  refreshTokenExpiresIn,
+  refreshTokenExpiresInMs,
 } as const;

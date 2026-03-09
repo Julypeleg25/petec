@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -12,7 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noImplicitAny": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
@@ -24,12 +24,22 @@
       "@services/*": ["./src/services/*"],
       "@repositories/*": ["./src/repositories/*"],
       "@models/*": ["./src/models/*"],
+      "@constants/*": ["./src/constants/*"],
+      "@app-types/*": ["./src/types/*"],
       "@utils/*": ["./src/utils/*"],
       "@config/*": ["./src/config/*"],
-      "@petec/shared": ["../packages/shared/src/index.ts"],
-      "@shared/*": ["../packages/shared/src/*"]
+      "@shared/*": ["./src/shared/*"],
+      "@petec/shared": [
+        "../packages/shared/src/index.ts",
+        "../packages/shared/dist/index.d.ts"
+      ],
+      "@petec/shared/*": [
+        "../packages/shared/src/*",
+        "../packages/shared/dist/*"
+      ],
+      "@petec-shared/*": ["../packages/shared/src/*"]
     }
   },
-  "include": ["src/**/*", "../packages/shared/**/*"],
+  "include": ["src/**/*", "../packages/shared/src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import app from "./app";
 import { ENV } from "@config/config";
-import { logger } from "@utils/logger";
+import { logger } from "@config/logger";
 import { APP_EXIT_CODE_ERROR } from "@petec/shared";
 import connectToDatabase from "@db/dbConnection";
 
@@ -16,7 +16,7 @@ const startServer = async (): Promise<void> => {
     });
 
     const gracefulShutdown = (signal: string): void => {
-      logger.info(`${signal} received — shutting down gracefully`);
+      logger.info(`${signal} received, shutting down gracefully`);
       server.close(async () => {
         await mongoose.connection.close();
         logger.info("MongoDB connection closed");
