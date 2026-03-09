@@ -19,11 +19,19 @@ const envSchema = z.object({
 
   MJ_APIKEY_PUBLIC: z.string().optional(),
   MJ_APIKEY_PRIVATE: z.string().optional(),
+
+  CLINIC_USERNAME: z.string().optional(),
+  CLINIC_PASSWORD: z.string().optional(),
+
+  CLINIC_SYNC_CRON: z.string().default("0 6 * * *"),
+  CLINIC_TIMEZONE: z.string().default("Asia/Jerusalem"),
+
+  CLINICA_URL: z.string().url().default("https://ww2.clinicaonline.co.il"),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse({...process.env,...configFile});
+const parsed = envSchema.safeParse({ ...process.env, ...configFile });
 
 if (!parsed.success) {
   const formatted = parsed.error.format();
@@ -46,4 +54,11 @@ export const ENV = {
   jwtResetPasswordSecret: data.JWT_RESET_PASSWORD_SECRET ?? data.JWT_ACCESS_SECRET,
   mailjetPublicKey: data.MJ_APIKEY_PUBLIC ?? "",
   mailjetPrivateKey: data.MJ_APIKEY_PRIVATE ?? "",
+
+  clinicUsername: data.CLINIC_USERNAME ?? "",
+  clinicPassword: data.CLINIC_PASSWORD ?? "",
+  clinicSyncCron: data.CLINIC_SYNC_CRON,
+  clinicTimezone: data.CLINIC_TIMEZONE,
+
+  clinicaBaseUrl: data.CLINICA_URL,
 } as const;
