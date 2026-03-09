@@ -45,6 +45,32 @@ export class BaseRepository<T> {
         return query.exec();
     }
 
+    async findManyLean(
+        filter: QueryFilter<T> = {} as QueryFilter<T>,
+        options: {
+            sort?: Record<string, 1 | -1>;
+            skip?: number;
+            limit?: number;
+            select?: string;
+            populate?: string | string[];
+        } = {},
+    ): Promise<T[]> {
+        let query = this.model.find(filter);
+
+        if (options.sort) query = query.sort(options.sort);
+        if (options.skip !== undefined) query = query.skip(options.skip);
+        if (options.limit !== undefined) query = query.limit(options.limit);
+        if (options.select) query = query.select(options.select);
+        if (options.populate) {
+            const fields = Array.isArray(options.populate) ? options.populate : [options.populate];
+            for (const field of fields) {
+                query = query.populate(field);
+            }
+        }
+
+        return query.lean<T[]>().exec();
+    }
+
     async countDocuments(filter: QueryFilter<T> = {} as QueryFilter<T>): Promise<number> {
         return this.model.countDocuments(filter).exec();
     }
@@ -54,7 +80,9 @@ export class BaseRepository<T> {
         update: UpdateQuery<T>,
         options?: QueryOptions<T>,
     ): Promise<HydratedDocument<T> | null> {
-        return this.model.findByIdAndUpdate(id, update, { new: true, ...options }).exec();
+        return this.model
+            .findByIdAndUpdate(id, update, { ...options, returnDocument: "after" })
+            .exec();
     }
 
     async updateOne(
@@ -62,7 +90,9 @@ export class BaseRepository<T> {
         update: UpdateQuery<T>,
         options?: QueryOptions<T>,
     ): Promise<HydratedDocument<T> | null> {
-        return this.model.findOneAndUpdate(filter, update, { new: true, ...options }).exec();
+        return this.model
+            .findOneAndUpdate(filter, update, { ...options, returnDocument: "after" })
+            .exec();
     }
 
     async deleteById(id: string | Types.ObjectId): Promise<HydratedDocument<T> | null> {

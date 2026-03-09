@@ -1,15 +1,11 @@
 import { BaseRepository } from "./base.repository";
 import { MasterCaseModel } from "@models/MasterCase";
-import type { IMasterCase, MasterCaseDocument } from "@models/MasterCase";
+import type { IMasterCase } from "@models/MasterCase";
 import type { Types } from "mongoose";
 
 export class MasterCaseRepository extends BaseRepository<IMasterCase> {
     constructor() {
         super(MasterCaseModel);
-    }
-
-    async findByPatientId(patientId: string | Types.ObjectId): Promise<MasterCaseDocument[]> {
-        return this.model.find({ patientId }).sort({ createdAt: -1 }).exec();
     }
 
     async addCaseId(

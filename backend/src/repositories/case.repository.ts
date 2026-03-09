@@ -1,7 +1,11 @@
+import { escapeRegex } from "@mappers/table/table.mappers.utils";
 import { BaseRepository } from "./base.repository";
 import { CaseModel } from "@models/Case";
 import type { ICase, CaseDocument, ICaseDetailsRow } from "@models/Case";
 import type { Types, UpdateQuery } from "mongoose";
+
+const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>
+  new RegExp(`^${escapeRegex(serialPrefix)}-\\d{6,}$`);
 
 export class CaseRepository extends BaseRepository<ICase> {
   constructor() {
@@ -25,14 +29,95 @@ export class CaseRepository extends BaseRepository<ICase> {
     return this.model
       .findById(id)
       .populate("patientId")
-      .populate("doctorUserId", "email role")
-      .populate("nurseUserId", "email role")
-      .populate("refs.animalTypeId", "name")
-      .populate("refs.genderTypeId", "name")
-      .populate("refs.raceTypeId", "name")
-      .populate("refs.animalColorId", "name")
-      .populate("refs.insuranceTypeId", "name")
-      .populate("refs.foodTypeId", "name")
+      .populate("doctorUserId", "email role firstName lastName")
+      .populate("nurseUserId", "email role firstName lastName")
+      .populate("refs.animalTypeId", "_id name")
+      .populate("refs.genderTypeId", "_id name")
+      .populate("refs.raceTypeId", "_id name")
+      .populate("refs.animalColorId", "_id name")
+      .populate("refs.insuranceTypeId", "_id name")
+      .populate("refs.foodTypeId", "_id name")
+      .populate("caseDetailsGrid.fluids.medicineId", "_id name")
+      .populate("caseDetailsGrid.fluids.measureUnitTypeId", "_id name")
+      .populate("caseDetailsGrid.fluids.dosageFrequencyId", "_id name")
+      .populate("caseDetailsGrid.fluids.routeOfAdministrationId", "_id name")
+      .populate("caseDetailsGrid.medicines.medicineId", "_id name")
+      .populate("caseDetailsGrid.medicines.measureUnitTypeId", "_id name")
+      .populate("caseDetailsGrid.medicines.dosageFrequencyId", "_id name")
+      .populate("caseDetailsGrid.medicines.routeOfAdministrationId", "_id name")
+      .populate("caseDetailsGrid.procedures.typeId", "_id name")
+      .populate("caseDetailsGrid.examinations.typeId", "_id name")
+      .populate("caseDetailsGrid.foodExtras.typeId", "_id name")
+      .populate("caseDetailsGrid.urineTypeId", "_id name")
+      .populate("caseDetailsGrid.fecesTypeId", "_id name")
+      .populate("planned.medicines.medicineId", "_id name")
+      .populate("planned.medicines.measureUnitTypeId", "_id name")
+      .populate("planned.medicines.dosageFrequencyId", "_id name")
+      .populate("planned.medicines.routeOfAdministrationId", "_id name")
+      .exec();
+  }
+
+  async findBySerialId(serialId: string): Promise<CaseDocument | null> {
+    return this.model.findOne({ serialId }).exec();
+  }
+
+  async findBySerialIdPopulated(serialId: string): Promise<CaseDocument | null> {
+    return this.model
+      .findOne({ serialId })
+      .populate("patientId")
+      .populate("doctorUserId", "email role firstName lastName")
+      .populate("nurseUserId", "email role firstName lastName")
+      .populate("refs.animalTypeId", "_id name")
+      .populate("refs.genderTypeId", "_id name")
+      .populate("refs.raceTypeId", "_id name")
+      .populate("refs.animalColorId", "_id name")
+      .populate("refs.insuranceTypeId", "_id name")
+      .populate("refs.foodTypeId", "_id name")
+      .populate("caseDetailsGrid.fluids.medicineId", "_id name")
+      .populate("caseDetailsGrid.fluids.measureUnitTypeId", "_id name")
+      .populate("caseDetailsGrid.fluids.dosageFrequencyId", "_id name")
+      .populate("caseDetailsGrid.fluids.routeOfAdministrationId", "_id name")
+      .populate("caseDetailsGrid.medicines.medicineId", "_id name")
+      .populate("caseDetailsGrid.medicines.measureUnitTypeId", "_id name")
+      .populate("caseDetailsGrid.medicines.dosageFrequencyId", "_id name")
+      .populate("caseDetailsGrid.medicines.routeOfAdministrationId", "_id name")
+      .populate("caseDetailsGrid.procedures.typeId", "_id name")
+      .populate("caseDetailsGrid.examinations.typeId", "_id name")
+      .populate("caseDetailsGrid.foodExtras.typeId", "_id name")
+      .populate("caseDetailsGrid.urineTypeId", "_id name")
+      .populate("caseDetailsGrid.fecesTypeId", "_id name")
+      .populate("planned.medicines.medicineId", "_id name")
+      .populate("planned.medicines.measureUnitTypeId", "_id name")
+      .populate("planned.medicines.dosageFrequencyId", "_id name")
+      .populate("planned.medicines.routeOfAdministrationId", "_id name")
+      .exec();
+  }
+
+  async findLatestBySerialPrefix(
+    serialPrefix: string,
+  ): Promise<CaseDocument | null> {
+    return this.model
+      .findOne({ serialId: buildSerialPrefixRegex(serialPrefix) })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findBySerialPrefix(serialPrefix: string): Promise<CaseDocument[]> {
+    return this.model
+      .find({ serialId: buildSerialPrefixRegex(serialPrefix), isDeleted: false })
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async assignMasterCaseBySerialPrefix(
+    serialPrefix: string,
+    masterCaseId: string | Types.ObjectId,
+  ): Promise<void> {
+    await this.model
+      .updateMany(
+        { serialId: buildSerialPrefixRegex(serialPrefix) },
+        { $set: { masterCaseId } },
+      )
       .exec();
   }
 
@@ -43,12 +128,19 @@ export class CaseRepository extends BaseRepository<ICase> {
     return this.updateById(caseId, { $set: { caseDetailsGrid: grid } });
   }
 
+  async updateCaseDetailsGridBySerialId(
+    serialId: string,
+    grid: ICaseDetailsRow[],
+  ): Promise<CaseDocument | null> {
+    return this.updateOne({ serialId }, { $set: { caseDetailsGrid: grid } });
+  }
+
   async softDelete(caseId: string | Types.ObjectId): Promise<CaseDocument | null> {
     return this.updateById(caseId, { $set: { isDeleted: true } });
   }
 
-  async archive(caseId: string | Types.ObjectId): Promise<CaseDocument | null> {
-    return this.updateById(caseId, { $set: { isArchived: true } });
+  async archive(caseId: string | Types.ObjectId, isArchived = true): Promise<CaseDocument | null> {
+    return this.updateById(caseId, { $set: { isArchived } });
   }
 
   async release(
