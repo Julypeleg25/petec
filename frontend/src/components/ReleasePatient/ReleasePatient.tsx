@@ -1,14 +1,23 @@
 import MedicinePicker from "../MedicinePicker/MedicinePicker";
+import { Controller } from "react-hook-form";
 import "./ReleasePatient.css";
-import { getDateForInput } from "../../utils/FormattingUtil";
+import { getDateForInput } from "../../utils/DateFormattingUtil";
 import DatePicker from "../../utils/DatePicker/DatePicker";
 import MyLoader from "../../utils/MyLoader/MyLoader";
-import { useReleasePatient } from "./useReleasePatient";
+import { useReleasePatient } from "./hooks/useReleasePatient";
 
-import { ReleasePatientProps, ReleaseFormData, MedicineApiItem } from "./ReleasePatient.types";
+interface ReleasePatientProps {
+  caseId: string;
+  caseSerialId: string;
+  setShowReleasePatientModal: React.Dispatch<React.SetStateAction<boolean>>;
+  isReleased: boolean;
+  setIsReleased: React.Dispatch<React.SetStateAction<boolean>>;
+  animalWeight?: number;
+}
 
 function ReleasePatient({
   caseId,
+  caseSerialId,
   setShowReleasePatientModal,
   setIsReleased,
   isReleased,
@@ -17,13 +26,15 @@ function ReleasePatient({
   const {
     loading,
     formData,
-    handleInputChange,
+    errors,
+    control,
     releasePatient,
     medicineList,
     selectedMedicines,
     setSelectedMedicines,
   } = useReleasePatient({
     caseId,
+    caseSerialId,
     isReleased,
     setIsReleased,
     setShowReleasePatientModal,
@@ -43,29 +54,59 @@ function ReleasePatient({
               id="release-patient-form"
               className="release-patient-form"
               onSubmit={releasePatient}
+              noValidate
             >
               {isReleased && (
-                <DatePicker
-                  labelText=":תאריך שחרור"
-                  name="releaseDate"
-                  state={formData.releaseDate}
-                  setState={handleInputChange}
-                  disabled={true}
-                />
+                <div style={{ width: "100%" }}>
+                  <DatePicker
+                    labelText=":תאריך שחרור"
+                    name="releaseDate"
+                    state={formData.releaseDate}
+                    disabled={true}
+                  />
+                </div>
               )}
-              <DatePicker
-                labelText=":תאריך הסרת תפרים"
+
+              <Controller
                 name="stitchesRemovalDate"
-                state={formData.stitchesRemovalDate}
-                setState={handleInputChange}
-                min={getDateForInput(new Date())}
+                control={control}
+                render={({ field }) => (
+                  <div style={{ width: "100%" }}>
+                    <DatePicker
+                      labelText=":תאריך הסרת תפרים"
+                      name={field.name}
+                      state={field.value ?? ""}
+                      setState={field.onChange}
+                      min={getDateForInput(new Date())}
+                    />
+                    {errors.stitchesRemovalDate && (
+                      <p className="form-error">
+                        {errors.stitchesRemovalDate.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               />
-              <DatePicker
-                labelText=":תאריך ביקורת"
+
+              <Controller
                 name="nextInspectionDate"
-                state={formData.nextInspectionDate}
-                setState={handleInputChange}
-                min={getDateForInput(new Date())}
+                control={control}
+                render={({ field }) => (
+                  <div style={{ width: "100%" }}>
+                    <DatePicker
+                      labelText=":תאריך ביקורת"
+                      name={field.name}
+                      state={field.value ?? ""}
+                      setState={field.onChange}
+                      min={getDateForInput(new Date())}
+                    />
+                    {errors.nextInspectionDate && (
+                      <p className="form-error">
+                        {errors.nextInspectionDate.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               />
             </form>
             <div className="release-patient-medicines">
