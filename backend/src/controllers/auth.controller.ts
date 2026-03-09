@@ -1,29 +1,25 @@
 import type { Request, Response, NextFunction } from "express";
 import { authService } from "@services/auth.service";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
-import { getAuthenticatedUserId, getValidatedBody } from "@utils/request.utils";
-import { AuthError } from "@utils/errors";
-import { COOKIE_NAMES, ROLES } from "@petec/shared";
-import type { RegisterDTO, LoginDTO, ForgotPasswordDTO, ResetPasswordDTO } from "@petec/shared";
+import { getValidatedBody } from "@utils/request.utils";
+import { AuthError } from "@constants/error.constants";
 import {
   RegisterResponseDTOSchema,
   LoginResponseSchema,
   RefreshResponseSchema,
   ForgotPasswordMessageSchema,
-  UserRolesResponseSchema,
+  COOKIE_NAMES,
+  ForgotPasswordDTO,
+  LoginDTO,
+  RegisterDTO,
+  ResetPasswordDTO,
 } from "@petec/shared";
 
 export class AuthController {
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const body = getValidatedBody<RegisterDTO>(req);
-      const result = await authService.register(
-        body.username,
-        body.email,
-        body.password,
-        body.role,
-        body.privileges,
-      );
+      const result = await authService.register(body);
       sendCreated(res, result, RegisterResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -33,7 +29,7 @@ export class AuthController {
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const body = getValidatedBody<LoginDTO>(req);
-      const result = await authService.login(body.username, body.password, res);
+      const result = await authService.login(body, res);
       sendSuccess(res, result, LoginResponseSchema);
     } catch (err) {
       next(err);
@@ -55,8 +51,11 @@ export class AuthController {
 
   async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const userId = getAuthenticatedUserId(req);
       const token = req.cookies?.[COOKIE_NAMES.REFRESH];
+      const userId =
+        typeof req.authenticatedUser?.userId === "string"
+          ? req.authenticatedUser.userId
+          : undefined;
       await authService.logout(userId, token, res);
       sendNoContent(res);
     } catch (err) {
@@ -67,7 +66,7 @@ export class AuthController {
   async forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const body = getValidatedBody<ForgotPasswordDTO>(req);
-      await authService.forgotPassword(body.email);
+      await authService.forgotPassword(body);
       const payload = { message: "If the email exists, a reset link has been sent" };
       sendSuccess(res, payload, ForgotPasswordMessageSchema);
     } catch (err) {
@@ -78,17 +77,8 @@ export class AuthController {
   async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const body = getValidatedBody<ResetPasswordDTO>(req);
-      await authService.resetPassword(body.token, body.password);
+      await authService.resetPassword(body);
       sendNoContent(res);
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  async getUserRoles(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      void req;
-      sendSuccess(res, [...ROLES], UserRolesResponseSchema);
     } catch (err) {
       next(err);
     }

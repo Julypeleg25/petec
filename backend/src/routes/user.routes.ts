@@ -6,7 +6,12 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/doctors", userController.getDoctors);
-router.get("/nurses", userController.getNurses);
+const USER_ROUTE_PATHS = {
+    DOCTORS: "/doctors",
+    NURSES: "/nurses",
+} as const;
+
+router.get(USER_ROUTE_PATHS.DOCTORS, userController.getDoctors);
+router.get(USER_ROUTE_PATHS.NURSES, userController.getNurses);
 
 export default router;
