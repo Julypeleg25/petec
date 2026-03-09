@@ -1,29 +1,53 @@
-export interface MedicineSelectOptionObj {
-    id?: string | number;
-    value: string;
-    text: string;
-    measureUnitId: string | number;
-    measureUnitText: string;
-    frequencyId: string | number;
-    frequencyText: string;
-    doseAmount: number;
-    medicineRouteId: string | number;
-    medicineRouteText: string;
-    rangeMax: number;
-    rangeMin: number;
-    totalDose: number;
-    comments: string;
-    defaultMedicineRouteId: string | number | null;
-    defaultFrequencyId: string | number | null;
+import type { Dispatch, SetStateAction } from "react";
+import type {
+    CaseDetailsResponseMedicineItemDTO,
+    MedicineDTO,
+    ReleaseMedicineDisplayDTO,
+} from "@petec/shared";
+
+type ReleaseMedicineDisplayBase = Omit<
+    ReleaseMedicineDisplayDTO,
+    "doseAmount" | "rangeMax" | "rangeMin" | "totalDose"
+>;
+
+type MedicineRecommendationFields = Pick<
+    MedicineDTO,
+    "rangeMax" | "rangeMin" | "totalDose"
+>;
+
+type NormalizedMedicineRecommendationFields = {
+    [K in keyof MedicineRecommendationFields]?: Exclude<
+        MedicineRecommendationFields[K],
+        null | undefined
+    >;
+};
+
+export type MedicineSelectOptionObj = ReleaseMedicineDisplayBase &
+    NormalizedMedicineRecommendationFields & {
+        id?: MedicineDTO["id"];
+        doseAmount?: number;
+        dosageText?: CaseDetailsResponseMedicineItemDTO["dosageText"];
+    };
+
+export interface MedicinePickerDraftSelection {
+    medicineValue: string;
+    routeOfAdministrationId: string;
+    dosageFrequencyId: string;
+    doseAmountInput: string;
 }
 
-export interface IMedicinePickerProps {
+export type MedicinePickerSelectableOption = MedicineSelectOptionObj & {
+    isDisabled?: boolean;
+};
+
+export interface MedicinePickerProps {
     medicineList: MedicineSelectOptionObj[];
     afterConfirmation?: (selectedMedicines: MedicineSelectOptionObj[]) => void;
     selectedMedicinesList?: MedicineSelectOptionObj[];
-    setStateSelectedMedicines?: React.Dispatch<
-        React.SetStateAction<MedicineSelectOptionObj[]>
+    setStateSelectedMedicines?: Dispatch<
+        SetStateAction<MedicineSelectOptionObj[]>
     >;
     isEdit?: boolean;
     animalWeight?: number;
+    requireSelectionChangeForConfirmation?: boolean;
 }

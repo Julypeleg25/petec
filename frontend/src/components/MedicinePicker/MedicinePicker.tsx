@@ -1,10 +1,17 @@
-import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import { useCallback, useMemo } from "react";
+import type { MouseEvent } from "react";
+import { FaEdit, FaPlus } from "react-icons/fa";
 import FormSelect from "../../utils/FormSelect/FormSelect";
 import FormInput from "../../utils/FormInput/FormInput";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
 import RangeSlider from "../../utils/RangeSlider/RangeSlider";
-import { IMedicinePickerProps } from "./MedicinePicker.types";
-import { useMedicinePicker } from "./useMedicinePicker";
+import type { MedicinePickerProps } from "./MedicinePicker.types";
+import { useMedicinePicker } from "./hooks/useMedicinePicker";
+import { hasDoseRange } from "./hooks/useMedicinePicker.utils";
+import {
+  isMedicineSelectionConfirmationDisabled,
+} from "./MedicinePicker.utils";
+import { MedicinePickerSelectedItem } from "./components/MedicinePickerSelectedItem";
 import "./MedicinePicker.css";
 
 function MedicinePicker({
@@ -14,26 +21,61 @@ function MedicinePicker({
   setStateSelectedMedicines,
   isEdit = true,
   animalWeight,
-}: IMedicinePickerProps) {
+  requireSelectionChangeForConfirmation = false,
+}: MedicinePickerProps) {
   const {
     medicinesRoutesForAdministration,
     medicinesFrequencies,
     selectedMedicines,
     selectedMedicine,
-    setDoseAmount,
+    selectedMedicineId,
+    selectedRouteId,
+    selectedFrequencyId,
+    medicineComments,
+    doseAmountInput,
+    setSelectedRouteId,
+    setSelectedFrequencyId,
     reloadRangeSlider,
+    editingMedicineIndex,
+    isEditingSelectionChanged,
+    medicineSelectOptions,
     addMedicine,
     deleteMedicine,
     updateValuesInInputs,
     isDoseAmountNotRecommended,
     onRangeInputChange,
-    handleMedicineSelection,
+    handleCatalogMedicineSelection,
+    handleDoseAmountInputChange,
   } = useMedicinePicker({
     medicineList,
     selectedMedicinesList,
     setStateSelectedMedicines,
     animalWeight,
   });
+
+  const isConfirmationDisabled = useMemo(() => {
+    return isMedicineSelectionConfirmationDisabled(
+      selectedMedicines,
+      selectedMedicinesList,
+      requireSelectionChangeForConfirmation,
+    );
+  }, [
+    requireSelectionChangeForConfirmation,
+    selectedMedicines,
+    selectedMedicinesList,
+  ]);
+
+  const handleConfirmClick = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      if (isConfirmationDisabled || !afterConfirmation) {
+        return;
+      }
+
+      afterConfirmation(selectedMedicines);
+    },
+    [afterConfirmation, isConfirmationDisabled, selectedMedicines],
+  );
 
   return (
     <div className="MedicinePicker">
@@ -42,18 +84,18 @@ function MedicinePicker({
           <div>
             <FormSelect
               labelText=":סוג תרופה"
-              elements={medicineList}
+              elements={medicineSelectOptions}
+              optionState={selectedMedicineId}
               selectId={"medicine-select"}
               width="100%"
               isRequired={true}
-              afterSelect={(value) => {
-                const selected = medicineList.find((m) => m.value === value);
-                if (selected) handleMedicineSelection(selected);
-              }}
+              afterSelect={handleCatalogMedicineSelection}
             />
             <FormSelect
               labelText=":אופן מתן תרופה"
               elements={medicinesRoutesForAdministration}
+              optionState={selectedRouteId}
+              setOptionState={setSelectedRouteId}
               selectId={"medicine-routes-for-administration-select"}
               width="100%"
               disabled={selectedMedicine === undefined}
@@ -65,6 +107,7 @@ function MedicinePicker({
               name="comments"
               height={"70px"}
               maxLength={300}
+              state={medicineComments}
               readOnly={true}
             />
           </div>
@@ -72,6 +115,8 @@ function MedicinePicker({
             <FormSelect
               labelText=":תדירות"
               elements={medicinesFrequencies}
+              optionState={selectedFrequencyId}
+              setOptionState={setSelectedFrequencyId}
               selectId={"medicine-frequencies-select"}
               width="100%"
               disabled={selectedMedicine === undefined}
@@ -86,9 +131,8 @@ function MedicinePicker({
               labelText=":כמות"
               disabled={selectedMedicine === undefined}
               isRequired={true}
-              setState={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setDoseAmount(parseFloat(e.target.value));
-              }}
+              state={doseAmountInput}
+              setState={handleDoseAmountInputChange}
               className={
                 isDoseAmountNotRecommended(
                   selectedMedicine?.rangeMax,
@@ -99,7 +143,8 @@ function MedicinePicker({
                   : ""
               }
             />
-            {selectedMedicine?.totalDose && (
+            {selectedMedicine?.totalDose !== undefined &&
+              selectedMedicine?.totalDose !== null && (
               <FormInput
                 name="totalDose"
                 type="number"
@@ -110,25 +155,24 @@ function MedicinePicker({
                 state={selectedMedicine?.totalDose}
               />
             )}
-            {selectedMedicine?.rangeMax &&
-              selectedMedicine?.rangeMin &&
-              (selectedMedicine?.rangeMax === selectedMedicine?.rangeMin ? (
+            {hasDoseRange(selectedMedicine) &&
+              (selectedMedicine.rangeMax === selectedMedicine.rangeMin ? (
                 <FormInput
                   name="amountPerKg"
                   type="number"
                   width="100%"
                   labelText={`:כמות ל- ק"ג`}
                   disabled={true}
-                  state={selectedMedicine?.rangeMax}
+                  state={selectedMedicine.rangeMax}
                 />
               ) : (
                 <RangeSlider
-                  min={selectedMedicine?.rangeMin}
-                  max={selectedMedicine?.rangeMax}
+                  min={selectedMedicine.rangeMin}
+                  max={selectedMedicine.rangeMax}
                   step={0.01}
                   label={`טווח ערכים ל- ק"ג:`}
                   initialValue={
-                    (selectedMedicine?.rangeMin + selectedMedicine?.rangeMax) /
+                    (selectedMedicine.rangeMin + selectedMedicine.rangeMax) /
                     2
                   }
                   onChange={onRangeInputChange}
@@ -136,61 +180,36 @@ function MedicinePicker({
                 />
               ))}
           </div>
-          <button className="add-medicine-btn" onClick={addMedicine}>
-            <FaPlus />
+          <button
+            className="add-medicine-btn"
+            disabled={editingMedicineIndex !== null && !isEditingSelectionChanged}
+            onClick={addMedicine}
+            title={editingMedicineIndex === null ? "הוספת תרופה" : "עריכת תרופה"}
+          >
+            {editingMedicineIndex === null ? <FaPlus /> : <FaEdit />}
           </button>
         </div>
       )}
       {selectedMedicines.length > 0 && (
         <div className="medicine-picker-selected-medicines">
           <label className="form-label">התרופות שנבחרו:</label>
-          {selectedMedicines.map((medicine, index) => {
-            return (
-              <div
-                key={index}
-                className="medicine-picker-selected-medicines-cell"
-              >
-                {isEdit && (
-                  <>
-                    <button
-                      className="edit-medicine-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        updateValuesInInputs(index);
-                      }}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="delete-medicine-btn"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        deleteMedicine(index);
-                      }}
-                    >
-                      <FaTrash />
-                    </button>
-                  </>
-                )}
-                <div>
-                  <span className="selected-medicine-name">
-                    {medicine.text}
-                  </span>
-                  {` ${medicine.doseAmount}${medicine.measureUnitText} ${medicine.frequencyText} ${medicine.medicineRouteText}`}
-                  {!isEdit && " -"}
-                </div>
-              </div>
-            );
-          })}
+          {selectedMedicines.map((medicine, index) => (
+            <MedicinePickerSelectedItem
+              key={`${medicine.value}-${index}`}
+              medicine={medicine}
+              index={index}
+              isEdit={isEdit}
+              onEdit={updateValuesInInputs}
+              onDelete={deleteMedicine}
+            />
+          ))}
         </div>
       )}
       {afterConfirmation && (
         <button
           className="confirm-medicine-btn"
-          onClick={(e) => {
-            e.preventDefault();
-            afterConfirmation(selectedMedicines);
-          }}
+          disabled={isConfirmationDisabled}
+          onClick={handleConfirmClick}
         >
           אישור
         </button>

@@ -68,3 +68,12 @@
   width: 70px;
   margin-top: 0.5em;
 }
+
+.add-option-btn:disabled,
+.delete-option-btn:disabled,
+.confirm-option-btn:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.35);
+  box-shadow: none;
+  cursor: not-allowed !important;
+}
