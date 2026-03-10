@@ -43,7 +43,6 @@
   align-items: center;
   margin-bottom: 0.5em;
   margin-right: 0.7em;
-  flex-direction: row-reverse;
 }
 
 .medicine-inputs-container > div {
@@ -53,11 +52,9 @@
 
 .medicine-inputs-container > div > .form-textarea-container {
   width: 100%;
-  direction: ltr;
 }
 
 .medicine-picker-selected-medicines {
-  direction: rtl;
   width: 82%;
   margin: 0.75em 0.3em auto;
   text-align: right;

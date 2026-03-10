@@ -8,6 +8,7 @@
   justify-content: center;
   margin-top: 0.5em;
   text-align: right;
+  direction: ltr;
 }
 
 .form-select-icon {
