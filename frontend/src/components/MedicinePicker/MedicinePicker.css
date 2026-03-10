@@ -39,11 +39,10 @@
   width: 100%;
   display: flex;
   display: -webkit-flex; /* Safari */
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5em;
   margin-right: 0.7em;
-  flex-direction: row-reverse;
 }
 
 .medicine-inputs-container > div {
@@ -51,13 +50,15 @@
   align-self: flex-start;
 }
 
-.medicine-inputs-container > div > .form-textarea-container {
-  width: 100%;
+.medicine-inputs-container > div > div {
   direction: ltr;
 }
 
+.medicine-inputs-container > div > .form-textarea-container {
+  width: 100%;
+}
+
 .medicine-picker-selected-medicines {
-  direction: rtl;
   width: 82%;
   margin: 0.75em 0.3em auto;
   text-align: right;
