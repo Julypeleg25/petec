@@ -90,7 +90,7 @@ function SavePatientDailyDetailsSection({
         </div>
       </div>
       <FormTextarea
-        labelText=":הערות"
+        labelText="הערות:"
         name="comments"
         state={formData.comments ?? ""}
         setState={handleInputChange}
@@ -107,7 +107,7 @@ function SavePatientDailyDetailsSection({
               selectId="select-daily-case-details-date-picker"
               optionState={selectedCaseDate}
               setOptionState={setSelectedCaseDate}
-              labelText=":תאריך"
+              labelText="תאריך:"
               width="220px"
               afterSelect={onCaseDateChange}
               isOrdered={false}

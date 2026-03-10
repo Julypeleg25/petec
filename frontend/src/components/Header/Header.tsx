@@ -28,19 +28,6 @@ function Header({ type }: HeaderProps) {
 
   return (
     <header className="main-page-header">
-      <div className="logout-and-hello-user-container">
-        <div className="hello-user">
-          <span>,שלום</span> <span>{user?.fullName}</span>
-        </div>
-        <button
-          className="btn logout-btn btn-active"
-          title="Logout"
-          onClick={() => doLogout()}
-          disabled={isPending}
-        >
-          התנתקות
-        </button>
-      </div>
       <div className="logo-and-navbar-container">
         <img
           className="logo-and-navbar-logo-img"
@@ -48,6 +35,18 @@ function Header({ type }: HeaderProps) {
           alt="logo_image"
         />
         <nav className="navbar header-navbar">
+          <button
+            className={`btn ${
+              type === MAIN_PAGE_TYPES.PATIENTS ? "btn-active" : ""
+            }`}
+            title="patients"
+            onClick={() => {
+              navigate(AppRoutes.Patients.List);
+            }}
+            disabled={type === MAIN_PAGE_TYPES.PATIENTS}
+          >
+            מטופלים
+          </button>
           {user?.role === roles.ADMIN && (
             <button
               className={`btn ${
@@ -62,19 +61,20 @@ function Header({ type }: HeaderProps) {
               ניהול מערכת
             </button>
           )}
-          <button
-            className={`btn ${
-              type === MAIN_PAGE_TYPES.PATIENTS ? "btn-active" : ""
-            }`}
-            title="patients"
-            onClick={() => {
-              navigate(AppRoutes.Patients.List);
-            }}
-            disabled={type === MAIN_PAGE_TYPES.PATIENTS}
-          >
-            מטופלים
-          </button>
         </nav>
+      </div>
+      <div className="logout-and-hello-user-container">
+        <div className="hello-user">
+          <span>,שלום</span> <span>{user?.fullName}</span>
+        </div>
+        <button
+          className="btn logout-btn btn-active"
+          title="Logout"
+          onClick={() => doLogout()}
+          disabled={isPending}
+        >
+          התנתקות
+        </button>
       </div>
     </header>
   );

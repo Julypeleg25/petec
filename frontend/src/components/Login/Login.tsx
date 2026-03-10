@@ -26,17 +26,20 @@ const Login = () => {
   const handleInputChange = (
     value: string,
     params?: object | string | number,
-    fieldName?: string,
+    fieldName?: string
   ) => {
     const candidateField =
       typeof fieldName === "string"
         ? fieldName
         : typeof params === "string"
-          ? params
-          : undefined;
+        ? params
+        : undefined;
 
     if (candidateField === "username" || candidateField === "password") {
-      setValue(candidateField, value, { shouldDirty: true, shouldValidate: true });
+      setValue(candidateField, value, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
     }
   };
 
@@ -50,7 +53,7 @@ const Login = () => {
         />
         <form className="login-form" onSubmit={login} noValidate>
           <FormInput
-            labelText=":שם משתמש"
+            labelText="שם משתמש:"
             name="username"
             type="text"
             placeholder="אנא הכנס/י את שם המשתמש שלך"
@@ -66,7 +69,7 @@ const Login = () => {
           )}
 
           <FormInput
-            labelText=":סיסמא"
+            labelText="סיסמה:"
             name="password"
             type="password"
             placeholder="אנא הכנס/י את הסיסמא שלך"
@@ -81,7 +84,11 @@ const Login = () => {
             </p>
           )}
 
-          <button type="submit" className="btn btn-large login-btn" disabled={isLoading}>
+          <button
+            type="submit"
+            className="btn btn-large login-btn"
+            disabled={isLoading}
+          >
             התחבר/י
           </button>
           <Link to={AppRoutes.ForgotPassword} className="forgot-password-link">

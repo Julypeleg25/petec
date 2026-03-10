@@ -155,7 +155,7 @@ export default function AnesthesiaProcedureForm({
           render={({ field }) => (
             <>
               <FormInput
-                labelText=":שם בעלים"
+                labelText="שם בעלים:"
                 name={field.name}
                 isRequired={true}
                 state={field.value}
@@ -173,7 +173,7 @@ export default function AnesthesiaProcedureForm({
           render={({ field }) => (
             <>
               <FormInput
-                labelText=":שם בעל חיים"
+                labelText="שם בעל חיים:"
                 name={field.name}
                 isRequired={true}
                 state={field.value}
@@ -186,7 +186,7 @@ export default function AnesthesiaProcedureForm({
         />
 
         <FormInput
-          labelText=":מספר תיק"
+          labelText="מספר תיק:"
           name="caseId"
           disabled={true}
           state={caseSerialId}
@@ -284,7 +284,7 @@ export default function AnesthesiaProcedureForm({
           control={control}
           render={({ field }) => (
             <FormTextarea
-              labelText=":הערות"
+              labelText="הערות:"
               name={field.name}
               state={field.value ?? ""}
               setState={field.onChange}
@@ -300,7 +300,7 @@ export default function AnesthesiaProcedureForm({
           render={({ field }) => (
             <>
               <FormInput
-                labelText=":הפרוצדורה המתוכננת"
+                labelText="הפרוצדורה המתוכננת:"
                 name={field.name}
                 state={field.value}
                 setState={field.onChange}
@@ -321,7 +321,7 @@ export default function AnesthesiaProcedureForm({
               <>
                 <FormInput
                   type="number"
-                  labelText=":הערכת מחיר"
+                  labelText="הערכת מחיר:"
                   name={field.name}
                   state={field.value?.toString() ?? ""}
                   setState={(val: string) => field.onChange(val === "" ? null : Number(val))}
@@ -393,7 +393,7 @@ export default function AnesthesiaProcedureForm({
           render={({ field }) => (
             <>
               <DatePicker
-                labelText=":תאריך"
+                labelText="תאריך:"
                 name={field.name}
                 state={field.value ?? ""}
                 setState={field.onChange}

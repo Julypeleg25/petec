@@ -139,14 +139,14 @@ function SavePatientPatientInfoSection({
         className={`${isEdit ? "edit" : "new"}-patient-form-info-section`}
       >
         <FormInput
-          labelText=":שם מטופל"
+          labelText="שם מטופל:"
           name="name"
           isRequired={true}
           state={formData.name}
           setState={handleInputChange}
         />
         <FormInput
-          labelText=":מספר תיק"
+          labelText="מספר תיק:"
           name="caseId"
           isRequired={true}
           state={isEdit ? getCaseSerialPrefix(formData.caseId) : formData.caseId}
@@ -155,14 +155,14 @@ function SavePatientPatientInfoSection({
           disabled={isEdit}
         />
         <FormInput
-          labelText=":שם בעלים"
+          labelText="שם בעלים:"
           name="owner.name"
           isRequired={true}
           state={formData.owner.name}
           setState={handleInputChange}
         />
         <FormInput
-          labelText=":מספר טלפון"
+          labelText="מספר טלפון:"
           name="owner.phone"
           isRequired={true}
           state={formData.owner.phone}
@@ -175,10 +175,10 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedInsurance}
           isRequired={true}
           selectId="new-patient-select-insurance"
-          labelText=":ביטוח"
+          labelText="ביטוח:"
         />
         <FormInput
-          labelText=":משקל"
+          labelText="משקל:"
           name="patientSnapshot.weightKg"
           isRequired={true}
           state={formData.patientSnapshot?.weightKg}
@@ -189,7 +189,7 @@ function SavePatientPatientInfoSection({
         <div className="patient-age-container form-input-container">
           <div className="patient-age-inputs">
             <FormInput
-              labelText=":(חודשים) גיל"
+              labelText="(חודשים) גיל:"
               name="patientSnapshot.ageMonths"
               state={formData.patientSnapshot?.ageMonths}
               setState={handleInputChange}
@@ -199,7 +199,7 @@ function SavePatientPatientInfoSection({
               width="49%"
             />
             <FormInput
-              labelText=":(שנים) גיל"
+              labelText="(שנים) גיל:"
               name="patientSnapshot.ageYears"
               state={formData.patientSnapshot?.ageYears}
               setState={handleInputChange}
@@ -215,7 +215,7 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedGenderType}
           isRequired={true}
           selectId="new-patient-select-gender-type"
-          labelText=":מין"
+          labelText="מין:"
         />
         <FormSelect
           elements={animalTypes}
@@ -223,7 +223,7 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedAnimalType}
           isRequired={true}
           selectId="new-patient-select-animal-type"
-          labelText=":סוג"
+          labelText="סוג:"
           afterSelect={(selectedValue) => {
             setSelectedRaceType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
             getRaceTypes(selectedValue);
@@ -234,7 +234,7 @@ function SavePatientPatientInfoSection({
           optionState={selectedRaceType}
           setOptionState={setSelectedRaceType}
           selectId="new-patient-select-race-type"
-          labelText=":גזע"
+          labelText="גזע:"
         />
         <FormSelect
           elements={animalColors}
@@ -242,7 +242,7 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedAnimalColor}
           isRequired={true}
           selectId="new-patient-select-animal-color"
-          labelText=":צבע"
+          labelText="צבע:"
         />
         <FormSelect
           elements={doctors}
@@ -250,7 +250,7 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedDoctor}
           isRequired={true}
           selectId="new-patient-select-doctor"
-          labelText=":רופא/ה מטפל/ת"
+          labelText="רופא/ה מטפל/ת:"
         />
         <FormSelect
           elements={nurses}
@@ -258,16 +258,16 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedNurse}
           isRequired={true}
           selectId="new-patient-select-nurse"
-          labelText=":אח/ות מטפל/ת"
+          labelText="אח/ות מטפל/ת:"
         />
         <FormInput
-          labelText=":רופא מפנה"
+          labelText="רופא מפנה:"
           name="admission.referringDoctor"
           state={formData.admission?.referringDoctor ?? ""}
           setState={handleInputChange}
         />
         <FormInput
-          labelText=":IDEXX לינק"
+          labelText="IDEXX לינק:"
           name="admission.bloodTestLink"
           state={formData.admission?.bloodTestLink ?? ""}
           setState={handleInputChange}
@@ -279,16 +279,16 @@ function SavePatientPatientInfoSection({
           setOptionState={setSelectedFoodType}
           isRequired={true}
           selectId="new-patient-select-animal-food-type"
-          labelText=":סוג אוכל"
+          labelText="סוג אוכל:"
         />
         <DatePicker
-          labelText=":תאריך הכנסת קטטר"
+          labelText="תאריך הכנסת קטטר:"
           name={SAVE_PATIENT_CATHETER_DATE_FIELD_NAME}
           state={formData.dates?.catheterDate ?? null}
           setState={handleInputChange}
         />
         <DatePicker
-          labelText=":תאריך פרוצדורה"
+          labelText="תאריך פרוצדורה:"
           name={SAVE_PATIENT_PROCEDURE_DATE_FIELD_NAME}
           state={formData.dates?.procedureDate ?? null}
           setState={handleInputChange}
@@ -297,7 +297,7 @@ function SavePatientPatientInfoSection({
           }}
         />
         <FormTextarea
-          labelText=":סיבת האישפוז"
+          labelText="סיבת האישפוז:"
           name="admission.hospitalizationReason"
           isRequired={true}
           state={formData.admission?.hospitalizationReason ?? ""}
@@ -306,7 +306,7 @@ function SavePatientPatientInfoSection({
           maxLength={300}
         />
         <FormTextarea
-          labelText=":אלרגיה הערות"
+          labelText="אלרגיה הערות:"
           name="admission.allergicComments"
           state={formData.admission?.allergicComments ?? ""}
           setState={handleInputChange}

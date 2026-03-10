@@ -24,10 +24,9 @@
 }
 
 .option-picker-selected-options {
-  direction: rtl;
   width: 80%;
   margin: 1em 0.3em auto;
-  text-align: left;
+  text-align: right;
   border-radius: 20px;
   border: 3px solid var(--color-main);
   padding: 1em;
@@ -35,7 +34,7 @@
 
 .option-picker-selected-options-cell {
   width: 100%;
-  text-align: left;
+  text-align: right;
   display: flex;
   display: -webkit-flex; /* Safari */
   flex-direction: row-reverse;

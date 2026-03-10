@@ -19,7 +19,7 @@
 }
 
 .reload-table-btn {
-  margin-left: 0.5em;
+  margin-right: 0.5em;
   display: flex;
   display: -webkit-flex; /* Safari */
   align-items: center;

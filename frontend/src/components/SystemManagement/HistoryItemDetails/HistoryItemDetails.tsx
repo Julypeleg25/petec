@@ -38,33 +38,33 @@ function HistoryItemDetails({
         <h2 className="history-form-title">פרטים</h2>
         <form className="history-form">
           <FormInput
-            labelText=":נושא"
+            labelText="נושא:"
             state={historyObj.subject}
             disabled={true}
           />
           <FormTextarea
-            labelText=":תיאור"
+            labelText="תיאור:"
             state={historyObj.description}
             height={"100px"}
             readOnly={true}
           />
           <FormInput
-            labelText=":תאריך"
+            labelText="תאריך:"
             state={historyObj.created_at}
             disabled={true}
           />
           <FormInput
-            labelText=":משתמש"
+            labelText="משתמש:"
             state={historyObj.created_by_name}
             disabled={true}
           />
           <FormInput
-            labelText=":מספר תיק"
+            labelText="מספר תיק:"
             state={getCaseSerialPrefix(historyObj.case_serial_id)}
             disabled={true}
           />
           <FormInput
-            labelText=":שם מטופל"
+            labelText="שם מטופל:"
             state={historyObj.patient_name}
             disabled={true}
           />

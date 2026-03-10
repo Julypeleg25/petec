@@ -59,7 +59,7 @@ function ReleasePatient({
               {isReleased && (
                 <div style={{ width: "100%" }}>
                   <DatePicker
-                    labelText=":תאריך שחרור"
+                    labelText="תאריך שחרור:"
                     name="releaseDate"
                     state={formData.releaseDate}
                     disabled={true}
@@ -73,7 +73,7 @@ function ReleasePatient({
                 render={({ field }) => (
                   <div style={{ width: "100%" }}>
                     <DatePicker
-                      labelText=":תאריך הסרת תפרים"
+                      labelText="תאריך הסרת תפרים:"
                       name={field.name}
                       state={field.value ?? ""}
                       setState={field.onChange}
@@ -94,7 +94,7 @@ function ReleasePatient({
                 render={({ field }) => (
                   <div style={{ width: "100%" }}>
                     <DatePicker
-                      labelText=":תאריך ביקורת"
+                      labelText="תאריך ביקורת:"
                       name={field.name}
                       state={field.value ?? ""}
                       setState={field.onChange}

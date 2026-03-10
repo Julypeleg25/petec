@@ -20,7 +20,7 @@ function FormSelect({
 }: FormSelectProps) {
   const [selectElements, setSelectElements] = useState(elements ?? []);
   const [internalOptionState, setInternalOptionState] = useState(
-    optionState ?? "",
+    optionState ?? ""
   );
 
   useEffect(() => {
@@ -38,13 +38,15 @@ function FormSelect({
   useEffect(() => {
     let isMounted = true;
     if (getElementsFunc) {
-      getElementsFunc().then((elements) => {
-        if (isMounted) {
-          setSelectElements(elements);
-        }
-      }).catch(() => {
-        // handled by interceptor
-      });
+      getElementsFunc()
+        .then((elements) => {
+          if (isMounted) {
+            setSelectElements(elements);
+          }
+        })
+        .catch(() => {
+          // handled by interceptor
+        });
     }
     return () => {
       isMounted = false;

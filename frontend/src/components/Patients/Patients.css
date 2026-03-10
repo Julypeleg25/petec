@@ -3,7 +3,7 @@
 }
 
 .patients-navbar {
-  justify-content: flex-end;
+  justify-content: flex-start;
   display: flex;
   display: -webkit-flex; /* Safari */
   padding-top: 1em;

@@ -3,7 +3,6 @@
   display: -webkit-flex; /* Safari */
   flex-direction: column;
   align-items: flex-start;
-  direction: rtl;
   justify-content: flex-start;
   width: 80%;
   position: relative;
@@ -27,7 +26,7 @@
 }
 
 .form-input-icon {
-  margin-left: 0.5em;
+  margin-right: 0.5em;
 }
 
 .form-input > input {
@@ -43,7 +42,7 @@
 
 .form-input-link {
   position: absolute;
-  left: 0;
+  right: 0;
   width: 35px;
 }
 

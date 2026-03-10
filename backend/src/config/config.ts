@@ -10,7 +10,7 @@ import {
 dotenv.config();
 
 const envSchema = z.object({
-  PORT: z.coerce.number().default(3000),
+  PORT: z.coerce.number().default(3001),
   MONGODB_URI: z.string().min(1),
   NODE_ENV: z.enum(NODE_ENV_VALUES).default("development"),
   FRONTEND_URL: z.string().min(1),
@@ -34,21 +34,21 @@ const parsed = envSchema.safeParse({ ...process.env, ...configFile });
 if (!parsed.success) {
   const formatted = z.treeifyError(parsed.error);
   throw new Error(
-    `Invalid environment variables: ${JSON.stringify(formatted)}`,
+    `Invalid environment variables: ${JSON.stringify(formatted)}`
   );
 }
 
 const envs: ParsedEnv = parsed.data;
 const accessTokenExpiresIn = normalizeDurationString(
-  envs.ACCESS_TOKEN_EXPIRES_IN,
+  envs.ACCESS_TOKEN_EXPIRES_IN
 );
 const refreshTokenExpiresIn = normalizeDurationString(
-  envs.REFRESH_TOKEN_EXPIRES_IN,
+  envs.REFRESH_TOKEN_EXPIRES_IN
 );
 const accessTokenExpiresInMs =
   parseDurationToMilliseconds(accessTokenExpiresIn);
 const refreshTokenExpiresInMs = parseDurationToMilliseconds(
-  refreshTokenExpiresIn,
+  refreshTokenExpiresIn
 );
 
 export const ENV = {

@@ -30,8 +30,7 @@ function FormInput({
     <div className="form-input-container" style={{ width: width }}>
       {labelText && (
         <label className="form-input-label">
-          {labelText}
-          {isRequired && !placeholder ? " *" : ""}
+          {isRequired && !placeholder ? "* " : ""}{labelText}
         </label>
       )}
       <div className="form-input">

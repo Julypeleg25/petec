@@ -83,7 +83,7 @@ function MedicinePicker({
         <div className="medicine-inputs-container">
           <div>
             <FormSelect
-              labelText=":סוג תרופה"
+              labelText="סוג תרופה:"
               elements={medicineSelectOptions}
               optionState={selectedMedicineId}
               selectId={"medicine-select"}
@@ -92,7 +92,7 @@ function MedicinePicker({
               afterSelect={handleCatalogMedicineSelection}
             />
             <FormSelect
-              labelText=":אופן מתן תרופה"
+              labelText="אופן מתן תרופה:"
               elements={medicinesRoutesForAdministration}
               optionState={selectedRouteId}
               setOptionState={setSelectedRouteId}
@@ -103,7 +103,7 @@ function MedicinePicker({
             />
             <FormTextarea
               id="medicine-comments-input"
-              labelText=":הערות"
+              labelText="הערות:"
               name="comments"
               height={"70px"}
               maxLength={300}
@@ -113,7 +113,7 @@ function MedicinePicker({
           </div>
           <div>
             <FormSelect
-              labelText=":תדירות"
+              labelText="תדירות:"
               elements={medicinesFrequencies}
               optionState={selectedFrequencyId}
               setOptionState={setSelectedFrequencyId}
@@ -128,7 +128,7 @@ function MedicinePicker({
               width="100%"
               min={0}
               id={"medicine-dose-amount-input"}
-              labelText=":כמות"
+              labelText="כמות:"
               disabled={selectedMedicine === undefined}
               isRequired={true}
               state={doseAmountInput}
@@ -150,7 +150,7 @@ function MedicinePicker({
                 type="number"
                 width="100%"
                 id={"medicine-total-dose-input"}
-                labelText=":מינון כולל"
+                labelText="מינון כולל:"
                 disabled={true}
                 state={selectedMedicine?.totalDose}
               />
