@@ -39,7 +39,7 @@
   width: 100%;
   display: flex;
   display: -webkit-flex; /* Safari */
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5em;
   margin-right: 0.7em;
@@ -48,6 +48,10 @@
 .medicine-inputs-container > div {
   width: 35%;
   align-self: flex-start;
+}
+
+.medicine-inputs-container > div > div {
+  direction: ltr;
 }
 
 .medicine-inputs-container > div > .form-textarea-container {

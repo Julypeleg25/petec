@@ -21,7 +21,6 @@
   position: relative;
   max-height: 80%;
   overflow-y: scroll;
-  direction: rtl;
 }
 
 .close-button {
@@ -52,7 +51,23 @@
   }
 }
 
-.modal-sm { width: 400px; max-width: 90%; }
-.modal-md { min-width: 500px; width: fit-content; max-width: 90%; }
-.modal-lg { min-width: 700px; width: fit-content; max-width: 95%; }
-.modal-fullscreen { width: 95vw; max-width: 95vw; height: 95vh; max-height: 95vh; }
+.modal-sm {
+  width: 400px;
+  max-width: 90%;
+}
+.modal-md {
+  min-width: 500px;
+  width: fit-content;
+  max-width: 90%;
+}
+.modal-lg {
+  min-width: 700px;
+  width: fit-content;
+  max-width: 95%;
+}
+.modal-fullscreen {
+  width: 95vw;
+  max-width: 95vw;
+  height: 95vh;
+  max-height: 95vh;
+}
