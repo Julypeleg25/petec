@@ -35,7 +35,7 @@
 }
 
 .login-form {
-  margin-top: -1.5em;
+  margin-top: 0;
   width: 100%;
   display: flex;
   display: -webkit-flex; /* Safari */
