@@ -148,6 +148,7 @@
   -webkit-flex-wrap: wrap; /* Safari */
   overflow-y: scroll;
   justify-content: space-around;
+  direction: rtl;
 }
 
 .table-card {
