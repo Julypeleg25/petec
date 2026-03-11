@@ -17,61 +17,12 @@ const formatCreatedAtCell = (value: TableCellValue): string =>
     : "";
 
 export const createNameAndCreatedAtColumns = (
-  nameLabel: string,
+  nameLabel: string
 ): ColumnDef[] => [
-    {
-      colName: nameLabel,
-      searchObjField: "name",
-      minWidth: "150px",
-    },
-    {
-      colName: "תאריך יצירה",
-      searchObjField: "created_at",
-      minWidth: "150px",
-      formatter: (cellValue: TableCellValue) => formatCreatedAtCell(cellValue),
-    },
-  ];
-
-export const MEDICINE_COLUMNS: ColumnDef[] = [
   {
-    colName: "שם תרופה",
+    colName: nameLabel,
     searchObjField: "name",
     minWidth: "150px",
-  },
-  {
-    colName: "טווח - מקסימום",
-    searchObjField: "range_max",
-    minWidth: "120px",
-  },
-  {
-    colName: "טווח - מינימום",
-    searchObjField: "range_min",
-    minWidth: "120px",
-  },
-  {
-    colName: "מינון כולל",
-    searchObjField: "total_dose",
-    minWidth: "120px",
-  },
-  {
-    colName: "תדירות",
-    searchObjField: "dosage_frequency",
-    minWidth: "120px",
-  },
-  {
-    colName: "אופן מתן",
-    searchObjField: "route_of_administration",
-    minWidth: "120px",
-  },
-  {
-    colName: "קטגוריה",
-    searchObjField: "medicine_category",
-    minWidth: "120px",
-  },
-  {
-    colName: "mg/kg/meq",
-    searchObjField: "measure_unit",
-    minWidth: "120px",
   },
   {
     colName: "תאריך יצירה",
@@ -79,10 +30,59 @@ export const MEDICINE_COLUMNS: ColumnDef[] = [
     minWidth: "150px",
     formatter: (cellValue: TableCellValue) => formatCreatedAtCell(cellValue),
   },
+];
+
+export const MEDICINE_COLUMNS: ColumnDef[] = [
+  {
+    colName: "שם תרופה",
+    searchObjField: "name",
+    minWidth: "180px",
+  },
+  {
+    colName: "טווח - מקסימום",
+    searchObjField: "range_max",
+    minWidth: "140px",
+  },
+  {
+    colName: "טווח - מינימום",
+    searchObjField: "range_min",
+    minWidth: "140px",
+  },
+  {
+    colName: "מינון כולל",
+    searchObjField: "total_dose",
+    minWidth: "140px",
+  },
+  {
+    colName: "תדירות",
+    searchObjField: "dosage_frequency",
+    minWidth: "140px",
+  },
+  {
+    colName: "אופן מתן",
+    searchObjField: "route_of_administration",
+    minWidth: "140px",
+  },
+  {
+    colName: "קטגוריה",
+    searchObjField: "medicine_category",
+    minWidth: "140px",
+  },
+  {
+    colName: "mg/kg/meq",
+    searchObjField: "measure_unit",
+    minWidth: "140px",
+  },
+  {
+    colName: "תאריך יצירה",
+    searchObjField: "created_at",
+    minWidth: "180px",
+    formatter: (cellValue: TableCellValue) => formatCreatedAtCell(cellValue),
+  },
   {
     colName: "הערות",
     searchObjField: "comments",
-    minWidth: "200px",
+    minWidth: "240px",
     formatter: (cellValue: TableCellValue) => {
       const value = toText(cellValue);
       return value.length > 50 ? `${value.substring(0, 50)}...` : value;

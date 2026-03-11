@@ -1,62 +1,256 @@
-.system-management-system-types-table {
-  direction: rtl;
+.system-types-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
-.system-types-toolbar {
-  width: 100%;
+.system-types-tab__header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.9em;
-  margin-bottom: 0.6em;
-  direction: rtl;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.system-types-toolbar__selector {
+.system-types-tab__title-wrap {
   display: flex;
-  align-items: flex-end;
+  align-items: start;
+  gap: 0.9rem;
 }
 
-.system-types-toolbar__selector .form-select {
-  width: 260px;
+.system-types-tab__title-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 121, 32, 0.12);
+  color: #f47920;
+  font-size: 1.2rem;
+}
+
+.system-types-tab__title {
   margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #24313f;
+  text-align: right;
+}
+
+.system-types-tab__subtitle {
+  margin: 0.2rem 0 0;
+  color: #6b7280;
+  font-size: 0.98rem;
+  text-align: right;
+}
+
+.system-types-tab__toolbar-wrap {
+  display: flex;
+  justify-content: flex-end;
   align-items: flex-end;
 }
 
-.system-types-toolbar__selector .form-select-label {
-  width: 100%;
-  margin: 0 0 0.35em;
+/* toolbar */
+.system-types-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  text-align: right;
+  direction: ltr;
+}
+
+.system-types-toolbar .form-select,
+.system-types-toolbar .form-input-container {
+  margin: 0;
+}
+
+.system-types-toolbar label,
+.system-types-toolbar .form-label {
+  display: block;
+  margin-bottom: 0.4rem;
   font-size: 0.95rem;
-  color: #2d3a45;
-  text-align: right;
-}
-
-/* Dropdown styling moved to SystemManagement.css for consistency across the module */
-
-.system-types-toolbar__selected-type {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #4d5964;
-  font-weight: 500;
-  text-align: right;
-}
-
-.system-types-toolbar__selected-type span {
-  color: #1f2b37;
   font-weight: 700;
+  color: #24313f;
+  text-align: right;
 }
 
-@media (max-width: 720px) {
-  .system-types-toolbar {
-    flex-direction: column;
+.system-types-toolbar select,
+.system-types-toolbar .form-select > select {
+  min-width: 260px;
+  height: 44px;
+  border-radius: 14px;
+  border: 2px solid var(--color-main);
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* card */
+.system-types-tab__table-card {
+  background: #fff;
+  border: 1px solid #f1e1d5;
+  border-radius: 24px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  overflow: visible;
+}
+
+@media (max-width: 900px) {
+  .system-types-tab__header {
     align-items: stretch;
   }
 
-  .system-types-toolbar__selector .form-select {
+  .system-types-tab__toolbar-wrap {
     width: 100%;
+    justify-content: flex-start;
   }
+}
 
-  .system-types-toolbar__selected-type {
-    text-align: right;
+.system-types-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.system-types-tab__toolbar-card,
+.system-types-tab__table-card {
+  background: #fff;
+  border: 1px solid #f1e1d5;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+}
+
+.system-types-tab__toolbar-card {
+  padding: 1rem 1.25rem;
+}
+
+.system-types-tab__table-card {
+  padding: 1rem;
+  overflow: visible;
+}
+
+/* אזור בחירת סוג הישות */
+.system-types-tab__toolbar-card select,
+.system-types-tab__toolbar-card .form-select > select {
+  min-width: 280px;
+  height: 46px;
+  border-radius: 16px;
+  border: 2px solid var(--color-main);
+  background-color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* כפתורי פעולות */
+.system-types-tab__toolbar-card .btn,
+.system-types-tab__toolbar-card .table-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.system-types-toolbar__selector {
+  min-width: 260px;
+  max-width: 320px;
+}
+
+/* אם FormSelect מייצר label מעל select */
+.system-types-toolbar .form-label,
+.system-types-toolbar label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #24313f;
+}
+
+/* ה-select עצמו */
+.system-types-toolbar select,
+.system-types-toolbar .form-select > select {
+  min-width: 260px;
+  height: 44px;
+  border-radius: 14px;
+  border: 2px solid var(--color-main);
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+/* טבלה */
+.system-types-tab__table-card table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.system-types-tab__table-card thead th {
+  background: #faf7f4;
+  color: #4b5563;
+  font-weight: 800;
+  font-size: 0.98rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #ece7e2;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.system-types-tab__table-card thead input,
+.system-types-tab__table-card thead select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d8e0e8;
+  border-radius: 14px;
+  background: #fff;
+  padding: 0 0.85rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.system-types-tab__table-card thead input:focus,
+.system-types-tab__table-card thead select:focus {
+  border-color: #f47920;
+  box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.12);
+}
+
+.system-types-tab__table-card tbody td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  color: #1f2937;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.system-types-tab__table-card tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.system-types-tab__table-card tbody tr:hover {
+  background: #fffaf5;
+}
+
+.system-types-tab__table-card td {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.system-types-tab__table-card .table-btn {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .system-types-tab__toolbar-card,
+  .system-types-tab__table-card {
+    padding: 0.75rem;
+    border-radius: 18px;
   }
 }

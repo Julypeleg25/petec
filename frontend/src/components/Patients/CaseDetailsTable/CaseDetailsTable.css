@@ -81,7 +81,6 @@
   min-width: min-content;
 }
 
-
 .case-details-table-body .case-details-table-body-row {
   display: flex;
   display: -webkit-flex; /* Safari */
@@ -277,11 +276,11 @@
   flex-direction: row;
 }
 
-.case-details-table .medicine-inputs-container .form-select-label,
+/* .case-details-table .medicine-inputs-container .form-select-label,
 .case-details-table .medicine-inputs-container .form-input-label {
   align-self: flex-start;
   direction: ltr;
-}
+} */
 
 .required-cell {
   background-color: red;

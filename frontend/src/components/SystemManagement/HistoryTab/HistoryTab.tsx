@@ -1,11 +1,13 @@
 import { useState } from "react";
 import TableGenerator from "../../../utils/TableGenerator/TableGenerator";
 import type { RowData } from "../../../utils/TableGenerator/TableGenerator";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaHistory } from "react-icons/fa";
 import { TableFormattingOptionsEnum } from "../../../utils/TableGenerator/TableFormattingOptionsEnum";
 import HistoryItemDetails from "../HistoryItemDetails/HistoryItemDetails";
 import type { HistoryItem } from "../HistoryItemDetails/HistoryItemDetails";
 import { getCaseSerialPrefix } from "../../../features/patients/utils/patients.utils";
+
+import "./HistoryTab.css";
 
 const isHistoryItem = (row: RowData): row is HistoryItem =>
   typeof row.subject === "string" &&
@@ -29,9 +31,7 @@ export default function HistoryTab() {
       colName: "מספר תיק",
       searchObjField: "case_serial_id",
       minWidth: "200px",
-      formatter: (
-        cellValue?: string | number | boolean | object | null,
-      ) => {
+      formatter: (cellValue?: string | number | boolean | object | null) => {
         if (!cellValue) return "";
         return getCaseSerialPrefix(String(cellValue));
       },
@@ -64,32 +64,49 @@ export default function HistoryTab() {
   }
 
   return (
-    <div className="system-management-history-table">
-      <TableGenerator
-        queryObj={{
-          query: "auditLogs",
-          orderBy: { id: "DESC" },
-          filters: {},
-          args: [],
-          formatting: {
-            created_at: TableFormattingOptionsEnum.TimestampWithTime,
-          },
-        }}
-        columnsData={historyColumnsData}
-        btns={tableBtns}
-        setOnRowClicked={(row: RowData) => {
-          const item = toHistoryItemOrNull(row);
-          if (!item) return;
-          setHistoryObj(item);
-        }}
-        setOnDoubleRowClicked={(row: RowData) => {
-          const item = toHistoryItemOrNull(row);
-          if (!item) return;
-          setHistoryObj(item);
-          setShowHistoryDetails(true);
-        }}
-        paginationPerPage={20}
-      />
+    <div className="history-tab" dir="rtl">
+      <div className="history-tab__header">
+        <div className="history-tab__title-wrap">
+          <div className="history-tab__title-icon">
+            <FaHistory />
+          </div>
+
+          <div>
+            <h2 className="history-tab__title">היסטוריית מערכת</h2>
+            <p className="history-tab__subtitle">
+              צפייה בפעולות שבוצעו במערכת ובשינויים בנתונים
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="history-tab__table-card">
+        <TableGenerator
+          queryObj={{
+            query: "auditLogs",
+            orderBy: { id: "DESC" },
+            filters: {},
+            args: [],
+            formatting: {
+              created_at: TableFormattingOptionsEnum.TimestampWithTime,
+            },
+          }}
+          columnsData={historyColumnsData}
+          btns={tableBtns}
+          setOnRowClicked={(row: RowData) => {
+            const item = toHistoryItemOrNull(row);
+            if (!item) return;
+            setHistoryObj(item);
+          }}
+          setOnDoubleRowClicked={(row: RowData) => {
+            const item = toHistoryItemOrNull(row);
+            if (!item) return;
+            setHistoryObj(item);
+            setShowHistoryDetails(true);
+          }}
+          paginationPerPage={20}
+        />
+      </div>
     </div>
   );
 }

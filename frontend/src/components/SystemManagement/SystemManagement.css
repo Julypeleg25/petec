@@ -4,6 +4,7 @@
 
 .system-management-main {
   height: 85%;
+  padding: 2em;
 }
 
 .system-management-navbar {
@@ -27,7 +28,6 @@
 .system-management-system-types-table,
 .system-management-history-table {
   width: 95%;
-  margin: 1.5em auto;
   height: 95%;
 }
 
@@ -66,8 +66,11 @@
   width: 700px; /* Reduced from 900px/800px */
   max-width: 95vw;
   padding: 1.5em 2em 2em;
-  background:
-    radial-gradient(circle at top left, rgba(244, 120, 29, 0.08), transparent 32%),
+  background: radial-gradient(
+      circle at top left,
+      rgba(244, 120, 29, 0.08),
+      transparent 32%
+    ),
     linear-gradient(170deg, #ffffff, #fffaf5);
   border: 2px solid rgba(244, 120, 29, 0.25);
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
