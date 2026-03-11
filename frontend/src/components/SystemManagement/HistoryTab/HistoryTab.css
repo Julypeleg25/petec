@@ -1,0 +1,108 @@
+.history-tab__table-card table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.history-tab__table-card thead th {
+  background: #faf7f4;
+  color: #4b5563;
+  font-weight: 800;
+  font-size: 0.98rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #ece7e2;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.history-tab__table-card thead input,
+.history-tab__table-card thead select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid #d8e0e8;
+  border-radius: 14px;
+  background: #fff;
+  padding: 0 0.85rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-tab__table-card thead input:focus,
+.history-tab__table-card thead select:focus {
+  border-color: #f47920;
+  box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.12);
+}
+
+.history-tab__table-card tbody td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid #f1f3f5;
+  color: #1f2937;
+  text-align: right;
+  vertical-align: middle;
+}
+
+.history-tab__table-card tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.history-tab__table-card tbody tr:hover {
+  background: #fffaf5;
+}
+
+.history-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* header */
+
+.history-tab__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-tab__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.history-tab__title-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 121, 32, 0.12);
+  color: #f47920;
+  font-size: 1.2rem;
+}
+
+.history-tab__title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #24313f;
+}
+
+.history-tab__subtitle {
+  margin: 0.2rem 0 0;
+  color: #6b7280;
+  font-size: 0.98rem;
+}
+
+/* table card */
+
+.history-tab__table-card {
+  background: #fff;
+  border: 1px solid #f1e1d5;
+  border-radius: 24px;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
