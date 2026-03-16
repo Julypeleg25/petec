@@ -10,24 +10,24 @@ export default function Modal({
   closeWhenClickOutside = true,
   size = "md",
   className,
+  overlayClassName,
 }: ModalProps) {
-  const modalId = "modal-" + new Date().getTime();
-
   const closeModal = () => {
     setIsOpen(false);
   };
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (closeWhenClickOutside) {
-      if ((event.target as HTMLDivElement).id === modalId) {
-        closeModal();
-      }
+    if (closeWhenClickOutside && event.target === event.currentTarget) {
+      closeModal();
     }
   };
 
   return (
     <div className="Modal">
-      <div className="modal-overlay" onClick={handleOverlayClick} id={modalId}>
+      <div
+        className={`modal-overlay ${overlayClassName || ""}`.trim()}
+        onClick={handleOverlayClick}
+      >
         <div className={`modal modal-${size} ${className || ""}`.trim()} style={style}>
           <span className="close-button" onClick={closeModal}>
             <CgClose />

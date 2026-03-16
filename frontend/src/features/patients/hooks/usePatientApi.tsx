@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { patientsApi } from "../patients.api";
+import { patientKeys } from "./patient.keys";
 import type {
     NewPatientDTO,
     EditPatientDTO,
@@ -11,16 +12,6 @@ import type {
     CreateAnesthesiaProcedureFormDTO,
 } from "@petec/shared";
 
-export const patientKeys = {
-    all: ["patients"] as const,
-    case: (masterCaseId: string, caseId: string) =>
-        ["patients", "case", masterCaseId, caseId] as const,
-    documents: (patientId: string) => ["patients", "documents", patientId] as const,
-    anesthesia: (caseId: string) => ["patients", "anesthesia", caseId] as const,
-    releaseData: (caseId: string) => ["patients", "releaseData", caseId] as const,
-    charts: (caseId: string) => ["patients", "charts", caseId] as const,
-};
-
 export const useCaseDetails = (caseId: string, masterCaseId: string) =>
     useQuery({
         queryKey: patientKeys.case(masterCaseId, caseId),
@@ -28,11 +19,11 @@ export const useCaseDetails = (caseId: string, masterCaseId: string) =>
         enabled: !!caseId && !!masterCaseId,
     });
 
-export const usePatientDocuments = (patientId: string) =>
+export const usePatientDocuments = (caseId: string) =>
     useQuery({
-        queryKey: patientKeys.documents(patientId),
-        queryFn: () => patientsApi.getDocuments(patientId),
-        enabled: !!patientId,
+        queryKey: patientKeys.documents(caseId),
+        queryFn: () => patientsApi.getDocuments(caseId),
+        enabled: !!caseId,
     });
 
 export const useAnesthesiaForm = (caseId: string) =>
@@ -107,7 +98,7 @@ export const usePatientApi = () => {
         mutationFn: ({ dto, file }: { dto: UploadDocumentDTO; file: File }) =>
             patientsApi.uploadDocument(dto, file),
         onSuccess: (_data, variables) => {
-            qc.invalidateQueries({ queryKey: patientKeys.documents(variables.dto.patientId) });
+            qc.invalidateQueries({ queryKey: patientKeys.documents(variables.dto.caseId) });
             toast.success("המסמך הועלה בהצלחה");
         },
     });

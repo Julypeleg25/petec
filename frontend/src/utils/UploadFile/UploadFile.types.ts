@@ -3,4 +3,6 @@ export interface UploadFileProps {
     message?: string;
     uploadHandler: (file: File) => Promise<void>;
     afterUpload?: () => void;
+    modalClassName?: string;
+    titleClassName?: string;
 }

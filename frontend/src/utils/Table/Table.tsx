@@ -115,7 +115,9 @@ function Table<T extends object>({
                     key={index}
                     className="mtc-table-header"
                     style={{
+                      width: minWidth,
                       minWidth: minWidth,
+                      maxWidth: minWidth,
                     }}
                     table-header-index={index}
                   >
@@ -160,7 +162,9 @@ function Table<T extends object>({
                             textAlign: columns[index]?.center
                               ? "center"
                               : "right",
+                            width: columns[index]?.minWidth,
                             minWidth: columns[index]?.minWidth,
+                            maxWidth: columns[index]?.minWidth,
                           }}
                           table-cell-index={index}
                         >

@@ -25,13 +25,22 @@ function FormInput({
   isLink = false,
 }: FormInputProps) {
   const [inputType, setInputType] = useState(type);
+  const linkValue =
+    state === null || state === undefined ? "" : String(state).trim();
+  const hasLink = linkValue.length > 0;
+  const resolvedPlaceholder =
+    isRequired && !labelText ? `* ${placeholder}` : placeholder;
 
   return (
     <div className="form-input-container" style={{ width: width }}>
       {labelText && (
         <label className="form-input-label">
           {labelText}
-          {isRequired && !placeholder ? " *" : ""}
+          {isRequired && (
+            <span className="form-required-indicator" aria-hidden="true">
+              {" *"}
+            </span>
+          )}
         </label>
       )}
       <div className="form-input">
@@ -46,7 +55,7 @@ function FormInput({
         <input
           id={id}
           type={inputType}
-          placeholder={(isRequired ? "* " : "") + placeholder}
+          placeholder={resolvedPlaceholder}
           name={name}
           required={isRequired}
           value={state === null ? "" : state}
@@ -65,11 +74,21 @@ function FormInput({
           step={type === "number" ? "any" : undefined}
           className={`${className ? className : ""}`}
         />
-        {isLink && (
-          <a href={state as string} target="_blank" className="form-input-link" rel="noreferrer">
-            <FaExternalLinkAlt />
-          </a>
-        )}
+        {isLink &&
+          (hasLink ? (
+            <a
+              href={linkValue}
+              target="_blank"
+              className="form-input-link"
+              rel="noreferrer"
+            >
+              <FaExternalLinkAlt />
+            </a>
+          ) : (
+            <span className="form-input-link form-input-link-disabled">
+              <FaExternalLinkAlt />
+            </span>
+          ))}
         {icon && <span className="form-input-icon">{icon}</span>}
       </div>
     </div>

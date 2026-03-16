@@ -43,7 +43,7 @@ function FormSelect({
           setSelectElements(elements);
         }
       }).catch(() => {
-        // handled by interceptor
+
       });
     }
     return () => {
@@ -65,16 +65,27 @@ function FormSelect({
 
   const selectedValue =
     optionState !== undefined ? optionState : internalOptionState;
+  const selectedOptionText = useMemo(
+    () =>
+      sortedElements.find((element) => element.value === selectedValue)?.text ?? "",
+    [selectedValue, sortedElements],
+  );
 
   return (
     <div className="form-select" style={{ width: width }}>
       {icon && <span className="form-select-icon">{icon}</span>}
       {labelText && (
         <label className="form-select-label" htmlFor={selectId}>
-          {labelText} {isRequired ? "* " : ""}
+          {labelText}
+          {isRequired && (
+            <span className="form-required-indicator" aria-hidden="true">
+              {" *"}
+            </span>
+          )}
         </label>
       )}
       <select
+        className="form-select-control"
         id={selectId}
         value={selectedValue}
         onChange={(e) => {
@@ -87,11 +98,17 @@ function FormSelect({
         }}
         required={isRequired}
         disabled={disabled}
+        title={selectedOptionText || undefined}
       >
         <option value={""} disabled={isRequired}></option>
         {sortedElements.map((element, i) => {
           return (
-            <option key={i} value={element.value} disabled={element.isDisabled}>
+            <option
+              key={i}
+              value={element.value}
+              disabled={element.isDisabled}
+              title={element.text}
+            >
               {element.text}
             </option>
           );

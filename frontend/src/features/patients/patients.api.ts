@@ -115,10 +115,10 @@ export const patientsApi = {
       DeletePatientCaseDTOSchema,
     ),
 
-  getDocuments: (patientId: string): Promise<PatientDocumentResponseDTO[]> => {
-    const params = PatientIdParamsDTOSchema.parse({ patientId });
+  getDocuments: (caseId: string): Promise<PatientDocumentResponseDTO[]> => {
+    const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.documents(params.patientId) },
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.documentsByCase(params.caseId) },
       PatientDocumentListResponseDTOSchema,
     );
   },

@@ -2,16 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { systemTypesApi, SystemTypeCreatePayload, SystemTypeEditPayload } from "../systemTypes.api";
 import { SYSTEM_TYPE_NAMES, type SystemTypeName } from "@petec/shared";
+import { systemTypeKeys } from "./systemTypes.keys";
 
 export type CreatePayload = SystemTypeCreatePayload;
-
-export const systemTypeKeys = {
-    all: ["systemTypes"] as const,
-    list: (typeName: SystemTypeName) => ["systemTypes", typeName] as const,
-    active: (typeName: SystemTypeName) => ["systemTypes", typeName, "active"] as const,
-    byAnimal: (typeName: SystemTypeName, animalTypeId: string) =>
-        ["systemTypes", typeName, "byAnimal", animalTypeId] as const,
-};
 
 export const useSystemTypes = (typeName: SystemTypeName) =>
     useQuery({
@@ -29,14 +22,14 @@ export const useActiveSystemTypes = (typeName: SystemTypeName) =>
 
 export const useRaceTypesByAnimal = (animalTypeId: string) =>
     useQuery({
-        queryKey: systemTypeKeys.byAnimal(SYSTEM_TYPE_NAMES.RACE_TYPES, animalTypeId),
+        queryKey: systemTypeKeys.raceTypesByAnimal(animalTypeId),
         queryFn: () => systemTypesApi.getRaceTypesByAnimal(animalTypeId),
         enabled: !!animalTypeId,
     });
 
 export const useAnimalVitalsByAnimal = (animalTypeId: string) =>
     useQuery({
-        queryKey: systemTypeKeys.byAnimal(SYSTEM_TYPE_NAMES.ANIMAL_VITALS, animalTypeId),
+        queryKey: systemTypeKeys.animalVitalsByAnimal(animalTypeId),
         queryFn: () => systemTypesApi.getAnimalVitalsByAnimal(animalTypeId),
         enabled: !!animalTypeId,
     });

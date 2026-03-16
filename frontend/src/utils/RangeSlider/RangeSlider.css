@@ -4,7 +4,10 @@
 }
 
 .RangeSlider label {
+  display: block;
+  width: 100%;
   font-size: 1.1rem;
+  text-align: right;
 }
 
 .RangeSlider input[type="range"] {
@@ -17,8 +20,8 @@
   opacity: 0.7;
   -webkit-transition: 0.2s;
   transition: opacity 0.2s;
-  transform: rotate(180deg); /* Flip the slider */
-  transform-origin: center center; /* Keep the slider centered */
+  transform: rotate(180deg); 
+  transform-origin: center center; 
 }
 
 ::-webkit-slider-thumb {

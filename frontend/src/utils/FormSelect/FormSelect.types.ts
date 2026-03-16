@@ -8,7 +8,7 @@ export interface FormSelectProps {
     elements?: {
         value: string;
         text: string;
-    isDisabled?: boolean;
+        isDisabled?: boolean;
     }[];
     getElementsFunc?: () => Promise<SelectOptionObj[]>;
     icon?: JSX.Element;

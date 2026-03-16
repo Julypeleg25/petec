@@ -112,6 +112,7 @@ function Pagination<T extends RowData = RowData>({
               aria-label="מספר עמוד"
               value={pageSearch}
               className="search-page-input"
+              disabled={dataSize === 0}
               onChange={(e) => {
                 const val = Number.parseInt(e.target.value, 10);
                 if (!isNaN(val)) setPageSearch(val);

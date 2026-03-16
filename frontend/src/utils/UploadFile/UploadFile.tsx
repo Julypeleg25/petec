@@ -10,6 +10,8 @@ function UploadFile({
   message,
   uploadHandler,
   afterUpload,
+  modalClassName,
+  titleClassName,
 }: UploadFileProps) {
   const hiddenFileInput = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -53,10 +55,18 @@ function UploadFile({
   return (
     <Modal
       setIsOpen={setIsOpen}
+      closeWhenClickOutside={true}
+      className={modalClassName}
       component={
-        <div className="UploadFile">
+        <div className="UploadFile" dir="rtl">
           {message !== undefined && (
-            <div className="upload-file-massage">{message}</div>
+            <h3
+              className={["upload-file-message", titleClassName]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {message}
+            </h3>
           )}
           <button
             className="btn table-btn btn-active upload-file-btn"

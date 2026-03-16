@@ -5,4 +5,5 @@ export interface ModalProps {
     closeWhenClickOutside?: boolean;
     size?: "sm" | "md" | "lg" | "fullscreen";
     className?: string;
+    overlayClassName?: string;
 }

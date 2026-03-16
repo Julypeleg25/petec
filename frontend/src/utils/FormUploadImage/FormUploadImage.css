@@ -1,6 +1,6 @@
 .FormUploadImage {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -13,7 +13,7 @@
   border: 3px solid var(--input-border-color);
   margin: 0 auto;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: center;
   justify-content: center;

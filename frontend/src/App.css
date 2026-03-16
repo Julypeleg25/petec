@@ -1,4 +1,5 @@
 :root {
+  --font-family-theme: "Segoe UI", "Noto Sans Hebrew", Tahoma, Arial, sans-serif;
   --color-white: #ffffff;
   --color-black: #000000;
   --color-main: #f4781d;
@@ -15,6 +16,25 @@
   --table-pagination-height: 50px;
   --color-alerts: rgb(211, 2, 2);
   --color-alerts-blue: rgb(16, 16, 196);
+}
+
+input,
+textarea,
+select,
+button,
+table,
+th,
+td {
+  font-family: inherit;
+}
+
+body * {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+select {
+  max-height: 80px;
 }
 
 .btn {
@@ -44,6 +64,22 @@
   color: #8a8a8a;
   background-color: #f0f0f0;
   border-color: #b9b9b9;
+}
+
+.btn-selected,
+.btn-selected:hover,
+.btn-selected:disabled,
+.btn-selected:disabled:hover {
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+  border: none;
+  opacity: 1;
+  filter: none;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.btn-selected:disabled {
+  cursor: default !important;
 }
 
 .navbar .btn:disabled {
@@ -120,8 +156,6 @@ textarea::-webkit-resizer,
 ::-webkit-scrollbar-corner {
   background-color: transparent;
 }
-
-/* ---- custom scrollbar ---- */
 
 ::-webkit-scrollbar {
   width: 20px;

@@ -34,6 +34,9 @@ function FormTextarea({
   afterChange,
   className = "",
 }: FormTextareaProps) {
+  const resolvedPlaceholder =
+    isRequired && !labelText ? `* ${placeholder}` : placeholder;
+
   return (
     <div
       className={`form-textarea-container ${className}`}
@@ -42,13 +45,17 @@ function FormTextarea({
       {labelText && (
         <label className="form-textarea-label">
           {labelText}
-          {isRequired ? " *" : ""}
+          {isRequired && (
+            <span className="form-required-indicator" aria-hidden="true">
+              {" *"}
+            </span>
+          )}
         </label>
       )}
       <div className="form-textarea">
         <textarea
           id={id}
-          placeholder={(isRequired ? "* " : "") + placeholder}
+          placeholder={resolvedPlaceholder}
           name={name}
           required={isRequired}
           value={state ?? ""}

@@ -2,15 +2,24 @@
   opacity: 0;
   height: 100%;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   position: absolute;
+  left: 0;
+  top: 0;
+  color: #8a8a8a;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.mtc-table-header:hover .table-sort-arrow,
+.table-sort-arrow:hover {
+  opacity: 1;
 }
 
 .table-sort-arrow:hover {
-  opacity: 1;
+  color: var(--color-main);
   cursor: pointer;
 }
 
@@ -21,7 +30,7 @@
 .reload-table-btn {
   margin-left: 0.5em;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex;
   align-items: center;
   justify-content: space-around;
   background-color: white;
@@ -119,7 +128,7 @@
   width: 80%;
   margin: 0 auto;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5em;
@@ -137,16 +146,16 @@
 
 .table-cards-section {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex;
   flex-direction: column;
   height: 100%;
 }
 
 .table-cards-container {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex;
   flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
+  -webkit-flex-wrap: wrap;
   overflow-y: scroll;
   justify-content: space-around;
   direction: rtl;

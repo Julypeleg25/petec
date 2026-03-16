@@ -1,8 +1,9 @@
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
 import "./index.css";
 import { setupHebrewZodErrorMap } from "@petec/shared";
 import App from "./App";
+import { appHistory } from "./router/appHistory";
 
 setupHebrewZodErrorMap();
 
@@ -14,7 +15,7 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(
-  <BrowserRouter>
+  <HistoryRouter history={appHistory}>
     <App />
-  </BrowserRouter>
+  </HistoryRouter>
 );

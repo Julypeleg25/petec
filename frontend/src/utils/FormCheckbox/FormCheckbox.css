@@ -2,7 +2,7 @@
   width: 80%;
   text-align: right;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: flex-end;
   margin-top: 0.8em;
   margin-bottom: 0.5em;

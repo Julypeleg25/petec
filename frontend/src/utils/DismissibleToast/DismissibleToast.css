@@ -10,7 +10,7 @@
   height: 25px;
   border-radius: 50%;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   align-items: center;
   justify-content: space-around;
 }
