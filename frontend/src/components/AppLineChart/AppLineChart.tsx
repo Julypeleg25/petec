@@ -30,6 +30,7 @@ function AppLineChart({ data, className, label, CustomXAxisLabel }: AppLineChart
           textAnchor="middle"
           dominantBaseline="middle"
           className="chart-bar-label-text"
+          direction="ltr"
         >
           {value}
         </text>
@@ -53,17 +54,17 @@ function AppLineChart({ data, className, label, CustomXAxisLabel }: AppLineChart
 
               data={data}
               margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
+                top: 12,
+                right: 24,
+                left: 12,
+                bottom: 16,
               }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="name"
                 tick={CustomXAxisLabel ? <CustomXAxisLabel /> : undefined}
-                height={40}
+                height={62}
                 padding={{ right: 30, left: 30 }}
               />
               <YAxis

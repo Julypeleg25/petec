@@ -1,13 +1,27 @@
 .MedicinePicker {
   width: 100%;
   display: flex;
-  display: -webkit-flex; /* Safari */
-  align-items: center;
+  display: -webkit-flex; 
+  align-items: stretch;
   flex-direction: column;
-  min-width: 420px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-.add-medicine-btn,
+.MedicinePicker .form-textarea-container {
+  direction: rtl;
+}
+
+.MedicinePicker .form-input-label,
+.MedicinePicker .form-select-label,
+.MedicinePicker .form-textarea-label,
+.MedicinePicker .RangeSlider label,
+.MedicinePicker .medicine-picker-selected-medicines-text {
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+
 .delete-medicine-btn,
 .edit-medicine-btn,
 .confirm-medicine-btn {
@@ -37,46 +51,108 @@
 
 .medicine-inputs-container {
   width: 100%;
-  display: flex;
-  display: -webkit-flex; /* Safari */
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
   margin-bottom: 0.5em;
-  margin-right: 0.7em;
+  gap: 0.9em;
+  box-sizing: border-box;
 }
 
 .medicine-inputs-container > div {
-  width: 35%;
-  align-self: flex-start;
-}
-
-.medicine-inputs-container > div > div {
-  direction: ltr;
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
 }
 
 .medicine-inputs-container > div > .form-textarea-container {
   width: 100%;
 }
 
+.MedicinePicker .form-select > select {
+  direction: rtl;
+}
+
+.medicine-dose-row {
+  width: 100%;
+  display: grid;
+  direction: ltr;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 1.1em;
+}
+
+.medicine-dose-row > .form-input-container {
+  min-width: 0;
+  direction: rtl;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.medicine-dose-row > .form-input-container .form-input-label {
+  width: 100%;
+  text-align: right;
+}
+
+.medicine-dose-action-slot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 42px;
+  padding-top: calc(1.1rem + 1em);
+}
+
+.medicine-dose-action-btn {
+  width: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  margin: 0.5em 0;
+  padding: 0.35em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-radius: 8px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  box-sizing: border-box;
+  align-self: center;
+}
+
+.medicine-picker-selected-section {
+  width: 100%;
+  max-width: 100%;
+  margin: 0.75em 0 auto auto;
+  text-align: right;
+}
+
+.medicine-picker-selected-title {
+  display: block;
+  margin-bottom: 0.35em;
+  font-size: 1.08rem;
+}
+
 .medicine-picker-selected-medicines {
-  width: 82%;
-  margin: 0.75em 0.3em auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
   text-align: right;
   border-radius: 20px;
   border: 3px solid var(--color-main);
   padding: 0.75em 0.9em;
   overflow-y: auto;
   max-height: 180px;
+  box-sizing: border-box;
 }
 
 .medicine-picker-selected-medicines-cell {
   width: 100%;
   text-align: right;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: space-between;
   gap: 0.75em;
-  font-size: 1rem;
+  font-size: 1.08rem;
   align-items: center;
   margin-top: 0.45em;
 }
@@ -92,21 +168,22 @@
 
 .medicine-picker-selected-medicines-text {
   flex: 1 1 auto;
+  min-width: 0;
   text-align: right;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 .medicine-picker-selected-medicines-actions {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   align-items: center;
   gap: 0.45em;
 }
 
-.add-medicine-btn:disabled,
 .delete-medicine-btn:disabled,
 .edit-medicine-btn:disabled,
-.confirm-medicine-btn:disabled {
+.confirm-medicine-btn:disabled,
+.medicine-dose-action-btn:disabled {
   opacity: 0.45;
   filter: grayscale(0.35);
   box-shadow: none;
@@ -119,10 +196,35 @@
 }
 
 .selected-medicine-name {
-  font-weight: 500;
-  word-break: break-all;
+  font-weight: 600;
 }
 
 .table-selected-medicine-name {
   font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .medicine-inputs-container {
+    grid-template-columns: 1fr;
+  }
+
+  .medicine-dose-row {
+    grid-template-columns: 1fr;
+  }
+
+  .medicine-dose-action-slot {
+    order: 2;
+    min-width: 0;
+    padding-top: 0;
+  }
+
+  .medicine-dose-row > .form-input-container {
+    order: 1;
+  }
+
+  .medicine-dose-action-btn {
+    width: 42px;
+    min-width: 42px;
+    align-self: flex-start;
+  }
 }

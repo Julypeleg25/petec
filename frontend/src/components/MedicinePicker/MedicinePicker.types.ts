@@ -34,6 +34,7 @@ export interface MedicinePickerDraftSelection {
     routeOfAdministrationId: string;
     dosageFrequencyId: string;
     doseAmountInput: string;
+    comments: string;
 }
 
 export type MedicinePickerSelectableOption = MedicineSelectOptionObj & {

@@ -2,10 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { MedicineSelectOptionObj } from "../MedicinePicker.types";
 import {
+  calculateDoseAmountFromRangeInput,
+  findMedicineByValue,
   hasMedicinePickerDraftChanged,
   hydrateSelectedMedicinesWithCatalog,
   isDoseAmountOutOfRecommendedRange,
+  parseDoseAmountInputValue,
   resolveDoseAmountBySelection,
+  sortMedicinesByText,
   toNonEmptyString,
   type MedicineSelectionSource,
 } from "./useMedicinePicker.utils";
@@ -73,9 +77,7 @@ export function useMedicinePicker({
   const syncSelectedMedicines = useCallback((
     nextMedicines: MedicineSelectOptionObj[],
   ): void => {
-    const sortedMedicines = [...nextMedicines].sort(
-      (left, right) => left.text.localeCompare(right.text),
-    );
+    const sortedMedicines = sortMedicinesByText(nextMedicines);
     setSelectedMedicines(sortedMedicines);
     if (setStateSelectedMedicines) {
       setStateSelectedMedicines(sortedMedicines);
@@ -136,8 +138,9 @@ export function useMedicinePicker({
       return;
     }
 
-    const selectedMedicineFromList = medicineList.find(
-      (medicine) => medicine.value === selectedMedicineId,
+    const selectedMedicineFromList = findMedicineByValue(
+      medicineList,
+      selectedMedicineId,
     );
     if (!selectedMedicineFromList) {
       toast.error("התרופה שנבחרה אינה תקינה");
@@ -150,6 +153,28 @@ export function useMedicinePicker({
     const selectedFrequency = medicinesFrequencies.find(
       (option) => option.value === selectedFrequencyId,
     );
+    if (!selectedRoute || !selectedFrequency) {
+      toast.error("יש לבחור ערכי תדירות ואופן מתן תקינים");
+      return;
+    }
+
+    const parsedDoseAmount = Number.parseFloat(doseAmountInput);
+    if (!Number.isFinite(parsedDoseAmount) || parsedDoseAmount < 0) {
+      toast.error("יש להזין כמות תקינה");
+      return;
+    }
+
+    const isDoseOutOfRecommendedRange = isDoseAmountOutOfRecommendedRange({
+      rangeMax: selectedMedicineFromList.rangeMax,
+      rangeMin: selectedMedicineFromList.rangeMin,
+      totalDose: selectedMedicineFromList.totalDose,
+      doseAmount: parsedDoseAmount,
+      animalWeight,
+    });
+    if (isDoseOutOfRecommendedRange) {
+      toast.error("הכמות שהוזנה אינה בטווח המומלץ");
+      return;
+    }
 
     const nextMedicine: MedicineSelectOptionObj = {
       value: selectedMedicineId,
@@ -159,14 +184,14 @@ export function useMedicinePicker({
       ),
       measureUnitText: selectedMedicineFromList.measureUnitText,
       dosageFrequencyId: selectedFrequencyId,
-      frequencyText: selectedFrequency?.text ?? "",
-      doseAmount: Number.parseFloat(doseAmountInput),
+      frequencyText: selectedFrequency.text,
+      doseAmount: parsedDoseAmount,
       routeOfAdministrationId: selectedRouteId,
-      medicineRouteText: selectedRoute?.text ?? "",
+      medicineRouteText: selectedRoute.text,
       rangeMax: selectedMedicineFromList.rangeMax,
       rangeMin: selectedMedicineFromList.rangeMin,
       totalDose: selectedMedicineFromList.totalDose,
-      comments: selectedMedicineFromList.comments,
+      comments: medicineComments.trim() || "",
       dosageText: selectedMedicineFromList.dosageText,
     };
 
@@ -177,6 +202,7 @@ export function useMedicinePicker({
           routeOfAdministrationId: selectedRouteId,
           dosageFrequencyId: selectedFrequencyId,
           doseAmountInput,
+          comments: medicineComments,
         })
       ) {
         toast.error("לא בוצעו שינויים");
@@ -211,6 +237,7 @@ export function useMedicinePicker({
 
     syncSelectedMedicines([...selectedMedicines, nextMedicine]);
     clearMedicineForm();
+    toast.success("התרופה נוספה בהצלחה");
   }, [
     clearMedicineForm,
     doseAmountInput,
@@ -219,6 +246,7 @@ export function useMedicinePicker({
     medicineList,
     medicinesFrequencies,
     medicinesRoutesForAdministration,
+    medicineComments,
     selectedFrequencyId,
     selectedMedicines,
     selectedMedicineId,
@@ -270,11 +298,16 @@ export function useMedicinePicker({
   };
 
   const onRangeInputChange = useCallback((value: number) => {
-    if (animalWeight) {
-      const val = (value * animalWeight).toFixed(2);
-      setDoseAmount(parseFloat(val));
-      setDoseAmountInput(val.toString());
+    const nextDoseAmountInput = calculateDoseAmountFromRangeInput(
+      value,
+      animalWeight,
+    );
+    if (!nextDoseAmountInput) {
+      return;
     }
+
+    setDoseAmount(Number.parseFloat(nextDoseAmountInput));
+    setDoseAmountInput(nextDoseAmountInput);
   }, [animalWeight]);
 
   const handleMedicineSelection = useCallback((
@@ -292,9 +325,7 @@ export function useMedicinePicker({
   }, [applySelectedMedicineToForm, editingMedicineIndex, selectedMedicines]);
 
   const handleCatalogMedicineSelection = useCallback((selectedValue: string) => {
-    const selected = medicineList.find(
-      (medicine) => String(medicine.value) === selectedValue,
-    );
+    const selected = findMedicineByValue(medicineList, selectedValue);
     if (!selected) {
       return;
     }
@@ -304,8 +335,30 @@ export function useMedicinePicker({
 
   const handleDoseAmountInputChange = useCallback((value: string) => {
     setDoseAmountInput(value);
-    setDoseAmount(value === "" ? undefined : Number.parseFloat(value));
+    setDoseAmount(parseDoseAmountInputValue(value));
   }, []);
+  const handleMedicineCommentsChange = useCallback((value: string) => {
+    setMedicineComments(value);
+  }, []);
+
+  const isCurrentDoseAmountInvalid = useMemo(() => {
+    if (doseAmountInput.trim() === "") {
+      return false;
+    }
+
+    const parsedDoseAmount = Number.parseFloat(doseAmountInput);
+    if (!Number.isFinite(parsedDoseAmount) || parsedDoseAmount < 0) {
+      return true;
+    }
+
+    return isDoseAmountOutOfRecommendedRange({
+      rangeMax: selectedMedicine?.rangeMax,
+      rangeMin: selectedMedicine?.rangeMin,
+      totalDose: selectedMedicine?.totalDose,
+      doseAmount: parsedDoseAmount,
+      animalWeight,
+    });
+  }, [animalWeight, doseAmountInput, selectedMedicine]);
 
   const isEditingSelectionChanged = useMemo(() => hasMedicinePickerDraftChanged(
     editingMedicine,
@@ -314,8 +367,10 @@ export function useMedicinePicker({
       routeOfAdministrationId: selectedRouteId,
       dosageFrequencyId: selectedFrequencyId,
       doseAmountInput,
+      comments: medicineComments,
     },
   ), [
+    medicineComments,
     doseAmountInput,
     editingMedicine,
     selectedFrequencyId,
@@ -350,6 +405,7 @@ export function useMedicinePicker({
     reloadRangeSlider,
     editingMedicineIndex,
     isEditingSelectionChanged,
+    isCurrentDoseAmountInvalid,
     medicineSelectOptions,
     addMedicine,
     deleteMedicine,
@@ -358,5 +414,6 @@ export function useMedicinePicker({
     onRangeInputChange,
     handleCatalogMedicineSelection,
     handleDoseAmountInputChange,
+    handleMedicineCommentsChange,
   };
 }

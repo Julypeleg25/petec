@@ -26,15 +26,15 @@ export function SelectOptionsPickerSelectedItem({
 
   return (
     <div className="option-picker-selected-options-cell">
+      <div className="option-picker-selected-options-text">
+        {option.text}
+        {!isEdit && " -"}
+      </div>
       {isEdit && (
         <button className="delete-option-btn" onClick={handleDeleteClick}>
           <FaTrash />
         </button>
       )}
-      <div>
-        {option.text}
-        {!isEdit && " -"}
-      </div>
     </div>
   );
 }

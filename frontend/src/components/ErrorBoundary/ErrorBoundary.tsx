@@ -20,8 +20,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Production: replace with proper error reporting (e.g. Sentry)
+  componentDidCatch(error: Error, info: ErrorInfo): void {
     if (process.env.NODE_ENV !== "production") {
       console.error("[ErrorBoundary]", error, info);
     }

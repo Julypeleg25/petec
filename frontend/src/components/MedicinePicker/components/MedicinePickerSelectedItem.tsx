@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import type { MedicineSelectOptionObj } from "../MedicinePicker.types";
+import { getMedicineDisplayDetails } from "../../../utils/medicineDisplay.utils";
 
 interface MedicinePickerSelectedItemProps {
   medicine: MedicineSelectOptionObj;
@@ -18,18 +19,12 @@ export function MedicinePickerSelectedItem({
   onEdit,
   onDelete,
 }: MedicinePickerSelectedItemProps) {
-  const detailsText = [
-    medicine.doseAmount !== null &&
-    medicine.doseAmount !== undefined &&
-    `${medicine.doseAmount}` !== ""
-      ? String(medicine.doseAmount)
-      : null,
+  const detailsText = getMedicineDisplayDetails(
+    medicine.doseAmount,
     medicine.measureUnitText || null,
     medicine.frequencyText || null,
     medicine.medicineRouteText || null,
-  ]
-    .filter((value): value is string => Boolean(value))
-    .join(" ");
+  );
 
   const handleEditClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -52,7 +47,6 @@ export function MedicinePickerSelectedItem({
       <div className="medicine-picker-selected-medicines-text">
         <span className="selected-medicine-name">{medicine.text}</span>
         {detailsText ? ` ${detailsText}` : ""}
-        {!detailsText && medicine.dosageText ? ` ${medicine.dosageText}` : ""}
         {!isEdit && " -"}
       </div>
       {isEdit && (

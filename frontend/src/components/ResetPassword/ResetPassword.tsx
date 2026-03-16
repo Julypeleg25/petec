@@ -9,10 +9,11 @@ import {
   ResetPasswordFormDTOSchema,
   type ResetPasswordFormDTO,
 } from "@petec/shared";
+import { toHebrewErrorMessage } from "../../lib/errorMessages";
 
 const ResetPassword = () => {
   const { token } = useParams<{ token: string }>();
-  const { mutate, isPending } = useResetPassword(token);
+  const { mutate, isPending, error } = useResetPassword(token);
 
   const {
     watch,
@@ -27,67 +28,80 @@ const ResetPassword = () => {
   const isLoading = isSubmitting || isPending;
 
   return (
-    <div className="ResetPassword">
-      <div className="reset-password-container">
+    <div className="Login reset-password-page">
+      <div className="login-page-main">
         <img
           className="logo-img"
-          src={"/assets/images/petec_logo_v2.jpg"}
-          alt="logo"
+          src="/assets/images/petec_logo.jpg"
+          alt="logo_image"
         />
-        <div className="reset-password-form-container">
-          <form
-            className="reset-password-form"
-            onSubmit={handleSubmit((values) => mutate(values))}
-            noValidate
+
+        <form
+          className="login-form"
+          onSubmit={handleSubmit((values) => mutate(values))}
+          noValidate
+        >
+          <FormInput
+            labelText=":סיסמא חדשה"
+            name="password"
+            type="password"
+            placeholder="אנא הכנס/י את הסיסמא החדשה שלך"
+            isRequired
+            state={watch("password")}
+            setState={(val: string) =>
+              setValue("password", val, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          {errors.password && (
+            <p className="form-error" role="alert">
+              {errors.password.message}
+            </p>
+          )}
+
+          <FormInput
+            labelText=":אשר סיסמא"
+            name="confirmPassword"
+            type="password"
+            placeholder="אנא אשר/י את הסיסמא החדשה שלך"
+            isRequired
+            state={watch("confirmPassword")}
+            setState={(val: string) =>
+              setValue("confirmPassword", val, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          {errors.confirmPassword && (
+            <p className="form-error" role="alert">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+
+          {!errors.password && !errors.confirmPassword && error && (
+            <p className="form-error" role="alert">
+              {toHebrewErrorMessage(error)}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-large login-btn"
+            disabled={isLoading}
           >
-            <FormInput
-              labelText="סיסמה חדשה"
-              type="password"
-              placeholder="סיסמה חדשה"
-              isRequired
-              state={watch("password")}
-              setState={(val: string) =>
-                setValue("password", val, { shouldDirty: true, shouldValidate: true })
-              }
-            />
-            {errors.password && (
-              <p className="form-error" role="alert">
-                {errors.password?.message}
-              </p>
-            )}
+            {isLoading ? "...שולח" : "שמירה"}
+          </button>
 
-            <FormInput
-              labelText="אישור סיסמה"
-              type="password"
-              placeholder="אישור סיסמה"
-              isRequired
-              state={watch("confirmPassword")}
-              setState={(val: string) =>
-                setValue("confirmPassword", val, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-            />
-            {errors.confirmPassword && (
-              <p className="form-error" role="alert">
-                {errors.confirmPassword?.message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn-active reset-password-btn"
-              disabled={isLoading}
-            >
-              {isLoading ? "...מאפס" : "אפס סיסמה"}
-            </button>
-
-            <Link className="back-to-login-link" to={AppRoutes.Login}>
-              חזרה לכניסה
-            </Link>
-          </form>
-        </div>
+          <Link
+            className="back-to-login-link"
+            to={AppRoutes.Login}
+          >
+            חזרה להתחברות
+          </Link>
+        </form>
       </div>
     </div>
   );

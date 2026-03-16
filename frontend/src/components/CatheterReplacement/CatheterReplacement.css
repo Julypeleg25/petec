@@ -1,6 +1,6 @@
 .CatheterReplacement {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: center;
   width: 100%;

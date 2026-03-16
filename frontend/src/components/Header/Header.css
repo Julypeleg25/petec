@@ -2,7 +2,7 @@
   width: 100%;
   height: var(--header-height);
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: space-between;
   background-color: var(--color-main);
   align-items: center;
@@ -10,7 +10,7 @@
 
 .logout-and-hello-user-container {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   color: var(--color-white);
   margin-left: 3em;
@@ -24,7 +24,7 @@
 
 .logo-and-navbar-container {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-self: flex-start;
 }
@@ -41,7 +41,7 @@
   font-size: 1.1rem;
   font-weight: 500;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
 }
 
@@ -52,5 +52,23 @@
 .header-navbar {
   justify-content: flex-end;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
+}
+
+.header-navbar .btn-active,
+.header-navbar .btn-active:hover {
+  color: var(--color-white);
+  background-color: var(--color-main);
+  border: 3px solid var(--color-white);
+  box-shadow: none;
+}
+
+.header-navbar .btn-selected,
+.header-navbar .btn-selected:hover,
+.header-navbar .btn-selected:disabled,
+.header-navbar .btn-selected:disabled:hover {
+  color: var(--color-main);
+  background-color: var(--color-white);
+  border: 3px solid var(--color-white);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }

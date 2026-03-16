@@ -1,3 +1,4 @@
+import "./ForgotPassword.css";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import FormInput from "../../utils/FormInput/FormInput";
@@ -23,24 +24,23 @@ const ForgotPassword = () => {
   const isLoading = isSubmitting || isPending;
 
   return (
-    <div className="Login">
-      <main className="login-page-main">
+    <div className="Login forgot-password-page">
+      <div className="login-page-main">
         <img
           className="logo-img"
-          src={"/assets/images/petec_logo_v2.jpg"}
-          alt="logo"
+          src={"/assets/images/petec_logo.jpg"}
+          alt="logo_image"
         />
-        <span className="logo-main-title">PETEC</span>
-        <span className="logo-sub-title">שחזור סיסמה</span>
         <form
           className="login-form"
           onSubmit={handleSubmit((values) => mutate(values))}
           noValidate
         >
           <FormInput
-            labelText="אימייל"
+            labelText=":אימייל"
             type="email"
-            placeholder="אימייל"
+            name="email"
+            placeholder="אנא הכנס/י את האימייל שלך"
             isRequired
             state={watch("email")}
             setState={(val: string) =>
@@ -60,20 +60,20 @@ const ForgotPassword = () => {
 
           <button
             type="submit"
-            className="btn btn-active login-btn"
+            className="btn btn-large login-btn"
             disabled={isLoading}
           >
-            {isLoading ? "...שולח" : "שלח הוראות לאיפוס"}
+            {isLoading ? "...שולח" : "שלח/י"}
           </button>
 
           <Link
-            className="back-to-login-link forgot-password-link"
+            className="back-to-login-link"
             to={AppRoutes.Login}
           >
-            חזרה לכניסה
+            חזרה להתחברות
           </Link>
         </form>
-      </main>
+      </div>
     </div>
   );
 };

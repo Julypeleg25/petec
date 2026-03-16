@@ -20,6 +20,17 @@ const toComparableId = (value?: string | number | null): string =>
 export const toNonEmptyString = (value?: string | number | null): string =>
   value == null ? "" : String(value);
 
+export const sortMedicinesByText = (
+  medicines: MedicineSelectOptionObj[],
+): MedicineSelectOptionObj[] =>
+  [...medicines].sort((left, right) => left.text.localeCompare(right.text));
+
+export const findMedicineByValue = (
+  medicineList: MedicineSelectOptionObj[],
+  value: string,
+): MedicineSelectOptionObj | undefined =>
+  medicineList.find((medicine) => String(medicine.value) === String(value));
+
 const toComparableDoseAmount = (
   value?: string | number | null,
 ): number | null => {
@@ -44,23 +55,31 @@ export const isDoseAmountOutOfRecommendedRange = ({
     return false;
   }
 
-  if (totalDose) {
-    if (!doseAmount || Number.isNaN(doseAmount)) {
+  const hasRangeRecommendation = Boolean(rangeMax || rangeMin);
+
+  if (hasRangeRecommendation) {
+    if (!animalWeight) {
       return false;
     }
-    return doseAmount !== totalDose;
+
+    return Boolean(
+      (rangeMax &&
+        doseAmount &&
+        !Number.isNaN(doseAmount) &&
+        doseAmount > rangeMax * animalWeight) ||
+      (rangeMin &&
+        doseAmount &&
+        !Number.isNaN(doseAmount) &&
+        doseAmount < rangeMin * animalWeight),
+    );
   }
 
-  if (!animalWeight || !doseAmount || Number.isNaN(doseAmount)) {
-    return false;
-  }
-
-  const isAboveMax =
-    rangeMax !== undefined && doseAmount > rangeMax * animalWeight;
-  const isBelowMin =
-    rangeMin !== undefined && doseAmount < rangeMin * animalWeight;
-
-  return isAboveMax || isBelowMin;
+  return Boolean(
+    totalDose &&
+      doseAmount &&
+      !Number.isNaN(doseAmount) &&
+      doseAmount !== totalDose,
+  );
 };
 
 export const hasMedicinePickerDraftChanged = (
@@ -78,7 +97,8 @@ export const hasMedicinePickerDraftChanged = (
     toComparableId(originalMedicine.dosageFrequencyId) !==
       draftSelection.dosageFrequencyId ||
     toComparableDoseAmount(originalMedicine.doseAmount) !==
-      toComparableDoseAmount(draftSelection.doseAmountInput)
+      toComparableDoseAmount(draftSelection.doseAmountInput) ||
+    (originalMedicine.comments ?? "") !== draftSelection.comments
   );
 };
 
@@ -86,10 +106,7 @@ export const hasDoseRange = (medicine?: {
   rangeMax?: number | null;
   rangeMin?: number | null;
 }): medicine is { rangeMax: number; rangeMin: number } =>
-  medicine?.rangeMax !== undefined &&
-  medicine?.rangeMax !== null &&
-  medicine?.rangeMin !== undefined &&
-  medicine?.rangeMin !== null;
+  Boolean(medicine?.rangeMax && medicine?.rangeMin);
 
 const coalesceRecommendationNumber = (
   selectedValue: number | undefined,
@@ -115,22 +132,43 @@ export const resolveDoseAmountBySelection = (
     return selected.doseAmount;
   }
 
-  if (selected.totalDose !== undefined && selected.totalDose !== null) {
-    return selected.totalDose;
-  }
-
-  if (!animalWeight || !hasDoseRange(selected)) {
+  if (!animalWeight) {
     return undefined;
   }
 
-  if (selected.rangeMax === selected.rangeMin) {
-    return Number.parseFloat((selected.rangeMax * animalWeight).toFixed(2));
+  if (selected.rangeMin && selected.rangeMax) {
+    if (selected.rangeMax === selected.rangeMin) {
+      return Number.parseFloat((selected.rangeMax * animalWeight).toFixed(2));
+    }
+
+    return Number.parseFloat(
+      (((selected.rangeMin + selected.rangeMax) / 2) * animalWeight).toFixed(
+        2,
+      ),
+    );
   }
 
-  return Number.parseFloat(
-    (((selected.rangeMin + selected.rangeMax) / 2) * animalWeight).toFixed(2),
-  );
+  if (selected.totalDose) {
+    return selected.totalDose;
+  }
+
+  return undefined;
 };
+
+export const calculateDoseAmountFromRangeInput = (
+  value: number,
+  animalWeight?: number,
+): string | undefined => {
+  if (!animalWeight) {
+    return undefined;
+  }
+
+  return (value * animalWeight).toFixed(2);
+};
+
+export const parseDoseAmountInputValue = (
+  value: string,
+): number | undefined => (value === "" ? undefined : Number.parseFloat(value));
 
 export const hydrateSelectedMedicinesWithCatalog = (
   selectedMedicines: MedicineSelectOptionObj[],

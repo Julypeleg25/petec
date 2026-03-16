@@ -44,6 +44,10 @@ function SelectOptionsPicker({
     selectedOptions,
     selectedOptionsList,
   ]);
+  const isAddDisabled = useMemo(
+    () => selectedFormValue === "",
+    [selectedFormValue],
+  );
 
   const handleConfirmClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -58,7 +62,7 @@ function SelectOptionsPicker({
   );
 
   return (
-    <div className="SelectOptionsPicker">
+    <div className="SelectOptionsPicker" dir="rtl" lang="he">
       {isEdit && (
         <div className="options-inputs-container">
           <div>
@@ -71,7 +75,11 @@ function SelectOptionsPicker({
               setOptionState={setSelectedFormValue}
             />
           </div>
-          <button className="add-option-btn" onClick={addOption}>
+          <button
+            className="add-option-btn"
+            disabled={isAddDisabled}
+            onClick={addOption}
+          >
             <FaPlus />
           </button>
         </div>

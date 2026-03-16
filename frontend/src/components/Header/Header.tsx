@@ -51,7 +51,9 @@ function Header({ type }: HeaderProps) {
           {user?.role === roles.ADMIN && (
             <button
               className={`btn ${
-                type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT ? "btn-active" : ""
+                type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT
+                  ? "btn-selected"
+                  : "btn-active"
               }`}
               title="system-management"
               onClick={() => {
@@ -64,7 +66,9 @@ function Header({ type }: HeaderProps) {
           )}
           <button
             className={`btn ${
-              type === MAIN_PAGE_TYPES.PATIENTS ? "btn-active" : ""
+              type === MAIN_PAGE_TYPES.PATIENTS
+                ? "btn-selected"
+                : "btn-active"
             }`}
             title="patients"
             onClick={() => {
