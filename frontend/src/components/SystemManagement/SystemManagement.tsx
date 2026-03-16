@@ -23,7 +23,9 @@ function SystemManagement({
       <nav className="navbar system-management-navbar">
         <button
           className={`btn ${
-            type === SYSTEM_MANAGEMENT_TAB_TYPES.HISTORY ? "" : "btn-active"
+            type === SYSTEM_MANAGEMENT_TAB_TYPES.HISTORY
+              ? "btn-selected"
+              : "btn-active"
           }`}
           title="היסטוריית פעולות"
           onClick={() => navigate(AppRoutes.SystemManagement.History)}
@@ -34,7 +36,7 @@ function SystemManagement({
         <button
           className={`btn ${
             type === SYSTEM_MANAGEMENT_TAB_TYPES.SYSTEM_TYPES
-              ? ""
+              ? "btn-selected"
               : "btn-active"
           }`}
           title="ישויות מערכת"
@@ -45,7 +47,9 @@ function SystemManagement({
         </button>
         <button
           className={`btn ${
-            type === SYSTEM_MANAGEMENT_TAB_TYPES.USERS ? "" : "btn-active"
+            type === SYSTEM_MANAGEMENT_TAB_TYPES.USERS
+              ? "btn-selected"
+              : "btn-active"
           }`}
           title="משתמשים"
           onClick={() => navigate(AppRoutes.SystemManagement.Users)}

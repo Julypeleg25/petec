@@ -122,8 +122,6 @@
   resize: vertical;
 }
 
-/* Styles moved to SystemManagement.css for better consolidation */
-
 .save-system-type-form .form-error {
   width: 100%;
   margin: 0.28em 0 0;

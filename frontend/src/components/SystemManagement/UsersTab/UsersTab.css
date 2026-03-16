@@ -58,17 +58,26 @@
   border-radius: 24px;
   padding: 1rem;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* עטיפה לטבלה עצמה */
+.users-tab__table-card .mtc-table {
+  width: 100%;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.users-tab__table-card .mtc-table-section-container {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
 .users-tab__table-card table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
 
-/* כותרות */
 .users-tab__table-card thead th {
   background: #faf7f4;
   color: #4b5563;
@@ -80,7 +89,6 @@
   vertical-align: middle;
 }
 
-/* שורת פילטרים/אינפוטים אם הם יושבים בתוך thead */
 .users-tab__table-card thead input,
 .users-tab__table-card thead select {
   width: 100%;
@@ -100,7 +108,6 @@
   box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.12);
 }
 
-/* תאים */
 .users-tab__table-card tbody td {
   padding: 0.95rem 1rem;
   border-bottom: 1px solid #f1f3f5;
@@ -109,7 +116,6 @@
   vertical-align: middle;
 }
 
-/* hover על שורה */
 .users-tab__table-card tbody tr {
   transition: background-color 0.18s ease;
 }
@@ -118,7 +124,6 @@
   background: #fffaf5;
 }
 
-/* כפתורי אקשן */
 .users-table__icon-btn {
   width: 38px;
   height: 38px;
@@ -134,7 +139,6 @@
   color: #b91c1c;
 }
 
-/* מודל מחיקה */
 .users-delete-modal {
   min-width: 360px;
   max-width: 460px;
@@ -146,9 +150,6 @@
 
 .users-delete-modal__title {
   margin: 0;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #24313f;
 }
 
 .users-delete-modal__text {

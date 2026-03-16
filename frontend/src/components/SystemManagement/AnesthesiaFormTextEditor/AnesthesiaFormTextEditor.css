@@ -1,0 +1,60 @@
+.anesthesia-text-editor-card {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  padding: 1.1rem 1rem 1rem;
+  box-sizing: border-box;
+  direction: rtl;
+  text-align: right;
+}
+
+.anesthesia-text-editor-title {
+  margin: 0.35em;
+  font-size: 1.2rem;
+  text-align: right;
+}
+
+
+.anesthesia-text-editor-textarea {
+  width: 100%;
+  min-height: 360px;
+  resize: vertical;
+  border-radius: 14px;
+  border: 2px solid var(--input-border-color);
+  padding: 0.9rem;
+  font-size: 1.02rem;
+  line-height: 1.55;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.anesthesia-text-editor-textarea::placeholder {
+  direction: rtl;
+  text-align: right;
+}
+
+.anesthesia-text-editor-textarea:focus {
+  border-color: var(--color-main);
+}
+
+.anesthesia-text-editor-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.anesthesia-text-editor-actions .btn {
+  width: min(140px, 100%);
+  min-width: 0;
+}
+
+.anesthesia-text-editor-loading {
+  margin: 0;
+  font-size: 1.05rem;
+}

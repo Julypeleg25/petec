@@ -2,10 +2,10 @@ import { useState } from "react";
 import TableGenerator from "../../../utils/TableGenerator/TableGenerator";
 import type { RowData } from "../../../utils/TableGenerator/TableGenerator";
 import { FaEye, FaHistory } from "react-icons/fa";
-import { TableFormattingOptionsEnum } from "../../../utils/TableGenerator/TableFormattingOptionsEnum";
 import HistoryItemDetails from "../HistoryItemDetails/HistoryItemDetails";
 import type { HistoryItem } from "../HistoryItemDetails/HistoryItemDetails";
 import { getCaseSerialPrefix } from "../../../features/patients/utils/patients.utils";
+import { getFormattedDateTimeFromDBdate } from "../../../utils/DateFormattingUtil";
 
 import "./HistoryTab.css";
 
@@ -25,7 +25,15 @@ export default function HistoryTab() {
   const historyColumnsData = [
     { colName: "נושא", searchObjField: "subject", minWidth: "200px" },
     { colName: "תיאור", searchObjField: "description", minWidth: "250px" },
-    { colName: "תאריך", searchObjField: "created_at", minWidth: "200px" },
+    {
+      colName: "תאריך",
+      searchObjField: "created_at",
+      minWidth: "200px",
+      formatter: (cellValue?: string | number | boolean | object | null) =>
+        typeof cellValue === "string" || cellValue instanceof Date
+          ? getFormattedDateTimeFromDBdate(cellValue)
+          : "",
+    },
     { colName: "משתמש", searchObjField: "created_by_name", minWidth: "200px" },
     {
       colName: "מספר תיק",
@@ -87,9 +95,6 @@ export default function HistoryTab() {
             orderBy: { id: "DESC" },
             filters: {},
             args: [],
-            formatting: {
-              created_at: TableFormattingOptionsEnum.TimestampWithTime,
-            },
           }}
           columnsData={historyColumnsData}
           btns={tableBtns}

@@ -1,7 +1,7 @@
 import "./SaveMedicine.css";
 import FormInput from "../../../utils/FormInput/FormInput";
 import FormSelect from "../../../utils/FormSelect/FormSelect";
-import { systemTypesApi } from "../../../features/system-management/systemTypes.api";
+import { systemTypesApi } from "../../../features/system-management";
 import { medicineApi } from "../../../features/medicine/medicine.api";
 import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
 import toast from "react-hot-toast";

@@ -1,8 +1,8 @@
 import type { SystemTypeName } from "@petec/shared";
-import type { SystemTypeConfig } from "./SystemTypesData.types";
-import type { ColumnDef } from "../../types";
-import type { OrderByObj } from "../../utils/TableGenerator/TableGenerator.types";
-import { createNameAndCreatedAtColumns } from "./SystemTypesData.columns";
+import type { SystemTypeConfig } from "./systemTypes.types";
+import type { ColumnDef } from "../../../../types";
+import type { OrderByObj } from "../../../../utils/TableGenerator/TableGenerator.types";
+import { createNameAndCreatedAtColumns } from "./systemTypes.columns";
 
 type SimpleConfigParams = {
   label: string;

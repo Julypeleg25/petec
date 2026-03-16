@@ -24,8 +24,7 @@ export function SystemTypesToolbar({
             onSelectSystemType(val);
           }
         }}
-        width="260px"
-        isRequired={true}
+        width="140px"
         selectId="system-type-select"
         labelText="סוג ישות"
       />

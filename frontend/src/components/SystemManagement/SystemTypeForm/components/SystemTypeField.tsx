@@ -1,5 +1,5 @@
 import { Controller, useFormContext } from "react-hook-form";
-import { useSystemTypes } from "../../../../features/system-management/hooks/useSystemTypes";
+import { useSystemTypes } from "../../../../features/system-management";
 import type {
   DynamicSelectField,
   FieldDescriptor as SystemTypeFieldType,

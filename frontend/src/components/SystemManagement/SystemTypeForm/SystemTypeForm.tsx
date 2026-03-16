@@ -8,7 +8,7 @@ import {
   useCreateSystemType,
   useUpdateSystemType,
   type CreatePayload,
-} from "../../../features/system-management/hooks/useSystemTypes";
+} from "../../../features/system-management";
 import type { RowData } from "../../../utils/TableGenerator/TableGenerator.types";
 import { getSharedResolver } from "../../../utils/form";
 import "./SystemTypeForm.css";

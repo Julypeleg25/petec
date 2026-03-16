@@ -51,13 +51,12 @@
   align-items: flex-end;
 }
 
-/* toolbar */
 .system-types-toolbar {
   display: flex;
   justify-content: flex-end;
   align-items: flex-end;
   text-align: right;
-  direction: ltr;
+  direction: rtl;
 }
 
 .system-types-toolbar .form-select,
@@ -65,28 +64,6 @@
   margin: 0;
 }
 
-.system-types-toolbar label,
-.system-types-toolbar .form-label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #24313f;
-  text-align: right;
-}
-
-.system-types-toolbar select,
-.system-types-toolbar .form-select > select {
-  min-width: 260px;
-  height: 44px;
-  border-radius: 14px;
-  border: 2px solid var(--color-main);
-  background: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* card */
 .system-types-tab__table-card {
   background: #fff;
   border: 1px solid #f1e1d5;
@@ -131,19 +108,6 @@
   overflow: visible;
 }
 
-/* אזור בחירת סוג הישות */
-.system-types-tab__toolbar-card select,
-.system-types-tab__toolbar-card .form-select > select {
-  min-width: 280px;
-  height: 46px;
-  border-radius: 16px;
-  border: 2px solid var(--color-main);
-  background-color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* כפתורי פעולות */
 .system-types-tab__toolbar-card .btn,
 .system-types-tab__toolbar-card .table-btn {
   width: 42px;
@@ -160,28 +124,54 @@
   max-width: 320px;
 }
 
-/* אם FormSelect מייצר label מעל select */
-.system-types-toolbar .form-label,
-.system-types-toolbar label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #24313f;
+.system-types-toolbar .form-select-label {
+  margin-top: 0;
+  align-self: flex-start;
+  text-align: right;
+  width: 100%;
+  margin-right: 0;
 }
 
-/* ה-select עצמו */
-.system-types-toolbar select,
-.system-types-toolbar .form-select > select {
-  min-width: 260px;
-  height: 44px;
-  border-radius: 14px;
-  border: 2px solid var(--color-main);
-  background: #fff;
-  font-size: 1rem;
-  font-weight: 600;
+.system-types-tab__table-card .mtc-table {
+  width: 100%;
+  min-width: 100%;
+  table-layout: fixed;
 }
-/* טבלה */
+
+.system-types-tab__table-card--medicines .mtc-table {
+  width: 100%;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.system-types-tab__table-card--medicines thead th {
+  font-size: 0.86rem;
+  padding: 0.65rem 0.45rem;
+}
+
+.system-types-tab__table-card--medicines tbody td {
+  font-size: 0.9rem;
+  padding: 0.65rem 0.45rem;
+}
+
+.system-types-tab__table-card--medicines .table-search-input-container {
+  width: 100%;
+  gap: 0.3em;
+}
+
+.system-types-tab__table-card--medicines .table-search-input {
+  width: 100%;
+  font-size: 0.82rem;
+}
+
+.system-types-tab__table-card--medicines .table-sort-arrow {
+  width: 28px;
+}
+
+.system-types-tab__table-card .mtc-table-section-container {
+  overflow-x: auto;
+  overflow-y: visible;
+}
 .system-types-tab__table-card table {
   width: 100%;
   border-collapse: separate;
@@ -235,7 +225,7 @@
 }
 
 .system-types-tab__table-card td {
-  max-width: 260px;
+  max-width: none;
   overflow: hidden;
   text-overflow: ellipsis;
 }

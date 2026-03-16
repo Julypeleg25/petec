@@ -41,6 +41,7 @@ export function SystemTypeEditorShell({
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
          if (!open) onClose();
       }}
+      closeWhenClickOutside={true}
       size={size}
       className="system-management-modal"
       component={
@@ -48,7 +49,7 @@ export function SystemTypeEditorShell({
           <div className="save-entity-form-container system-type-editor__container">
             <div className="system-type-editor__header">
               <div className="system-type-editor__title-wrap">
-                <h2 className="save-entity-form-title system-management-modal-title">
+                <h2 className="save-entity-form-title system-management-modal-title modal-dialog-title">
                   {isEdit ? editTitle : createTitle}
                 </h2>
               </div>

@@ -5,6 +5,6 @@
 }
 
 .save-system-type-form .SaveMedicine__comments-group .form-textarea > textarea {
-  height: 42px; /* Reduced from 52px */
+  height: 42px;
   min-height: 42px;
 }

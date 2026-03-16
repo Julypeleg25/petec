@@ -1,6 +1,6 @@
 import { type SystemTypeName } from "@petec/shared";
-import type { ColumnDef } from "../../types";
-import type { OrderByObj } from "../../utils/TableGenerator/TableGenerator.types";
+import type { ColumnDef } from "../../../../types";
+import type { OrderByObj } from "../../../../utils/TableGenerator/TableGenerator.types";
 
 export interface SystemTypeConfig {
   label: string;

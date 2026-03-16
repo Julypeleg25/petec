@@ -3,10 +3,11 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import Modal from "../../../../utils/Modal/Modal";
 import { getSharedResolver } from "../../../../utils/form";
-import { useUserApi } from "../../../../features/system-management/hooks/useUserApi";
+import { useUserApi } from "../../../../features/system-management";
 import {
   EditUserFormSchema,
   type EditUserFormValues,
+  getRoleLabel,
   type UserRowDTO,
   Role,
   roles,
@@ -75,14 +76,16 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
         if (!open) onClose();
       }}
+      closeWhenClickOutside={true}
       size="lg"
       className="system-management-modal"
+      overlayClassName="save-user-modal-overlay"
       component={
         <div className="SaveUser save-user-dialog" dir="rtl">
           <div className="save-entity-form-container save-user-form-container">
             <div className="save-user-dialog__header">
               <div className="save-user-dialog__title-wrap">
-                <h2 className="save-entity-form-title system-management-modal-title">
+                <h2 className="save-entity-form-title system-management-modal-title modal-dialog-title">
                   עריכת משתמש
                 </h2>
               </div>
@@ -93,10 +96,11 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               noValidate
             >
               <div className="form-group">
-                <label htmlFor="edit-username">שם משתמש</label>
+                <label htmlFor="edit-username" className="save-user-dialog__required-label">שם משתמש</label>
                 <input
                   id="edit-username"
                   type="text"
+                  required
                   {...register("username")}
                   aria-invalid={!!errors.username}
                 />
@@ -108,10 +112,11 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-firstName">שם פרטי</label>
+                <label htmlFor="edit-firstName" className="save-user-dialog__required-label">שם פרטי</label>
                 <input
                   id="edit-firstName"
                   type="text"
+                  required
                   {...register("firstName")}
                   aria-invalid={!!errors.firstName}
                 />
@@ -123,10 +128,11 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-lastName">שם משפחה</label>
+                <label htmlFor="edit-lastName" className="save-user-dialog__required-label">שם משפחה</label>
                 <input
                   id="edit-lastName"
                   type="text"
+                  required
                   {...register("lastName")}
                   aria-invalid={!!errors.lastName}
                 />
@@ -138,10 +144,11 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-email">אימייל</label>
+                <label htmlFor="edit-email" className="save-user-dialog__required-label">אימייל</label>
                 <input
                   id="edit-email"
                   type="email"
+                  required
                   {...register("email")}
                   aria-invalid={!!errors.email}
                 />
@@ -151,18 +158,22 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="edit-role">תפקיד</label>
+                <label htmlFor="edit-role" className="save-user-dialog__required-label">תפקיד</label>
                 <select
                   id="edit-role"
+                  required
                   {...register("role")}
                   aria-invalid={!!errors.role}
                 >
-                  <option>בחר תפקיד</option>
-                  {Object.values(roles).map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
+                  <option value="">בחר תפקיד</option>
+                  {Object.values(roles).map((role) => {
+                    const typedRole = role as Role;
+                    return (
+                      <option key={typedRole} value={typedRole}>
+                        {getRoleLabel(typedRole)}
+                      </option>
+                    );
+                  })}
                 </select>
                 {errors.role && (
                   <p className="form-error">{errors.role.message?.toString()}</p>
@@ -184,7 +195,7 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
                   disabled={isPending || !editForm.formState.isDirty}
                   aria-busy={isPending}
                 >
-                  {isPending ? "...שומר" : "שמור שינויים"}
+                  {isPending ? "...שומר" : "שמור"}
                 </button>
               </div>
             </form>

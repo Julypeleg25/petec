@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type SystemTypeKey } from "../SystemTypesTab.constants";
-import { systemTypesData } from "../../SystemTypesData";
-import { systemTypesApi } from "../../../../features/system-management/systemTypes.api";
+import { systemTypesData } from "../../config";
+import { systemTypesApi } from "../../../../features/system-management";
 import { downloadFileFromBlob } from "../../../../utils/FileUtils";
 import toast from "react-hot-toast";
 import type { RowData } from "../../../../utils/TableGenerator/TableGenerator.types";

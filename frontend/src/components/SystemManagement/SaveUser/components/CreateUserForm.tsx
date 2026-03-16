@@ -1,10 +1,12 @@
 import { useForm } from "react-hook-form";
 import Modal from "../../../../utils/Modal/Modal";
 import { getSharedResolver } from "../../../../utils/form";
-import { useUserApi } from "../../../../features/system-management/hooks/useUserApi";
+import { useUserApi } from "../../../../features/system-management";
 import {
   CreateUserFormSchema,
   type CreateUserFormValues,
+  type Role,
+  roleLabels,
   roles,
 } from "@petec/shared";
 import "../SaveUser.css";
@@ -54,14 +56,16 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
         if (!open) onClose();
       }}
+      closeWhenClickOutside={true}
       size="lg"
       className="system-management-modal"
+      overlayClassName="save-user-modal-overlay"
       component={
         <div className="SaveUser save-user-dialog" dir="rtl">
           <div className="save-entity-form-container save-user-form-container">
             <div className="save-user-dialog__header">
               <div className="save-user-dialog__title-wrap">
-                <h2 className="save-entity-form-title system-management-modal-title">יצירת משתמש</h2>
+                <h2 className="save-entity-form-title system-management-modal-title modal-dialog-title">יצירת משתמש</h2>
               </div>
             </div>
             <form
@@ -70,10 +74,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               noValidate
             >
               <div className="form-group">
-                <label htmlFor="username">שם משתמש</label>
+                <label htmlFor="username" className="save-user-dialog__required-label">שם משתמש</label>
                 <input
                   id="username"
                   type="text"
+                  required
                   {...register("username")}
                   aria-invalid={!!errors.username}
                 />
@@ -85,10 +90,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="firstName">שם פרטי</label>
+                <label htmlFor="firstName" className="save-user-dialog__required-label">שם פרטי</label>
                 <input
                   id="firstName"
                   type="text"
+                  required
                   {...register("firstName")}
                   aria-invalid={!!errors.firstName}
                 />
@@ -100,10 +106,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="lastName">שם משפחה</label>
+                <label htmlFor="lastName" className="save-user-dialog__required-label">שם משפחה</label>
                 <input
                   id="lastName"
                   type="text"
+                  required
                   {...register("lastName")}
                   aria-invalid={!!errors.lastName}
                 />
@@ -115,10 +122,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email">אימייל</label>
+                <label htmlFor="email" className="save-user-dialog__required-label">אימייל</label>
                 <input
                   id="email"
                   type="email"
+                  required
                   {...register("email")}
                   aria-invalid={!!errors.email}
                 />
@@ -128,10 +136,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="password">סיסמה</label>
+                <label htmlFor="password" className="save-user-dialog__required-label">סיסמה</label>
                 <input
                   id="password"
                   type="password"
+                  required
                   {...register("password")}
                   aria-invalid={!!errors.password}
                 />
@@ -143,10 +152,11 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="confirmPassword">אישור סיסמה</label>
+                <label htmlFor="confirmPassword" className="save-user-dialog__required-label">אישור סיסמה</label>
                 <input
                   id="confirmPassword"
                   type="password"
+                  required
                   {...register("confirmPassword")}
                   aria-invalid={!!errors.confirmPassword}
                 />
@@ -158,18 +168,22 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="form-group">
-                <label htmlFor="role">תפקיד</label>
+                <label htmlFor="role" className="save-user-dialog__required-label">תפקיד</label>
                 <select
                   id="role"
+                  required
                   {...register("role")}
                   aria-invalid={!!errors.role}
                 >
                   <option value="">בחר תפקיד</option>
-                  {Object.values(roles).map((r) => (
-                    <option key={r} value={r}>
-                      {r}
+                  {Object.values(roles).map((role) => {
+                    const typedRole = role as Role;
+                    return (
+                    <option key={typedRole} value={typedRole}>
+                      {roleLabels[typedRole]}
                     </option>
-                  ))}
+                    );
+                  })}
                 </select>
                 {errors.role && (
                   <p className="form-error">{errors.role.message?.toString()}</p>

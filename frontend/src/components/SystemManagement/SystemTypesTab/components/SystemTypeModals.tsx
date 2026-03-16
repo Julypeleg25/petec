@@ -1,7 +1,7 @@
 import Modal from "../../../../utils/Modal/Modal";
 import UploadFile from "../../../../utils/UploadFile/UploadFile";
 import type { SystemTypeKey } from "../SystemTypesTab.constants";
-import { systemTypesData } from "../../SystemTypesData";
+import { systemTypesData } from "../../config";
 import { Dispatch, SetStateAction } from "react";
 
 interface SystemTypeModalsProps {
@@ -32,8 +32,13 @@ export function SystemTypeModals({
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
+          closeWhenClickOutside={true}
+          className="system-management-modal"
           component={
-            <div className="delete-modal">
+            <div className="delete-modal system-management-delete-modal" dir="rtl">
+              <h3 className="system-management-modal-title modal-dialog-title">
+                מחיקת {systemTypesData[systemType]?.label}
+              </h3>
               <p>{systemTypesData[systemType]?.deleteMessage}</p>
               <button
                 className="btn btn-large"
@@ -53,6 +58,8 @@ export function SystemTypeModals({
           message="אנא העלה/י את קובץ התבנית המתאים"
           uploadHandler={uploadBulkTemplate}
           afterUpload={triggerReload}
+          modalClassName="system-management-modal"
+          titleClassName="system-management-modal-title modal-dialog-title"
         />
       )}
     </>

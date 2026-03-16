@@ -4,7 +4,7 @@ import TableGenerator from "../../../utils/TableGenerator/TableGenerator";
 import { FaEdit, FaPlus, FaTrash, FaUsers } from "react-icons/fa";
 import SaveUser from "../SaveUser/SaveUser";
 import type { TableBtnConfig } from "../../../utils/TableGenerator/TableGenerator";
-import { useUserApi } from "../../../features/system-management/hooks/useUserApi";
+import { useUserApi } from "../../../features/system-management";
 import Modal from "../../../utils/Modal/Modal";
 import "./UsersTab.css";
 
@@ -125,9 +125,13 @@ export default function UsersTab() {
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
+          closeWhenClickOutside={true}
+          className="system-management-modal"
           component={
             <div className="users-delete-modal" dir="rtl">
-              <h3 className="users-delete-modal__title">מחיקת משתמש</h3>
+              <h3 className="users-delete-modal__title system-management-modal-title modal-dialog-title">
+                מחיקת משתמש
+              </h3>
               <p className="users-delete-modal__text">
                 האם למחוק את המשתמש <strong>{user?.username ?? ""}</strong>?
               </p>

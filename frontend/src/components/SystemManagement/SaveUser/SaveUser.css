@@ -2,6 +2,11 @@
   width: 100%;
 }
 
+.save-user-modal-overlay {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: none;
+}
+
 .save-user-dialog {
   direction: rtl;
 }
@@ -72,6 +77,12 @@
   font-size: 0.95rem;
   color: #2d3a45;
   text-align: right;
+}
+
+.save-user-dialog .form-group .save-user-dialog__required-label::after {
+  content: " *";
+  color: #c62828;
+  font-weight: 700;
 }
 
 .save-user-dialog .form-group input,

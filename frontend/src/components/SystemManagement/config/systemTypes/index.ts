@@ -1,18 +1,18 @@
-import { API_ROUTES } from "../../config/apiRoutes";
+import { API_ROUTES } from "../../../../config/apiRoutes";
 import { SYSTEM_TYPE_NAMES } from "@petec/shared";
-import type { SystemTypeConfig } from "./SystemTypesData.types";
+import type { SystemTypeConfig } from "./systemTypes.types";
 import {
   ANIMAL_VITALS_COLUMNS,
   MEDICINE_COLUMNS,
   RACE_COLUMNS,
-} from "./SystemTypesData.columns";
-import { TABLE_SORT_DIRECTIONS } from "../../utils/TableGenerator/TableGenerator.types";
+} from "./systemTypes.columns";
+import { TABLE_SORT_DIRECTIONS } from "../../../../utils/TableGenerator/TableGenerator.types";
 import {
   createSimpleSystemTypeConfig,
   createSystemTypeConfig,
-} from "./SystemTypesData.factories";
+} from "./systemTypes.factories";
 
-export type { SystemTypeConfig } from "./SystemTypesData.types";
+export type { SystemTypeConfig } from "./systemTypes.types";
 
 export const systemTypesData = {
   medicines: createSystemTypeConfig({
@@ -127,6 +127,13 @@ export const systemTypesData = {
     nameColumnLabel: "שם",
     deleteMessage: "?האם אתה בטוח שאת/ה רוצה למחוק את אופן המתן",
     deleteUrl: API_ROUTES.admin.routeOfAdministration.base,
+  }),
+  anesthesiaFormTexts: createSimpleSystemTypeConfig({
+    label: "טקסט טופס הרדמה",
+    typeName: SYSTEM_TYPE_NAMES.ANESTHESIA_FORM_TEXTS,
+    nameColumnLabel: "טקסט",
+    deleteMessage: "?האם אתה בטוח שאת/ה רוצה למחוק את הטקסט",
+    deleteUrl: API_ROUTES.admin.anesthesiaFormTexts.base,
   }),
 } satisfies Record<string, SystemTypeConfig>;
 

@@ -10,6 +10,7 @@ import { useSystemTypesTab } from "./hooks/useSystemTypesTab";
 import { SystemTypesToolbar } from "./components/SystemTypesToolbar";
 import { SystemTypeModals } from "./components/SystemTypeModals";
 import { createSystemTypesTableButtons } from "./SystemTypesTab.utils";
+import AnesthesiaFormTextEditor from "../AnesthesiaFormTextEditor/AnesthesiaFormTextEditor";
 
 import "./SystemTypesTab.css";
 
@@ -30,6 +31,9 @@ export default function SystemTypesTab() {
     },
     state.currentSystemTypeConfig.typeName
   );
+
+  const isMedicinesTable = state.systemType === "medicines";
+  const isAnesthesiaFormTextType = state.systemType === "anesthesiaFormTexts";
 
   return (
     <div
@@ -57,24 +61,32 @@ export default function SystemTypesTab() {
         </div>
       </div>
 
-      <div className="system-types-tab__table-card">
-        <TableGenerator
-          queryObj={{
-            query: state.currentSystemTypeConfig.query,
-            orderBy: state.currentSystemTypeConfig.orderBy ?? {},
-            filters: {},
-            args: [],
-          }}
-          columnsData={state.currentSystemTypeConfig.columnsData}
-          btns={tableBtns}
-          reload={state.reloadTable}
-          setOnRowClicked={(row: RowData) => actions.setSystemTypeObj(row)}
-          setOnDoubleRowClicked={actions.openEditSystemType}
-          paginationPerPage={20}
-        />
+      <div
+        className={`system-types-tab__table-card ${
+          isMedicinesTable ? "system-types-tab__table-card--medicines" : ""
+        }`}
+      >
+        {isAnesthesiaFormTextType ? (
+          <AnesthesiaFormTextEditor />
+        ) : (
+          <TableGenerator
+            queryObj={{
+              query: state.currentSystemTypeConfig.query,
+              orderBy: state.currentSystemTypeConfig.orderBy ?? {},
+              filters: {},
+              args: [],
+            }}
+            columnsData={state.currentSystemTypeConfig.columnsData}
+            btns={tableBtns}
+            reload={state.reloadTable}
+            setOnRowClicked={(row: RowData) => actions.setSystemTypeObj(row)}
+            setOnDoubleRowClicked={actions.openEditSystemType}
+            paginationPerPage={20}
+          />
+        )}
       </div>
 
-      {state.showSaveSystemType && (
+      {state.showSaveSystemType && !isAnesthesiaFormTextType && (
         <>
           {state.systemType === "medicines" ? (
             <SaveMedicine
@@ -91,22 +103,24 @@ export default function SystemTypesTab() {
         </>
       )}
 
-      <SystemTypeModals
-        systemType={state.systemType}
-        showDeleteModal={state.showDeleteModal}
-        setShowDeleteModal={actions.setShowDeleteModal}
-        deleteSystemType={actions.deleteSystemType}
-        isDeleting={state.isDeleting}
-        showUploadFileModal={state.showUploadFileModal}
-        setShowUploadFileModal={actions.setShowUploadFileModal}
-        triggerReload={actions.triggerReload}
-        uploadBulkTemplate={(file) =>
-          actions.uploadBulkTemplate(
-            state.currentSystemTypeConfig.typeName,
-            file
-          )
-        }
-      />
+      {!isAnesthesiaFormTextType && (
+        <SystemTypeModals
+          systemType={state.systemType}
+          showDeleteModal={state.showDeleteModal}
+          setShowDeleteModal={actions.setShowDeleteModal}
+          deleteSystemType={actions.deleteSystemType}
+          isDeleting={state.isDeleting}
+          showUploadFileModal={state.showUploadFileModal}
+          setShowUploadFileModal={actions.setShowUploadFileModal}
+          triggerReload={actions.triggerReload}
+          uploadBulkTemplate={(file) =>
+            actions.uploadBulkTemplate(
+              state.currentSystemTypeConfig.typeName,
+              file
+            )
+          }
+        />
+      )}
     </div>
   );
 }

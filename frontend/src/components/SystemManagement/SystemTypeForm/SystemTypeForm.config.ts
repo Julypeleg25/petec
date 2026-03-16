@@ -1,5 +1,5 @@
 import { SYSTEM_TYPE_NAMES } from "@petec/shared";
-import type { SystemTypeKey } from "../SystemTypesData";
+import type { SystemTypeKey } from "../config";
 import { TypeConfig } from "./SystemTypeForm.types";
 
 export const VITALS_TYPE_OPTIONS = [
@@ -88,6 +88,12 @@ export const SYSTEM_TYPE_CONFIG = {
         createTitle: "הוספת אופן מתן",
         editTitle: "עריכת אופן מתן",
         fields: [{ kind: "text", name: "name", label: "שם", required: true }],
+    },
+    anesthesiaFormTexts: {
+        typeName: SYSTEM_TYPE_NAMES.ANESTHESIA_FORM_TEXTS,
+        createTitle: "הוספת טקסט טופס הרדמה",
+        editTitle: "עריכת טקסט טופס הרדמה",
+        fields: [{ kind: "text", name: "name", label: "טקסט", required: true }],
     },
     raceTypes: {
         typeName: SYSTEM_TYPE_NAMES.RACE_TYPES,
