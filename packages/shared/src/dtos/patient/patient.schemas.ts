@@ -23,7 +23,6 @@ const caseDetailsMedicineBaseSchema = baseMedicineSchema.omit({
 });
 
 export const caseDetailsMedicineObjSchema = caseDetailsMedicineBaseSchema.extend({
-    name: z.string().optional(),
     isGiven: z.boolean().optional(),
     isRequired: z.boolean(),
     isEditable: z.boolean(),
@@ -31,7 +30,6 @@ export const caseDetailsMedicineObjSchema = caseDetailsMedicineBaseSchema.extend
 
 export const caseDetailsOptionsObjSchema = z.object({
     typeId: objectIdSchema,
-    name: z.string().optional(),
     isGiven: z.boolean().optional(),
     isRequired: z.boolean(),
     isEditable: z.boolean(),
@@ -40,7 +38,6 @@ export const caseDetailsOptionsObjSchema = z.object({
 
 export const caseDetailsExamObjSchema = z.object({
     typeId: objectIdSchema,
-    name: z.string().optional(),
     value: z.string().nullable().optional(),
     isRequired: z.boolean(),
     isEditable: z.boolean(),
@@ -121,36 +118,6 @@ export const releaseMedicineSchema = baseMedicineSchema.extend({
     endDate: z.string().optional(),
 });
 
-export const plannedMedicineSchema = baseMedicineSchema.extend({
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
-    isDeleted: z.boolean().optional(),
-});
-
-export const plannedProcedureSchema = z.object({
-    procedureTypeId: objectIdSchema,
-    plannedProcedureText: z.string().optional(),
-    scheduledFor: z.string().optional(),
-    priority: z.string().optional(),
-    status: z.string().default("pending"),
-    notes: z.string().optional(),
-});
-
-export const plannedFoodExtraSchema = z.object({
-    foodExtraTypeId: objectIdSchema,
-    amount: z.number().optional(),
-    measureUnitTypeId: objectIdSchema.optional(),
-    frequencyId: objectIdSchema.optional(),
-    notes: z.string().optional(),
-});
-
-export const plannedExaminationSchema = z.object({
-    examinationTypeId: objectIdSchema,
-    scheduledFor: z.string().optional(),
-    notes: z.string().optional(),
-    status: z.string().optional(),
-});
-
 const existingCaseSerialIdSchema = z.string().trim().min(1);
 
 export const NewPatientDTOSchema = z.object({
@@ -211,12 +178,6 @@ export const NewPatientDTOSchema = z.object({
         comments: z.string().optional(),
     }).optional(),
 
-    planned: z.object({
-        medicines: z.array(plannedMedicineSchema).default([]),
-        procedures: z.array(plannedProcedureSchema).default([]),
-        foodExtras: z.array(plannedFoodExtraSchema).default([]),
-        examinations: z.array(plannedExaminationSchema).default([]),
-    }).optional(),
 });
 
 export const EditPatientDTOSchema = z.object({
@@ -279,13 +240,6 @@ export const EditPatientDTOSchema = z.object({
         comments: z.string().optional(),
     }).optional(),
 
-    planned: z.object({
-        medicines: z.array(plannedMedicineSchema).default([]),
-        procedures: z.array(plannedProcedureSchema).default([]),
-        foodExtras: z.array(plannedFoodExtraSchema).default([]),
-        examinations: z.array(plannedExaminationSchema).default([]),
-    }).optional(),
-
     caseDetails: z.array(z.array(caseDetailsRowSchema)).optional(),
 });
 
@@ -305,7 +259,8 @@ export const ReleasePatientFormDTOSchema = ReleasePatientDTOSchema.pick({
 export type ReleasePatientFormDTO = z.infer<typeof ReleasePatientFormDTOSchema>;
 
 export const UpdateDailyPlanDTOSchema = z.object({
-    caseId: existingCaseSerialIdSchema,
+    caseId: existingCaseSerialIdSchema.optional(),
+    comment: z.string().optional(),
     comments: z.string().optional(),
 });
 
@@ -313,7 +268,7 @@ export const UpdateDailyPlanRequestDTOSchema = z.record(z.string(), UpdateDailyP
 
 export const UploadDocumentDTOSchema = z.object({
     patientId: objectIdSchema,
-    caseId: objectIdSchema.optional(),
+    caseId: objectIdSchema,
     patientDocumentTypeId: objectIdSchema,
 });
 
@@ -337,6 +292,7 @@ export const DeletePatientCaseDTOSchema = z.object({
 
 export const ArchivePatientDTOSchema = z.object({
     caseId: existingCaseSerialIdSchema,
+    shouldArchive: z.boolean(),
 });
 
 export const caseDetailsHeaderSchema = z.object({
@@ -531,7 +487,7 @@ export const DailyPlanDetailDTOSchema = z.object({
     owner_name: z.string(),
     owner_phone_number: z.string(),
     hospitalization_reason: z.string(),
-    daily_plan_comments: z.string(),
+    daily_plan_comments: z.string().nullable(),
     caseExaminations: z.array(z.object({ name: z.string(), value: z.string(), date: z.string() })),
     caseProcedures: z.array(z.object({ name: z.string(), value: z.boolean(), date: z.string() })),
     ownerUpdate: z.array(z.object({ value: z.string(), date: z.string() })),

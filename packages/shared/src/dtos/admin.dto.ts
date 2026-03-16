@@ -55,8 +55,8 @@ const requiredObjectId = z.string().trim().min(1, "שדה חובה").regex(/^[0-
 export const SaveMedicineFormDTOSchema = CreateMedicineDTOSchema.extend({
     categoryId: requiredObjectId,
     measureUnitTypeId: requiredObjectId,
-    dosageFrequencyId: requiredObjectId,
-    routeOfAdministrationId: requiredObjectId,
+    dosageFrequencyId: optionalNullableObjectIdInputSchema,
+    routeOfAdministrationId: optionalNullableObjectIdInputSchema,
     rangeMax: optionalNullableNonNegativeNumberInputSchema.optional(),
     rangeMin: optionalNullableNonNegativeNumberInputSchema.optional(),
     totalDose: optionalNullableNonNegativeNumberInputSchema.optional(),

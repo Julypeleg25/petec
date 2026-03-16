@@ -6,6 +6,15 @@ export const roles = {
 } as const;
 export type Role = (typeof roles)[keyof typeof roles];
 
+export const roleLabels: Record<Role, string> = {
+  [roles.ADMIN]: "מנהל מערכת",
+  [roles.DOCTOR]: "רופא",
+  [roles.ASSISTANT]: "אחות",
+  [roles.RECEPTION]: "קבלה",
+} as const;
+
+export const getRoleLabel = (role: Role): string => roleLabels[role];
+
 export const Permission = {
   READ_PATIENT: "read:patient",
   WRITE_PATIENT: "write:patient",

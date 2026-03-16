@@ -22,6 +22,7 @@ export const SYSTEM_TYPE_NAMES = {
   MEDICINES: "medicines",
   MEDICINE_CATEGORIES: "medicine_categories",
   ROUTES_OF_ADMINISTRATION: "routes_of_administration",
+  ANESTHESIA_FORM_TEXTS: "anesthesia_form_texts",
   PATIENT_DOCUMENT_TYPES: "patient_document_types",
 } as const;
 

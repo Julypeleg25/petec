@@ -34,6 +34,7 @@ export const TABLE_DEFAULT_SORT_BY = "createdAt";
 export const TABLE_SEARCH_FILTER_KEYS = {
   SEARCH: "search",
   MASTER_CASE_ID: "masterCaseId",
+  HAS_ALERTS: "hasAlerts",
 } as const;
 
 export const TABLE_QUERY_KEYS = {
