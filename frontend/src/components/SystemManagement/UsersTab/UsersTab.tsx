@@ -1,41 +1,36 @@
 import type { UserRowDTO } from "@petec/shared";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import TableGenerator from "../../../utils/TableGenerator/TableGenerator";
-import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import { FaEdit, FaPlus, FaTrash, FaUsers } from "react-icons/fa";
 import SaveUser from "../SaveUser/SaveUser";
 import type { TableBtnConfig } from "../../../utils/TableGenerator/TableGenerator";
 import { useUserApi } from "../../../features/system-management/hooks/useUserApi";
 import Modal from "../../../utils/Modal/Modal";
+import "./UsersTab.css";
 
 export default function UsersTab() {
   const [user, setUser] = useState<UserRowDTO | undefined>();
   const [showSaveUser, setShowSaveUser] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const { deleteUser } = useUserApi();
   const [reloadTable, setReloadTable] = useState(false);
+  const { deleteUser } = useUserApi();
 
-  const columnsData = [
-    { colName: "שם משתמש", searchObjField: "username", minWidth: "200px" },
-    { colName: "שם פרטי", searchObjField: "first_name", minWidth: "200px" },
-    { colName: "שם משפחה", searchObjField: "last_name", minWidth: "200px" },
-    { colName: "אימייל", searchObjField: "email", minWidth: "200px" },
-    { colName: "תפקיד", searchObjField: "role_name", minWidth: "200px" },
-  ];
+  const columnsData = useMemo(
+    () => [
+      { colName: "שם משתמש", searchObjField: "username", minWidth: "200px" },
+      { colName: "שם פרטי", searchObjField: "first_name", minWidth: "180px" },
+      { colName: "שם משפחה", searchObjField: "last_name", minWidth: "180px" },
+      { colName: "אימייל", searchObjField: "email", minWidth: "240px" },
+      { colName: "תפקיד", searchObjField: "role_name", minWidth: "160px" },
+    ],
+    []
+  );
 
   const tableBtns: TableBtnConfig<UserRowDTO>[] = [
     {
-      id: 1,
-      btnText: <FaPlus />,
-      btnClassName: "btn btn-round table-btn btn-active",
-      onClick: () => {
-        setUser(undefined);
-        setShowSaveUser(true);
-      },
-    },
-    {
       id: 2,
       btnText: <FaEdit />,
-      btnClassName: "btn btn-round table-btn",
+      btnClassName: "btn btn-round table-btn users-table__icon-btn",
       onClick: (rowData: UserRowDTO) => {
         setUser(rowData);
         setShowSaveUser(true);
@@ -45,7 +40,8 @@ export default function UsersTab() {
     {
       id: 3,
       btnText: <FaTrash />,
-      btnClassName: "btn btn-round table-btn",
+      btnClassName:
+        "btn btn-round table-btn users-table__icon-btn users-table__icon-btn--danger",
       onClick: (rowData: UserRowDTO) => {
         setUser(rowData);
         setShowDeleteModal(true);
@@ -56,55 +52,105 @@ export default function UsersTab() {
 
   const handleDelete = () => {
     if (!user?.id) return;
+
     deleteUser.mutate(user.id, {
       onSuccess: () => {
-        setReloadTable(!reloadTable);
+        setReloadTable((prev) => !prev);
         setShowDeleteModal(false);
       },
     });
   };
 
   if (showSaveUser) {
-    return <SaveUser user={user} onClose={() => {
-      setShowSaveUser(false);
-      setReloadTable(!reloadTable);
-    }} />;
+    return (
+      <SaveUser
+        user={user}
+        onClose={() => {
+          setShowSaveUser(false);
+          setReloadTable((prev) => !prev);
+        }}
+      />
+    );
   }
 
   return (
-    <div className="system-management-users-table">
-      <TableGenerator<UserRowDTO>
-        queryObj={{
-          query: "users",
-          orderBy: {},
-          filters: {},
-          args: [],
-          formatting: {},
-        }}
-        columnsData={columnsData}
-        btns={tableBtns}
-        setOnRowClicked={(row: UserRowDTO) => setUser(row)}
-        setOnDoubleRowClicked={(row: UserRowDTO) => {
-          setUser(row);
-          setShowSaveUser(true);
-        }}
-        reload={reloadTable}
-        paginationPerPage={20}
-      />
+    <div className="users-tab" dir="rtl">
+      <div className="users-tab__header">
+        <div className="users-tab__title-wrap">
+          <div className="users-tab__title-icon">
+            <FaUsers />
+          </div>
+          <div>
+            <h2 className="users-tab__title">ניהול משתמשים</h2>
+            <p className="users-tab__subtitle">
+              יצירה, עריכה ומחיקה של משתמשי מערכת
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="btn users-tab__create-btn"
+          onClick={() => {
+            setUser(undefined);
+            setShowSaveUser(true);
+          }}
+        >
+          <FaPlus />
+          <span>יצירת משתמש</span>
+        </button>
+      </div>
+
+      <div className="users-tab__table-card">
+        <TableGenerator<UserRowDTO>
+          queryObj={{
+            query: "users",
+            orderBy: {},
+            filters: {},
+            args: [],
+            formatting: {},
+          }}
+          columnsData={columnsData}
+          btns={tableBtns}
+          setOnRowClicked={(row: UserRowDTO) => setUser(row)}
+          setOnDoubleRowClicked={(row: UserRowDTO) => {
+            setUser(row);
+            setShowSaveUser(true);
+          }}
+          reload={reloadTable}
+          paginationPerPage={20}
+        />
+      </div>
 
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
           component={
-            <div className="delete-modal">
-              <p>?האם אתה בטוח שאת/ה רוצה למחוק את המשתמש</p>
-              <button 
-                className="btn btn-large" 
-                onClick={handleDelete}
-                disabled={deleteUser.isPending}
-              >
-                {deleteUser.isPending ? "...מוחק" : "מחק"}
-              </button>
+            <div className="users-delete-modal" dir="rtl">
+              <h3 className="users-delete-modal__title">מחיקת משתמש</h3>
+              <p className="users-delete-modal__text">
+                האם למחוק את המשתמש <strong>{user?.username ?? ""}</strong>?
+              </p>
+
+              <div className="users-delete-modal__actions">
+                <button
+                  type="button"
+                  className="btn btn-active users-delete-modal__cancel-btn"
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleteUser.isPending}
+                >
+                  ביטול
+                </button>
+
+                <button
+                  type="button"
+                  className="btn users-delete-modal__confirm-btn"
+                  onClick={handleDelete}
+                  disabled={deleteUser.isPending}
+                >
+                  {deleteUser.isPending ? "...מוחק" : "מחק"}
+                </button>
+              </div>
             </div>
           }
         />

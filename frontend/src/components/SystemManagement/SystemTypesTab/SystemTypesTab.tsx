@@ -1,5 +1,6 @@
 import TableGenerator from "../../../utils/TableGenerator/TableGenerator";
 import type { RowData } from "../../../utils/TableGenerator/TableGenerator";
+import { FaSlidersH } from "react-icons/fa";
 
 import SaveMedicine from "../SaveMedicine/SaveMedicine";
 import SystemTypeForm from "../SystemTypeForm/SystemTypeForm";
@@ -27,31 +28,51 @@ export default function SystemTypesTab() {
       downloadBulkTemplate: actions.downloadBulkTemplate,
       setShowUploadFileModal: actions.setShowUploadFileModal,
     },
-    state.currentSystemTypeConfig.typeName,
+    state.currentSystemTypeConfig.typeName
   );
 
   return (
-    <div className="system-management-system-types-table" dir="rtl">
-      <SystemTypesToolbar
-        systemType={state.systemType}
-        onSelectSystemType={actions.onSelectSystemType}
-      />
+    <div
+      className="system-management-system-types-table system-types-tab"
+      dir="rtl"
+    >
+      <div className="system-types-tab__header">
+        <div className="system-types-tab__title-wrap">
+          <div className="system-types-tab__title-icon">
+            <FaSlidersH />
+          </div>
+          <div>
+            <h2 className="system-types-tab__title">ניהול ישויות מערכת</h2>
+            <p className="system-types-tab__subtitle">
+              ניהול טבלאות מערכת, ערכים קבועים ונתוני עזר
+            </p>
+          </div>
+        </div>
 
-      <TableGenerator
-        queryObj={{
-          query: state.currentSystemTypeConfig.query,
-          orderBy: state.currentSystemTypeConfig.orderBy ?? {},
-          filters: {},
-          args: [],
-        }}
-        columnsData={state.currentSystemTypeConfig.columnsData}
-        btns={tableBtns}
-        reload={state.reloadTable}
-        setOnRowClicked={(row: RowData) => actions.setSystemTypeObj(row)}
-        setOnDoubleRowClicked={actions.openEditSystemType}
-        paginationPerPage={20}
-        extraTableStyling={{ width: "fit-content", minWidth: "100%" }}
-      />
+        <div className="system-types-tab__toolbar-wrap">
+          <SystemTypesToolbar
+            systemType={state.systemType}
+            onSelectSystemType={actions.onSelectSystemType}
+          />
+        </div>
+      </div>
+
+      <div className="system-types-tab__table-card">
+        <TableGenerator
+          queryObj={{
+            query: state.currentSystemTypeConfig.query,
+            orderBy: state.currentSystemTypeConfig.orderBy ?? {},
+            filters: {},
+            args: [],
+          }}
+          columnsData={state.currentSystemTypeConfig.columnsData}
+          btns={tableBtns}
+          reload={state.reloadTable}
+          setOnRowClicked={(row: RowData) => actions.setSystemTypeObj(row)}
+          setOnDoubleRowClicked={actions.openEditSystemType}
+          paginationPerPage={20}
+        />
+      </div>
 
       {state.showSaveSystemType && (
         <>
@@ -80,7 +101,10 @@ export default function SystemTypesTab() {
         setShowUploadFileModal={actions.setShowUploadFileModal}
         triggerReload={actions.triggerReload}
         uploadBulkTemplate={(file) =>
-          actions.uploadBulkTemplate(state.currentSystemTypeConfig.typeName, file)
+          actions.uploadBulkTemplate(
+            state.currentSystemTypeConfig.typeName,
+            file
+          )
         }
       />
     </div>

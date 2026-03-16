@@ -4,8 +4,9 @@
   white-space: nowrap;
   font-size: 1rem;
   border: 0.5px solid rgb(231, 231, 231);
-  padding: 0.2em 0;
-  width: 100%;
+  padding: 0.45em 0.6em;
+  width: auto;
+  box-sizing: border-box;
 }
 
 .mtc-table-cell span {
@@ -14,19 +15,18 @@
 
 .mtc-table-header {
   font-size: 0.9rem;
-  padding: 0.2em 0;
+  padding: 0.45em 0.6em;
   color: #5e5e5e;
   border: 0.5px solid rgb(231, 231, 231);
   background-color: rgb(243, 243, 243);
   border-top: 1px solid rgba(0, 0, 0, 0.12);
   border-right: 1px solid rgba(0, 0, 0, 0.12);
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  display: flex;
-  display: -webkit-flex; /* Safari */
   position: relative;
   font-weight: 500;
   text-align: center;
-  width: 100%;
+  width: auto;
+  box-sizing: border-box;
 }
 
 .mtc-table-header:first-child {
@@ -53,11 +53,6 @@
   cursor: pointer;
 }
 
-.mtc-table-section-container {
-  height: 100%;
-  position: relative;
-}
-
 .mtc-table-section-container .sl-spinner3 {
   position: absolute;
   top: 50%;
@@ -76,31 +71,40 @@
 
 .mtc-table {
   height: 100%;
-  display: grid;
   width: 100%;
-  overflow-x: scroll;
+  min-width: 100%;
   direction: rtl;
-  grid-template-rows: max-content;
   border-radius: 5px 5px 0 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+  overflow-x: auto;
+}
+
+.mtc-table-section-container {
+  height: auto;
+  position: relative;
+  overflow: visible;
 }
 
 .mtc-table thead {
-  display: block;
+  display: table-header-group;
 }
 
 .mtc-table thead tr {
-  display: flex;
-  display: -webkit-flex; /* Safari */
+  display: table-row;
 }
 
 .mtc-table thead tr th {
-  flex-grow: 1;
+  width: auto;
 }
 
 .mtc-table tbody {
-  display: block;
-  overflow-y: scroll;
+  display: table-row-group;
   scrollbar-width: none;
+}
+
+.mtc-table-body-table-row {
+  display: table-row;
 }
 
 .mtc-table-body-table-row:last-child td:last-child {
