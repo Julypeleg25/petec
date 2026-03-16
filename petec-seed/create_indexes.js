@@ -13,13 +13,13 @@ function parseArgs() {
 }
 
 async function ensureIndexes(db) {
-  await db.collection("patients").createIndexes([
+  await createIndexesSafely(db.collection("patients"), [
     { key: { serialId: 1 }, name: "patients_serialId_uq", unique: true },
     { key: { "owner.phone": 1 }, name: "patients_owner_phone" },
     { key: { name: 1 }, name: "patients_name" },
   ]);
 
-  await db.collection("cases").createIndexes([
+  await createIndexesSafely(db.collection("cases"), [
     { key: { serialId: 1 }, name: "cases_serialId_uq", unique: true },
     { key: { patientId: 1, isDeleted: 1 }, name: "cases_patient_isDeleted" },
     { key: { masterCaseId: 1 }, name: "cases_masterCaseId" },
@@ -28,27 +28,27 @@ async function ensureIndexes(db) {
     { key: { "caseDetailsGrid.dateTime": -1 }, name: "cases_grid_dateTime" },
   ]);
 
-  await db.collection("master_cases").createIndexes([
+  await createIndexesSafely(db.collection("master_cases"), [
     { key: { caseIds: 1 }, name: "master_cases_caseIds" },
     { key: { patientId: 1 }, name: "master_cases_patientId" },
   ]);
 
-  await db.collection("anesthesia_forms").createIndexes([
+  await createIndexesSafely(db.collection("anesthesia_forms"), [
     { key: { caseId: 1 }, name: "anesthesia_caseId_uq", unique: true },
   ]);
 
-  await db.collection("patient_documents").createIndexes([
+  await createIndexesSafely(db.collection("patient_documents"), [
     { key: { patientId: 1 }, name: "docs_patientId" },
     { key: { caseId: 1 }, name: "docs_caseId" },
     { key: { patientDocumentTypeId: 1 }, name: "docs_type" },
   ]);
 
-  await db.collection("patient_medicines").createIndexes([
+  await createIndexesSafely(db.collection("patient_medicines"), [
     { key: { patientId: 1, isDeleted: 1 }, name: "patient_meds_patient_deleted" },
     { key: { caseId: 1 }, name: "patient_meds_caseId" },
   ]);
 
-  await db.collection("audit_logs").createIndexes([
+  await createIndexesSafely(db.collection("audit_logs"), [
     { key: { entityType: 1, entityId: 1, createdAt: -1 }, name: "audit_entity_time" },
     { key: { createdAt: -1 }, name: "audit_time" },
   ]);
@@ -60,11 +60,26 @@ async function ensureIndexes(db) {
     "routes_of_administration","patient_document_types"
   ];
   for (const c of typeCollections) {
-    await db.collection(c).createIndexes([
+    await createIndexesSafely(db.collection(c), [
       { key: { name: 1 }, name: `${c}_name_uq`, unique: true },
       { key: { serialId: 1 }, name: `${c}_serialId_uq`, unique: true },
       { key: { isDeleted: 1 }, name: `${c}_isDeleted` },
     ]);
+  }
+}
+
+async function createIndexesSafely(collection, indexes) {
+  for (const index of indexes) {
+    const { key, ...options } = index;
+    try {
+      await collection.createIndex(key, options);
+    } catch (error) {
+      const message = error?.errmsg || error?.message || "";
+      if (error?.code === 85 && message.includes("already exists with a different name")) {
+        continue;
+      }
+      throw error;
+    }
   }
 }
 
