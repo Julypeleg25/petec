@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { authService } from "@services/auth.service";
+import { authService } from "@services/auth";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
 import { getValidatedBody } from "@utils/request.utils";
 import { AuthError } from "@constants/error.constants";

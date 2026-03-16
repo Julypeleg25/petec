@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { patientController } from "@controllers/patient.controller";
+import { patientController } from "@controllers/patient";
 import { authenticate, requirePermission } from "@middlewares/auth.middleware";
 import { validateBody, validateParams } from "@middlewares/validate";
-import { uploadDocument, uploadImage } from "@middlewares/upload";
+import { uploadImage } from "@middlewares/upload";
 import { Permission, UPLOAD } from "@petec/shared";
 import {
     NewPatientDTOSchema,
@@ -17,32 +17,12 @@ import {
     PatientIdParamsDTOSchema,
     DocumentIdParamsDTOSchema,
 } from "@petec/shared";
+import { PATIENT_ROUTE_PATHS } from "./patientRoutes.constants";
 
 const router = Router();
 
-const PATIENT_ROUTE_PATHS = {
-    PATIENT_PHOTO: "/photo/:patientId",
-    NEW: "/new",
-    EDIT: "/edit",
-    CASE_DAILY_DETAILS: "/case/caseDailyDetails/:caseId",
-    CASE_DAILY_DETAILS_WITH_MASTER: "/case/caseDailyDetails/:masterCaseId/:caseId",
-    CASE_DETAILS: "/case/details/:caseId",
-    CASE_DETAILS_WITH_MASTER: "/case/details/:masterCaseId/:caseId",
-    CASE_RELEASE: "/case/release",
-    CASE_RELEASE_BY_ID: "/case/release/:caseId",
-    CASE_ARCHIVE: "/case/archive",
-    CASE_DELETE: "/case/delete",
-    DOCUMENTS_BY_PATIENT: "/documents/:patientId",
-    DOCUMENT_UPLOAD: "/documents/upload",
-    DOCUMENT_DELETE: "/documents/:documentId",
-    CASE_ANESTHESIA: "/case/anesthesia/:caseId",
-    CASE_EXPORT: "/case/export/:caseId",
-    CASE_CHARTS: "/case/charts/:caseId",
-    DAILY_PLAN: "/dailyPlan",
-} as const;
-
 router.get(
-    PATIENT_ROUTE_PATHS.PATIENT_PHOTO,
+    PATIENT_ROUTE_PATHS.patientPhoto,
     validateParams(PatientIdParamsDTOSchema),
     patientController.getPatientPhoto,
 );
@@ -50,92 +30,92 @@ router.get(
 router.use(authenticate);
 
 router.post(
-    PATIENT_ROUTE_PATHS.NEW,
+    PATIENT_ROUTE_PATHS.newPatient,
     requirePermission(Permission.WRITE_PATIENT),
     validateBody(NewPatientDTOSchema),
     patientController.createPatientAndCase,
 );
 
 router.put(
-    PATIENT_ROUTE_PATHS.EDIT,
+    PATIENT_ROUTE_PATHS.editPatient,
     requirePermission(Permission.WRITE_PATIENT),
     validateBody(EditPatientDTOSchema),
     patientController.editPatientAndCase,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_DAILY_DETAILS,
+    PATIENT_ROUTE_PATHS.caseDailyDetails,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getCaseDetails,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_DAILY_DETAILS_WITH_MASTER,
+    PATIENT_ROUTE_PATHS.caseDailyDetailsWithMaster,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getCaseDetails,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_DETAILS,
+    PATIENT_ROUTE_PATHS.caseDetails,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getCaseDetails,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_DETAILS_WITH_MASTER,
+    PATIENT_ROUTE_PATHS.caseDetailsWithMaster,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getCaseDetails,
 );
 
 router.post(
-    PATIENT_ROUTE_PATHS.CASE_RELEASE,
+    PATIENT_ROUTE_PATHS.caseRelease,
     requirePermission(Permission.WRITE_CASE),
     validateBody(ReleasePatientDTOSchema),
     patientController.releasePatient,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_RELEASE_BY_ID,
+    PATIENT_ROUTE_PATHS.caseReleaseById,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getReleasePatientData,
 );
 
 router.put(
-    PATIENT_ROUTE_PATHS.CASE_ARCHIVE,
+    PATIENT_ROUTE_PATHS.caseArchive,
     requirePermission(Permission.WRITE_CASE),
     validateBody(ArchivePatientDTOSchema),
     patientController.archivePatientCase,
 );
 
 router.delete(
-    PATIENT_ROUTE_PATHS.CASE_DELETE,
+    PATIENT_ROUTE_PATHS.caseDelete,
     requirePermission(Permission.WRITE_CASE),
     validateBody(DeletePatientCaseDTOSchema),
     patientController.deletePatientCase,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.DOCUMENTS_BY_PATIENT,
+    PATIENT_ROUTE_PATHS.documentsByCase,
     requirePermission(Permission.READ_PATIENT),
-    validateParams(PatientIdParamsDTOSchema),
+    validateParams(CaseIdParamsDTOSchema),
     patientController.getDocuments,
 );
 
 router.post(
-    PATIENT_ROUTE_PATHS.DOCUMENT_UPLOAD,
+    PATIENT_ROUTE_PATHS.documentUpload,
     requirePermission(Permission.MANAGE_DOCUMENTS),
-    uploadDocument.single(UPLOAD.FILE_FORM_FIELD_NAME),
+    uploadImage.single(UPLOAD.FILE_FORM_FIELD_NAME),
     validateBody(UploadDocumentDTOSchema),
     patientController.uploadDocument,
 );
 
 router.post(
-    PATIENT_ROUTE_PATHS.PATIENT_PHOTO,
+    PATIENT_ROUTE_PATHS.patientPhoto,
     requirePermission(Permission.WRITE_PATIENT),
     validateParams(PatientIdParamsDTOSchema),
     uploadImage.single(UPLOAD.FILE_FORM_FIELD_NAME),
@@ -143,21 +123,21 @@ router.post(
 );
 
 router.delete(
-    PATIENT_ROUTE_PATHS.DOCUMENT_DELETE,
+    PATIENT_ROUTE_PATHS.documentDelete,
     requirePermission(Permission.MANAGE_DOCUMENTS),
     validateParams(DocumentIdParamsDTOSchema),
     patientController.deleteDocument,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_ANESTHESIA,
+    PATIENT_ROUTE_PATHS.caseAnesthesia,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getAnesthesiaForm,
 );
 
 router.post(
-    PATIENT_ROUTE_PATHS.CASE_ANESTHESIA,
+    PATIENT_ROUTE_PATHS.caseAnesthesia,
     requirePermission(Permission.WRITE_CASE),
     validateParams(CaseIdParamsDTOSchema),
     validateBody(CreateAnesthesiaProcedureFormDTOSchema),
@@ -165,27 +145,27 @@ router.post(
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_EXPORT,
+    PATIENT_ROUTE_PATHS.caseExport,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.exportCase,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.CASE_CHARTS,
+    PATIENT_ROUTE_PATHS.caseCharts,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getChartsData,
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.DAILY_PLAN,
+    PATIENT_ROUTE_PATHS.dailyPlan,
     requirePermission(Permission.READ_CASE),
     patientController.getDailyPlan,
 );
 
 router.put(
-    PATIENT_ROUTE_PATHS.DAILY_PLAN,
+    PATIENT_ROUTE_PATHS.dailyPlan,
     requirePermission(Permission.WRITE_CASE),
     validateBody(UpdateDailyPlanRequestDTOSchema),
     patientController.updateDailyPlan,

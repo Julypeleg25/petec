@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { tableService } from "@services/table.service";
+import { tableService } from "@services/table";
 import { sendSuccess } from "@utils/apiResponse";
 import { getValidatedBody } from "@utils/request.utils";
 import type { GetTableDataDTO } from "@petec/shared";

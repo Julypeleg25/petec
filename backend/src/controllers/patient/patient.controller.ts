@@ -1,9 +1,10 @@
 import { logger } from "@config/logger";
 import type { Request, Response, NextFunction } from "express";
-import { patientService } from "@services/patient.service";
-import { exportService } from "@services/export.service";
-import { patientUploadService } from "@services/patientUpload.service";
+import { patientService } from "@services/patient";
+import { exportService } from "@services/patient";
+import { patientUploadService } from "@services/patient";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
+import { cleanupFile } from "@utils/fileCleanup.utils";
 import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "@utils/request.utils";
 import {
   HttpStatus,
@@ -80,7 +81,11 @@ export class PatientController {
     try {
       const dto = getValidatedBody<ArchivePatientDTO>(req);
       const userId = getAuthenticatedUserId(req);
-      await patientService.archivePatientCase(dto.caseId, userId);
+      await patientService.archivePatientCase(
+        dto.caseId,
+        dto.shouldArchive,
+        userId,
+      );
       sendNoContent(res);
     } catch (err) {
       next(err);
@@ -100,8 +105,8 @@ export class PatientController {
 
   async getDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
-      const result = await patientService.getPatientDocuments(patientId);
+      const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
+      const result = await patientService.getCaseDocuments(caseId);
       sendSuccess(res, result, PatientDocumentListResponseDTOSchema);
     } catch (err) {
       next(err);
@@ -210,11 +215,7 @@ export class PatientController {
         if (err) {
           logger.error("Error downloading PDF", { error: err });
         }
-        import("fs").then((fs) => {
-          if (fs.default.existsSync(pdfPath)) {
-            fs.default.unlinkSync(pdfPath);
-          }
-        });
+        cleanupFile(pdfPath, { reason: "patient export download completed" });
       });
     } catch (err) {
       next(err);

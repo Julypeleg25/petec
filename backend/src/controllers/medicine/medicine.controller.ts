@@ -6,7 +6,7 @@ import {
   SimpleSystemTypeListResponseDTOSchema,
   MedicineListResponseDTOSchema,
 } from "@petec/shared";
-import { medicineService } from "@services/medicine.service";
+import { medicineService } from "@services/medicine";
 
 export class MedicineController {
   async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {

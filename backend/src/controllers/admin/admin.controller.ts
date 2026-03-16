@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { systemTypesService } from "@services/systemTypes.service";
-import { userService } from "@services/user.service";
+import { systemTypesService } from "@services/admin";
+import { userService } from "@services/user";
 import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
 import { getValidatedBody, getValidatedParams } from "@utils/request.utils";
 import type { BaseLookup } from "@app-types/global.types";
@@ -8,7 +8,7 @@ import {
   toAnimalVitalDTO,
   toRaceTypeDTO,
   toSimpleSystemTypeDTO,
-} from "@mappers/admin/admin.response.mappers";
+} from "@mappers/admin";
 import type { UpdateUserDTO } from "@petec/shared";
 import type {
   SystemTypeNameParamsDTO,
