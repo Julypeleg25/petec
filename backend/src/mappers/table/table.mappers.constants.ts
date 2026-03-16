@@ -2,8 +2,6 @@ import { SYSTEM_TYPE_NAMES, type SystemTypeName } from "@petec/shared";
 
 export const CASE_SEARCH_RESULT_LIMIT = 1000;
 
-
-
 export const CASE_TEXT_FILTER_KEYS = {
     SERIAL_ID: "serialId",
     PATIENT_NAME: "patientId.name",
@@ -15,8 +13,6 @@ export const USER_FILTER_KEY_MAP: Record<string, string> = {
     last_name: "lastName",
     role_name: "role",
 };
-
-
 
 export const SYSTEM_TYPE_FIELD_MAP: Record<string, string> = {
     id: "_id",

@@ -1,6 +1,6 @@
 import { toObjectId, toOptionalObjectId } from "@utils/objectId.utils";
 import type { EditPatientDTO } from "@petec/shared";
-import type { ICaseDetailsRow } from "@models/Case";
+import type { ICaseDetailsRow } from "@models/case";
 
 const toNumericDoseAmount = (
     value?: number | string | null,
@@ -60,7 +60,6 @@ export const mapGridDtoToRows = (
         foodAndWaterIsEditable: row.foodAndWaterIsEditable,
         fluids: row.fluids.map((fluid) => ({
             medicineId: toObjectId(fluid.medicineId),
-            name: fluid.name,
             dosageText: fluid.dosageText,
             doseAmount: toNumericDoseAmount(fluid.doseAmount),
             measureUnitTypeId: toOptionalObjectId(fluid.measureUnitTypeId),
@@ -75,7 +74,6 @@ export const mapGridDtoToRows = (
         })),
         medicines: row.medicines.map((medicine) => ({
             medicineId: toObjectId(medicine.medicineId),
-            name: medicine.name,
             dosageText: medicine.dosageText,
             doseAmount: toNumericDoseAmount(medicine.doseAmount),
             measureUnitTypeId: toOptionalObjectId(medicine.measureUnitTypeId),
@@ -90,7 +88,6 @@ export const mapGridDtoToRows = (
         })),
         procedures: row.procedures.map((procedure) => ({
             typeId: toObjectId(procedure.typeId),
-            name: procedure.name,
             isGiven: procedure.isGiven,
             isRequired: procedure.isRequired,
             isEditable: procedure.isEditable,
@@ -98,7 +95,6 @@ export const mapGridDtoToRows = (
         })),
         examinations: row.examinations.map((examination) => ({
             typeId: toObjectId(examination.typeId),
-            name: examination.name,
             value: examination.value ?? null,
             isRequired: examination.isRequired,
             isEditable: examination.isEditable,
@@ -106,7 +102,6 @@ export const mapGridDtoToRows = (
         })),
         foodExtras: row.foodExtras.map((foodExtra) => ({
             typeId: toObjectId(foodExtra.typeId),
-            name: foodExtra.name,
             isGiven: foodExtra.isGiven,
             isRequired: foodExtra.isRequired,
             isEditable: foodExtra.isEditable,

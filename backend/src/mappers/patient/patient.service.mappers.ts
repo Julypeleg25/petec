@@ -1,10 +1,11 @@
 import path from "node:path";
 import type { Types } from "mongoose";
-import type { ICase } from "@models/Case";
+import type { ICase } from "@models/case";
 import { PATIENT_STORAGE } from "@constants/patient.constants";
 import {
   DEFAULT_IMAGE_MIME_TYPE,
   IMAGE_MIME_TYPE_BY_EXTENSION,
+  getCaseSerialPrefix,
 } from "@petec/shared";
 import type {
   CaseDetailsResponseDTO,
@@ -14,17 +15,17 @@ import type {
 import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
 import { toMapperNamedReference } from "@mappers/common/common.mappers.utils";
 import { toFiniteNumber } from "@mappers/common/common.mappers.utils";
+import {
+  toNormalizedDate,
+  toNormalizedTime,
+} from "@mappers/common/common.mappers.utils";
 import type {
   CaseWithPopulatedPatient,
   ChartDataPoint,
   DailyPlanPopulatedPatient,
 } from "@app-types/patient.types";
 import {
-  PATIENT_CHART_SERIES_KEYS,
-  PATIENT_MAPPER_DEFAULTS,
   PATIENT_MAPPER_OBJECT_KEYS,
-  PATIENT_PROCEDURE_STATUS_DONE,
-  type PatientChartSeriesKey,
 } from "./patient.mapper.constants";
 
 type MasterCaseDetailsItem = CaseDetailsResponseDTO["masterCaseDetails"][number];
@@ -34,29 +35,30 @@ type NamedReference = {
   name?: string;
 };
 
-type PlannedExamination = ICase["planned"]["examinations"][number] & {
-  examinationTypeId?: ICase["planned"]["examinations"][number]["examinationTypeId"] | NamedReference;
+type DailyPlanProcedure = ICase["caseDetailsGrid"][number]["procedures"][number] & {
+  typeId?: ICase["caseDetailsGrid"][number]["procedures"][number]["typeId"] | NamedReference;
 };
 
-type PlannedProcedure = ICase["planned"]["procedures"][number] & {
-  procedureTypeId?: ICase["planned"]["procedures"][number]["procedureTypeId"] | NamedReference;
+type DailyPlanExamination = ICase["caseDetailsGrid"][number]["examinations"][number] & {
+  typeId?: ICase["caseDetailsGrid"][number]["examinations"][number]["typeId"] | NamedReference;
+};
+
+type DailyPlanRow = ICase["caseDetailsGrid"][number] & {
+  procedures?: DailyPlanProcedure[];
+  examinations?: DailyPlanExamination[];
 };
 
 type DailyPlanCase = Pick<
   ICase,
   | "_id"
-  | "masterCaseId"
   | "serialId"
   | "admission"
   | "dailyPlan"
-  | "planned"
+  | "caseDetailsGrid"
   | "patientId"
 > & {
   patientId?: ICase["patientId"] | DailyPlanPopulatedPatient;
-  planned?: {
-    examinations?: PlannedExamination[];
-    procedures?: PlannedProcedure[];
-  };
+  caseDetailsGrid?: DailyPlanRow[];
 };
 
 type MasterCasePatient = {
@@ -66,18 +68,13 @@ type MasterCasePatient = {
   updatedAt?: Date | string;
 };
 
-type ChartGridPoint = {
-  pulse?: number;
-  rr?: number;
-  temp?: number;
-  time: string;
-};
-
-const EMPTY_CHART_POINTS: ChartGridPoint[] = [
-  { pulse: undefined, rr: undefined, temp: undefined, time: "" },
-  { pulse: undefined, rr: undefined, temp: undefined, time: "" },
-];
-
+const DAILY_PLAN_TIME_ZONE = "Asia/Jerusalem";
+const JERUSALEM_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: DAILY_PLAN_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 
 const isPlainObject = (value: object | null | string | number | boolean | undefined): value is Record<string, object | null | string | number | boolean | undefined> =>
@@ -130,21 +127,109 @@ const isDailyPlanPopulatedPatient = (
   (PATIENT_MAPPER_OBJECT_KEYS.NAME in value ||
     PATIENT_MAPPER_OBJECT_KEYS.OWNER in value);
 
-const toChartSeries = (
-  points: ReadonlyArray<ChartGridPoint>,
-  key: PatientChartSeriesKey,
-): ChartDataPoint[] =>
-  points
-    .filter((point) => point[key] !== undefined)
-    .map((point) => ({ name: point.time, value: point[key] as number }));
-
 const toPlannedRefName = (value?: NamedReference | Types.ObjectId): string => {
   const refInfo = toMapperNamedReference(value);
   return refInfo.name || refInfo.id;
 };
 
+const toFormatterPartValue = (
+  parts: Intl.DateTimeFormatPart[],
+  type: Intl.DateTimeFormatPartTypes,
+): string => parts.find((part) => part.type === type)?.value ?? "";
+
+const toJerusalemDateKey = (value: Date): string => {
+  const parts = JERUSALEM_DATE_FORMATTER.formatToParts(value);
+  const year = toFormatterPartValue(parts, "year");
+  const month = toFormatterPartValue(parts, "month");
+  const day = toFormatterPartValue(parts, "day");
+
+  return year && month && day ? `${year}-${month}-${day}` : "";
+};
+
+const toTrimmedString = (value?: string | null): string =>
+  typeof value === "string" ? value.trim() : "";
+
+const toDisplayDateTime = (
+  row: Pick<ICase["caseDetailsGrid"][number], "date" | "dateTime" | "time">,
+  fallbackLabel?: string,
+): string => {
+  const dateKey = toNormalizedDate(row.date, row.dateTime);
+  const timeKey = toNormalizedTime(row.time, row.dateTime);
+
+  if (!dateKey) {
+    return timeKey || fallbackLabel || "";
+  }
+
+  const [year, month, day] = dateKey.split("-");
+  const displayDate = year && month && day ? `${day}/${month}/${year}` : dateKey;
+
+  return timeKey ? `${timeKey} ${displayDate}` : displayDate;
+};
+
+const toDailyPlanDisplayDate = (row: DailyPlanRow): string => toDisplayDateTime(row);
+
+const toChartDataPoint = (
+  value: number | string | null | undefined,
+  row: ICase["caseDetailsGrid"][number],
+  index: number,
+): ChartDataPoint | null => {
+  const numericValue = toFiniteNumber(value);
+
+  if (numericValue === undefined) {
+    return null;
+  }
+
+  return {
+    name: toDisplayDateTime(row, `Point ${index + 1}`),
+    value: numericValue,
+  };
+};
+
+const toChartSeries = (
+  rows: ReadonlyArray<ICase["caseDetailsGrid"][number]>,
+  getValue: (row: ICase["caseDetailsGrid"][number]) => number | string | null | undefined,
+): ChartDataPoint[] =>
+  rows.flatMap((row, index) => {
+    const point = toChartDataPoint(getValue(row), row, index);
+    return point ? [point] : [];
+  });
+
+const isCurrentOrFutureDailyPlanRow = (
+  row: DailyPlanRow,
+  currentJerusalemDateKey: string,
+): boolean => {
+  const dateKey = toNormalizedDate(row.date, row.dateTime);
+  return dateKey.length > 0 && dateKey === currentJerusalemDateKey;
+};
+
+const compareDailyPlanRowsDesc = (
+  left: DailyPlanRow,
+  right: DailyPlanRow,
+): number => {
+  const leftDate = toNormalizedDate(left.date, left.dateTime);
+  const rightDate = toNormalizedDate(right.date, right.dateTime);
+  const dateCompare = rightDate.localeCompare(leftDate);
+
+  if (dateCompare !== 0) {
+    return dateCompare;
+  }
+
+  const leftTime = toNormalizedTime(left.time, left.dateTime);
+  const rightTime = toNormalizedTime(right.time, right.dateTime);
+  const timeCompare = rightTime.localeCompare(leftTime);
+
+  if (timeCompare !== 0) {
+    return timeCompare;
+  }
+
+  const leftIndex = Number.isFinite(Number(left.index)) ? Number(left.index) : 0;
+  const rightIndex = Number.isFinite(Number(right.index)) ? Number(right.index) : 0;
+
+  return rightIndex - leftIndex;
+};
+
 export const isPhotoStorageKey = (storageKey: string): boolean =>
-  storageKey.startsWith(PATIENT_STORAGE.PHOTOS_PREFIX);
+  storageKey.startsWith(PATIENT_STORAGE.PHOTOS_PREFIX) || storageKey.startsWith("http");
 
 export const toPhotoContentType = (storageKey: string): string => {
   const extension = path.extname(storageKey).toLowerCase();
@@ -180,51 +265,26 @@ export const mapRelatedCasesToMasterCaseDetails = (
   });
 
 export const mapCaseToChartsDataResponse = (
-  caseDoc: Pick<ICase, "caseDetailsGrid" | "patientSnapshot">,
+  caseDoc: Pick<ICase, "caseDetailsGrid">,
 ): ChartsDataResponseDTO => {
-  const chartPoints = (caseDoc.caseDetailsGrid ?? [])
-    .map((row, index) => ({
-      pulse: toFiniteNumber(row.pulse),
-      rr: toFiniteNumber(row.respiration),
-      temp: toFiniteNumber(row.temperature),
-      time:
-        row.time ||
-        `${PATIENT_MAPPER_DEFAULTS.CHART_POINT_LABEL_PREFIX}${index + 1}`,
-    }))
-    .filter(
-      (row) =>
-        row.pulse !== undefined ||
-        row.rr !== undefined ||
-        row.temp !== undefined,
-    );
-
-  const pointsForSeries = chartPoints.length === 0 ? EMPTY_CHART_POINTS : chartPoints;
-  const numericValues = chartPoints
-    .flatMap((point) => [point.pulse, point.rr, point.temp])
-    .filter((value): value is number => value !== undefined);
+  const rows = caseDoc.caseDetailsGrid ?? [];
+  const temperature = toChartSeries(rows, (row) => row.temperature);
+  const pulse = toChartSeries(rows, (row) => row.pulse);
+  const respiration = toChartSeries(rows, (row) => row.respiration);
+  const weight = toChartSeries(rows, (row) => row.weigh);
+  const numericValues = [...temperature, ...pulse, ...respiration, ...weight].map(
+    (point) => point.value,
+  );
 
   const dataMin =
     numericValues.length === 0 ? 0 : Math.floor(Math.min(...numericValues));
   const dataMax =
     numericValues.length === 0 ? 100 : Math.ceil(Math.max(...numericValues));
 
-  const weight =
-    typeof caseDoc.patientSnapshot?.weightKg === "number"
-      ? [
-        {
-          name: PATIENT_MAPPER_DEFAULTS.WEIGHT_SERIES_NAME,
-          value: caseDoc.patientSnapshot.weightKg,
-        },
-      ]
-      : [];
-
   return {
-    temperature: toChartSeries(pointsForSeries, PATIENT_CHART_SERIES_KEYS.TEMP),
-    pulse: toChartSeries(pointsForSeries, PATIENT_CHART_SERIES_KEYS.PULSE),
-    respiration: toChartSeries(
-      pointsForSeries,
-      PATIENT_CHART_SERIES_KEYS.RESPIRATION,
-    ),
+    temperature,
+    pulse,
+    respiration,
     weight,
     dataMin,
     dataMax,
@@ -237,31 +297,63 @@ export const mapCaseToDailyPlanDetail = (
   const patient = isDailyPlanPopulatedPatient(caseDoc.patientId)
     ? caseDoc.patientId
     : undefined;
-  const plannedExaminations = caseDoc.planned?.examinations ?? [];
-  const plannedProcedures = caseDoc.planned?.procedures ?? [];
+  const currentJerusalemDateKey = toJerusalemDateKey(new Date());
+  const dailyPlanCommentsUpdatedDateKey =
+    caseDoc.dailyPlan?.updatedAt instanceof Date
+      ? toJerusalemDateKey(caseDoc.dailyPlan.updatedAt)
+      : caseDoc.dailyPlan?.updatedAt
+        ? toJerusalemDateKey(new Date(caseDoc.dailyPlan.updatedAt))
+        : "";
+  const filteredRows = [...(caseDoc.caseDetailsGrid ?? [])]
+    .filter((row) => isCurrentOrFutureDailyPlanRow(row, currentJerusalemDateKey))
+    .sort(compareDailyPlanRowsDesc);
 
   return {
     case_id: caseDoc._id.toString(),
-    master_case_id: caseDoc.masterCaseId?.toString() ?? caseDoc._id.toString(),
+    master_case_id: getCaseSerialPrefix(caseDoc.serialId) ?? caseDoc.serialId,
     serial_id: caseDoc.serialId,
     name: patient?.name ?? "",
     owner_name: patient?.owner?.name ?? "",
     owner_phone_number: patient?.owner?.phone ?? "",
     hospitalization_reason: caseDoc.admission?.hospitalizationReason ?? "",
-    daily_plan_comments: caseDoc.dailyPlan?.comments ?? "",
-    caseExaminations: plannedExaminations.map((exam) => ({
-      name: toPlannedRefName(exam.examinationTypeId),
-      value: exam.status ?? "",
-      date: exam.scheduledFor ? exam.scheduledFor.toISOString() : "",
-    })),
-    caseProcedures: plannedProcedures.map((procedure) => ({
-      name:
-        procedure.plannedProcedureText ||
-        toPlannedRefName(procedure.procedureTypeId),
-      value: procedure.status === PATIENT_PROCEDURE_STATUS_DONE,
-      date: procedure.scheduledFor ? procedure.scheduledFor.toISOString() : "",
-    })),
-    ownerUpdate: [],
-    releaseMedicines: [],
+    daily_plan_comments:
+      dailyPlanCommentsUpdatedDateKey === currentJerusalemDateKey
+        ? caseDoc.dailyPlan?.comments ?? ""
+        : null,
+    caseExaminations: filteredRows.flatMap((row) =>
+      (row.examinations ?? [])
+        .filter(
+          (examination) =>
+            examination.isRequired || toTrimmedString(examination.value) !== "",
+        )
+        .map((examination) => ({
+          name: toPlannedRefName(examination.typeId),
+          value: toTrimmedString(examination.value),
+          date: toDailyPlanDisplayDate(row),
+        })),
+    ),
+    caseProcedures: filteredRows.flatMap((row) =>
+      (row.procedures ?? [])
+        .filter((procedure) => procedure.isRequired || procedure.isGiven === true)
+        .map((procedure) => ({
+          name: toPlannedRefName(procedure.typeId),
+          value: procedure.isGiven === true,
+          date: toDailyPlanDisplayDate(row),
+        })),
+    ),
+    ownerUpdate: filteredRows
+      .filter(
+        (row) => row.ownerUpdateIsRequired || toTrimmedString(row.ownerUpdate) !== "",
+      )
+      .map((row) => ({
+        value: toTrimmedString(row.ownerUpdate),
+        date: toDailyPlanDisplayDate(row),
+      })),
+    releaseMedicines: filteredRows
+      .filter((row) => row.isReleaseIsRequired || row.isRelease === true)
+      .map((row) => ({
+        value: row.isRelease === true,
+        date: toDailyPlanDisplayDate(row),
+      })),
   };
 };

@@ -7,14 +7,17 @@ import type {
   PatientDocumentResponseDTO,
   ReleasePatientDataResponseDTO,
 } from "@petec/shared";
-import type { ICase } from "@models/Case";
-import type { IAnesthesiaForm } from "@models/AnesthesiaForm";
-import type { IPatientDocument } from "@models/PatientDocument";
+import type { ICase } from "@models/case";
+import type { IAnesthesiaForm } from "@models/anesthesiaForm";
+import type { IPatientDocument } from "@models/patientDocument";
 import {
   toDateInputString,
+  toFiniteNumber,
   toIsoDateString,
   toMapperIdString,
   toMapperNamedReference,
+  toOptionalBoolean,
+  toOptionalString,
 } from "@mappers/common/common.mappers.utils";
 import {
   isPopulatedPatient,
@@ -28,6 +31,7 @@ import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
 import type {
   CaseWithPopulatedPatient,
   MedWithPopulatedName,
+  PopulatedMedicineRef,
 } from "./patient.response.mappers.types";
 
 export const toPatientDocumentResponseDTO = (
@@ -39,6 +43,7 @@ export const toPatientDocumentResponseDTO = (
   patientDocumentTypeId: doc.patientDocumentTypeId.toString(),
   fileName: doc.fileName,
   storageKey: doc.storageKey,
+  fileUrl: doc.storageKey,
   uploadedByUserId: doc.uploadedByUserId?.toString(),
   uploadedAt: doc.uploadedAt.toISOString(),
 });
@@ -47,21 +52,29 @@ export const toAnesthesiaFormDTO = (
   value: IAnesthesiaForm,
 ): CreateAnesthesiaProcedureFormDTO => ({
   caseId: value.caseId.toString(),
-  ownerName: value.ownerName,
-  name: value.name,
-  date: value.date,
-  signature: value.signature,
-  plannedProcedure: value.plannedProcedure,
-  priceEstimate: value.priceEstimate,
-  isFastSinceMidnight: value.isFastSinceMidnight,
-  isDistortionHistory: value.isDistortionHistory,
-  isMedicationsSensitive: value.isMedicationsSensitive,
-  isNeedToMarkEar: value.isNeedToMarkEar,
-  isSterilization: value.isSterilization,
-  isPriceIncludesReleaseMedications: value.isPriceIncludesReleaseMedications,
-  generalComments: value.generalComments,
-  distortionComments: value.distortionComments,
-  medicationsSensitiveComments: value.medicationsSensitiveComments,
+  ownerName: toOptionalString(value.ownerName),
+  name: toOptionalString(value.name),
+  date: value.date instanceof Date ? value.date : undefined,
+  signature: toOptionalString(value.signature),
+  plannedProcedure: toOptionalString(value.plannedProcedure),
+  priceEstimate:
+    typeof value.priceEstimate === "number" ||
+      typeof value.priceEstimate === "string"
+      ? value.priceEstimate
+      : undefined,
+  isFastSinceMidnight: toOptionalBoolean(value.isFastSinceMidnight),
+  isDistortionHistory: toOptionalBoolean(value.isDistortionHistory),
+  isMedicationsSensitive: toOptionalBoolean(value.isMedicationsSensitive),
+  isNeedToMarkEar: toOptionalBoolean(value.isNeedToMarkEar),
+  isSterilization: toOptionalBoolean(value.isSterilization),
+  isPriceIncludesReleaseMedications: toOptionalBoolean(
+    value.isPriceIncludesReleaseMedications,
+  ),
+  generalComments: toOptionalString(value.generalComments),
+  distortionComments: toOptionalString(value.distortionComments),
+  medicationsSensitiveComments: toOptionalString(
+    value.medicationsSensitiveComments,
+  ),
 });
 
 export const toCaseDetailsResponseDTO = (
@@ -151,6 +164,16 @@ export const withMasterCaseDetails = (
   masterCaseDetails,
 });
 
+const toPopulatedMedicineRef = (
+  value: MedWithPopulatedName["medicineId"],
+): PopulatedMedicineRef | undefined => {
+  if (typeof value !== "object" || value === null || !("_id" in value)) {
+    return undefined;
+  }
+
+  return value as PopulatedMedicineRef;
+};
+
 export const toReleasePatientDataResponseDTO = (
   caseData: Pick<ICase, "releaseDate" | "dates">,
   meds: MedWithPopulatedName[],
@@ -161,8 +184,12 @@ export const toReleasePatientDataResponseDTO = (
   nextInspectionDate:
     toIsoDateString(caseData.dates?.nextInspectionDate) ?? null,
   medicines: meds.map((med) => {
+    const populatedMedicine = toPopulatedMedicineRef(med.medicineId);
+    const fallbackMeasureUnit = populatedMedicine?.measureUnitTypeId;
     const medicineInfo = toMapperNamedReference(med.medicineId);
-    const measureUnitInfo = toMapperNamedReference(med.measureUnitTypeId);
+    const measureUnitInfo = toMapperNamedReference(
+      med.measureUnitTypeId ?? fallbackMeasureUnit,
+    );
     const frequencyInfo = toMapperNamedReference(med.dosageFrequencyId);
     const routeInfo = toMapperNamedReference(med.routeOfAdministrationId);
 
@@ -179,10 +206,10 @@ export const toReleasePatientDataResponseDTO = (
           : Number(med.doseAmount ?? 0),
       routeOfAdministrationId: routeInfo.id || null,
       medicineRouteText: routeInfo.name,
-      rangeMax: 0,
-      rangeMin: 0,
-      totalDose: 0,
-      comments: med.notes ?? "",
+      rangeMax: toFiniteNumber(populatedMedicine?.rangeMax) ?? 0,
+      rangeMin: toFiniteNumber(populatedMedicine?.rangeMin) ?? 0,
+      totalDose: toFiniteNumber(populatedMedicine?.totalDose) ?? 0,
+      comments: populatedMedicine?.comments ?? med.notes ?? "",
     };
   }),
 });

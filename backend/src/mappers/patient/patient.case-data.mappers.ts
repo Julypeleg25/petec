@@ -1,17 +1,16 @@
 import { Types } from "mongoose";
-import { toObjectId, toOptionalObjectId } from "@utils/objectId.utils";
+import { toObjectId } from "@utils/objectId.utils";
 import {
     CASE_DATE_FIELDS,
     type EditPatientDTO,
     type NewPatientDTO,
 } from "@petec/shared";
-import type { ICase } from "@models/Case";
+import type { ICase } from "@models/case";
 import type {
     CaseCreateData,
     CaseRefsData,
     CaseUpdateData,
     CaseUpdateSource,
-    PlannedItemData,
 } from "./patient.mappers.types";
 
 type CreateCaseDatesInput = NonNullable<NewPatientDTO["dates"]>;
@@ -109,49 +108,6 @@ export const mapRefsToObjectIds = (
     return result;
 };
 
-export const mapPlannedItems = (
-    planned: NonNullable<NewPatientDTO["planned"]>,
-): PlannedItemData => ({
-    medicines: (planned.medicines ?? []).map((medicine) => ({
-        ...medicine,
-        medicineId: toObjectId(medicine.medicineId),
-        doseAmount:
-            typeof medicine.doseAmount === "string"
-                ? Number(medicine.doseAmount)
-                : medicine.doseAmount,
-        measureUnitTypeId: toOptionalObjectId(medicine.measureUnitTypeId),
-        dosageFrequencyId: toOptionalObjectId(medicine.dosageFrequencyId),
-        routeOfAdministrationId: toOptionalObjectId(
-            medicine.routeOfAdministrationId,
-        ),
-        startDate: medicine.startDate ? new Date(medicine.startDate) : undefined,
-        endDate: medicine.endDate ? new Date(medicine.endDate) : undefined,
-        isDeleted: medicine.isDeleted ?? false,
-    })),
-    procedures: (planned.procedures ?? []).map((procedure) => ({
-        ...procedure,
-        procedureTypeId: toObjectId(procedure.procedureTypeId),
-        scheduledFor: procedure.scheduledFor
-            ? new Date(procedure.scheduledFor)
-            : undefined,
-        status: procedure.status ?? "planned",
-    })),
-    foodExtras: (planned.foodExtras ?? []).map((foodExtra) => ({
-        foodExtraTypeId: toObjectId(foodExtra.foodExtraTypeId),
-        amount: foodExtra.amount,
-        measureUnitTypeId: toOptionalObjectId(foodExtra.measureUnitTypeId),
-        frequencyId: toOptionalObjectId(foodExtra.frequencyId),
-        notes: foodExtra.notes,
-    })),
-    examinations: (planned.examinations ?? []).map((examination) => ({
-        ...examination,
-        examinationTypeId: toObjectId(examination.examinationTypeId),
-        scheduledFor: examination.scheduledFor
-            ? new Date(examination.scheduledFor)
-            : undefined,
-    })),
-});
-
 export const mapNewPatientDtoToCaseData = (
     dto: NewPatientDTO,
     patientId: Types.ObjectId,
@@ -202,10 +158,6 @@ export const mapNewPatientDtoToCaseData = (
 
     if (dto.refs) {
         caseData.refs = mapRefsToObjectIds(dto.refs);
-    }
-
-    if (dto.planned) {
-        caseData.planned = mapPlannedItems(dto.planned);
     }
 
     return caseData;
@@ -262,10 +214,6 @@ export const mapEditDtoToCaseUpdate = (
             ...caseObject.refs,
             ...mapRefsToObjectIds(dto.refs),
         };
-    }
-
-    if (dto.planned) {
-        update.planned = mapPlannedItems(dto.planned);
     }
 
     return update;

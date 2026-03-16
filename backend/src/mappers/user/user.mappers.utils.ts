@@ -1,5 +1,5 @@
 import { Role, UserStatus } from "@petec/shared";
-import type { IUser } from "@models/User";
+import type { IUser } from "@models/user";
 
 export type UserMapperInput = Partial<
     Pick<

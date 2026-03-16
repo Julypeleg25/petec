@@ -7,10 +7,10 @@ import {
 } from "@petec/shared";
 import { Types } from "mongoose";
 
-import { patientRepository } from "@repositories/patient.repository";
-import { caseRepository } from "@repositories/case.repository";
-import { systemTypesRepository } from "@repositories/systemTypes.repository";
-import { userRepository } from "@repositories/user.repository";
+import { patientRepository } from "@repositories/patient";
+import { caseRepository } from "@repositories/patient";
+import { systemTypesRepository } from "@repositories/admin";
+import { userRepository } from "@repositories/user";
 import {
   toBooleanWithDefault,
   toMapperIdString,
@@ -19,7 +19,7 @@ import {
   toNullableTrimmedString,
   type MapperReferenceId,
 } from "@mappers/common/common.mappers.utils";
-import { toAdminMedicineRowDTO } from "@mappers/system-management/medicine.admin.mapper";
+import { toAdminMedicineRowDTO } from "@mappers/systemManagement";
 
 import type { BaseLookup, MongoFilter, SortRecord } from "@app-types/global.types";
 import type {
@@ -42,8 +42,8 @@ import {
   USER_FILTER_KEY_MAP,
 } from "@mappers/table/table.mappers.constants";
 import { TABLE_SEARCH_FILTER_KEYS, TABLE_SORT_FIELDS } from "@petec/shared";
-import type { IAuditLog } from "@models/AuditLog";
-import type { IUser } from "@models/User";
+import type { IAuditLog } from "@models/auditLog";
+import type { IUser } from "@models/user";
 
 
 const mapSystemTypeFieldName = (fieldName: string): string =>
@@ -139,13 +139,37 @@ const toSearchTerm = (filter: MongoFilter): string =>
   toStringFilterValue(filter[TABLE_SEARCH_FILTER_KEYS.SEARCH]) ||
   toStringFilterValue(filter[TABLE_SEARCH_FILTER_KEYS.MASTER_CASE_ID]);
 
+const SORT_FIELD_ALIASES = {
+  id: "_id",
+  created_at: "createdAt",
+  updated_at: "updatedAt",
+  serial_id: "serialId",
+  is_deleted: "isDeleted",
+  first_name: "firstName",
+  last_name: "lastName",
+  role_name: "role",
+} as const;
+
+type SortFieldAlias = keyof typeof SORT_FIELD_ALIASES;
+
+const resolveSortField = (sortBy: string): string =>
+  SORT_FIELD_ALIASES[sortBy as SortFieldAlias] ?? sortBy;
+
 export const toSortRecord = (
   sortBy: string,
   sortOrder: SortOrder,
-): SortRecord => ({
-  [sortBy]:
-    sortOrder === SortOrders.ASC ? SORT_DIRECTIONS.ASC : SORT_DIRECTIONS.DESC,
-});
+): SortRecord => {
+  const sortDirection =
+    sortOrder === SortOrders.ASC ? SORT_DIRECTIONS.ASC : SORT_DIRECTIONS.DESC;
+  const primarySortField = resolveSortField(sortBy).trim() || "createdAt";
+  if (primarySortField === "_id") {
+    return { _id: sortDirection };
+  }
+  return {
+    [primarySortField]: sortDirection,
+    _id: sortDirection,
+  };
+};
 
 export const toSkip = (page: number, limit: number): number =>
   (page - 1) * limit;
@@ -369,7 +393,7 @@ const mapSystemTypeDocToRow = (
   return baseRow;
 };
 
-const toBooleanFilterValue = (value: FilterValue): boolean | undefined => {
+export const toBooleanFilterValue = (value: FilterValue): boolean | undefined => {
   if (typeof value === "boolean") {
     return value;
   }
@@ -380,6 +404,9 @@ const toBooleanFilterValue = (value: FilterValue): boolean | undefined => {
   }
   return undefined;
 };
+
+export const extractHasAlertsFilter = (filter: MongoFilter): boolean =>
+  toBooleanFilterValue(filter[TABLE_SEARCH_FILTER_KEYS.HAS_ALERTS]) === true;
 
 export const buildUsersFilter = (filter: MongoFilter): MongoFilter => {
   const andClauses: MongoFilter[] = [{ isDeleted: { $ne: true } }];
@@ -516,6 +543,7 @@ export const buildPatientCardsFilter = (filter: MongoFilter): MongoFilter => {
   const cleanFilter = removeFilterKeys(filter, [
     TABLE_SEARCH_FILTER_KEYS.SEARCH,
     TABLE_SEARCH_FILTER_KEYS.MASTER_CASE_ID,
+    TABLE_SEARCH_FILTER_KEYS.HAS_ALERTS,
   ]);
   if (!searchTerm) {
     return cleanFilter;
@@ -555,6 +583,7 @@ export const buildCasesFilter = async (
   const cleanFilter = removeFilterKeys(filter, [
     TABLE_SEARCH_FILTER_KEYS.SEARCH,
     TABLE_SEARCH_FILTER_KEYS.MASTER_CASE_ID,
+    TABLE_SEARCH_FILTER_KEYS.HAS_ALERTS,
     CASE_TEXT_FILTER_KEYS.SERIAL_ID,
     CASE_TEXT_FILTER_KEYS.PATIENT_NAME,
     CASE_TEXT_FILTER_KEYS.OWNER_PHONE,

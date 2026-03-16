@@ -1,5 +1,11 @@
-import type { Role, StaffMemberDTO, UserResponseDTO, UserRowDTO } from "@petec/shared";
-import type { UserDocument } from "@models/User";
+import {
+    getRoleLabel,
+    type Role,
+    type StaffMemberDTO,
+    type UserResponseDTO,
+    type UserRowDTO,
+} from "@petec/shared";
+import type { UserDocument } from "@models/user";
 import {
     toFullName,
     toUserIdString,
@@ -32,7 +38,7 @@ export const mapUserToRow = (user: UserMapperInput | UserDocument): UserRowDTO =
         last_name: user.lastName ?? "",
         email: user.email ?? "",
         role,
-        role_name: role,
+        role_name: getRoleLabel(role),
         privileges: Array.isArray(user.privileges) ? user.privileges : [],
         status: toUserStatus(user.status),
         lastLogin: toUserIsoString(user.lastLogin) || undefined,

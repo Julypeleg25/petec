@@ -1,9 +1,9 @@
 import { SORT_DIRECTIONS, SYSTEM_TYPE_NAMES_VALUES } from "@petec/shared";
 import { Types } from "mongoose";
 
-import { auditRepository } from "@repositories/audit.repository";
-import { caseRepository } from "@repositories/case.repository";
-import { userRepository } from "@repositories/user.repository";
+import { auditRepository } from "@repositories/audit";
+import { caseRepository } from "@repositories/patient";
+import { userRepository } from "@repositories/user";
 import { mapUserToRow } from "@mappers/user/user.mappers";
 import {
   buildAuditLogsFilter,
@@ -26,14 +26,23 @@ import type {
   TableKey,
   TableRow,
 } from "@mappers/table/table.mappers.types";
-import type { IPatient } from "@models/Patient";
-import type { ICase } from "@models/Case";
+import type { IPatient } from "@models/patient";
+import type { ICase } from "@models/case";
 
-const mapCaseToPatientCardRowDTO = (
-  doc: Pick<
-    ICase,
-    "_id" | "serialId" | "masterCaseId" | "admission" | "flags"
-  > & { numOfAlerts?: number; patientId?: Partial<IPatient> },
+export type PatientCardCaseTableDoc = Pick<
+  ICase,
+  | "_id"
+  | "serialId"
+  | "masterCaseId"
+  | "admission"
+  | "flags"
+  | "dates"
+  | "refs"
+  | "caseDetailsGrid"
+> & { numOfAlerts?: number; patientId?: Partial<IPatient> };
+
+export const mapCaseToPatientCardRowDTO = (
+  doc: PatientCardCaseTableDoc,
 ) => {
   const patient = doc.patientId || {};
   const patientRefId =

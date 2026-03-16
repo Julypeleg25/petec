@@ -9,7 +9,7 @@ import type {
   ICaseDetailsMedicineObj,
   ICaseDetailsOptionsObj,
   ICaseDetailsRow,
-} from "@models/Case";
+} from "@models/case";
 import {
   toBooleanOrNull,
   toBooleanWithDefault,
@@ -64,7 +64,7 @@ const mapMedicineCell = (
   return {
     medicineId,
     value: medicineId,
-    text: item.name ?? medicineRef.name,
+    text: medicineRef.name,
     isGiven: toGiven(item.isGiven),
     isRequired: toBooleanWithDefault(item.isRequired, false),
     isEditable: toBooleanWithDefault(item.isEditable, true),
@@ -95,7 +95,7 @@ const mapOptionCell = (
   item: ICaseDetailsOptionsObj,
 ): CaseDetailsResponseOptionItemDTO => ({
   value: toMapperIdString(item.typeId),
-  text: item.name ?? "",
+  text: toMapperNamedReference(item.typeId).name,
   isGiven: toGiven(item.isGiven),
   isRequired: toBooleanWithDefault(item.isRequired, false),
   isEditable: toBooleanWithDefault(item.isEditable, true),
@@ -106,7 +106,7 @@ const mapExamCell = (
   item: ICaseDetailsExamObj,
 ): CaseDetailsResponseExaminationItemDTO => ({
   value: toMapperIdString(item.typeId),
-  text: item.name ?? "",
+  text: toMapperNamedReference(item.typeId).name,
   exam_value: item.value ?? null,
   isRequired: toBooleanWithDefault(item.isRequired, false),
   isEditable: toBooleanWithDefault(item.isEditable, true),

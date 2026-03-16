@@ -34,7 +34,11 @@ export const mapReleaseMedicineToData = (
         data.measureUnitTypeId = toObjectId(medicine.measureUnitTypeId);
     }
 
-    if (medicine.doseAmount) {
+    if (
+        medicine.doseAmount !== undefined &&
+        medicine.doseAmount !== null &&
+        medicine.doseAmount !== ""
+    ) {
         data.doseAmount = medicine.doseAmount;
     }
 
@@ -56,22 +60,21 @@ export const mapReleaseMedicineToData = (
 export const mapUploadDocumentToData = (
     dto: UploadDocumentDTO,
     storageKey: string,
+    cloudinaryPublicId: string,
     fileName: string,
     userId: string,
-    caseObjectId?: Types.ObjectId,
+    caseObjectId: Types.ObjectId,
 ): UploadDocumentData => {
     const data: UploadDocumentData = {
         patientId: toObjectId(dto.patientId),
+        caseId: caseObjectId,
         patientDocumentTypeId: toObjectId(dto.patientDocumentTypeId),
         storageKey,
+        cloudinaryPublicId,
         fileName,
         uploadedByUserId: toObjectId(userId),
         uploadedAt: new Date(),
     };
-
-    if (caseObjectId) {
-        data.caseId = caseObjectId;
-    }
 
     return data;
 };

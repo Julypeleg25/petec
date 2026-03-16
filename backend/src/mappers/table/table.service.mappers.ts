@@ -22,12 +22,12 @@ export const resolveTableHandler = (
   return handler;
 };
 
-export const buildPaginatedTableResponse = (
-  items: ReadonlyArray<TableRow>,
+export const buildPaginatedTableResponse = <TItem extends TableRow>(
+  items: ReadonlyArray<TItem>,
   total: number,
   page: number,
   limit: number,
-): PaginatedResponse<TableRow> => ({
+): PaginatedResponse<TItem> => ({
   items: [...items],
   total,
   page,
