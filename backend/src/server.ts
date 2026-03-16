@@ -4,6 +4,7 @@ import { ENV } from "@config/config";
 import { logger } from "@config/logger";
 import { APP_EXIT_CODE_ERROR } from "@petec/shared";
 import connectToDatabase from "@db/dbConnection";
+import { initializeScheduledJobs } from "@utils/serverSchedule.utils";
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 10000;
 
@@ -14,9 +15,12 @@ const startServer = async (): Promise<void> => {
     const server = app.listen(ENV.port, () => {
       logger.info(`Server running on port ${String(ENV.port)} in ${ENV.nodeEnv} mode`);
     });
+    const stopScheduledJobs = initializeScheduledJobs(ENV.isProduction);
 
     const gracefulShutdown = (signal: string): void => {
       logger.info(`${signal} received, shutting down gracefully`);
+      stopScheduledJobs();
+
       server.close(async () => {
         await mongoose.connection.close();
         logger.info("MongoDB connection closed");

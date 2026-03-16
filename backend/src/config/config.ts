@@ -24,6 +24,9 @@ const envSchema = z.object({
 
   MJ_APIKEY_PUBLIC: z.string(),
   MJ_APIKEY_PRIVATE: z.string(),
+  CLOUDINARY_CLOUD_NAME: z.string().trim().optional().default(""),
+  CLOUDINARY_API_KEY: z.string().trim().optional().default(""),
+  CLOUDINARY_API_SECRET: z.string().trim().optional().default(""),
   UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
 });
 
@@ -66,6 +69,9 @@ export const ENV = {
     envs.JWT_RESET_PASSWORD_SECRET ?? envs.JWT_ACCESS_SECRET,
   mailjetPublicKey: envs.MJ_APIKEY_PUBLIC ?? "",
   mailjetPrivateKey: envs.MJ_APIKEY_PRIVATE ?? "",
+  cloudinaryCloudName: envs.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: envs.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: envs.CLOUDINARY_API_SECRET,
   uploadDir: envs.UPLOAD_DIR,
   accessTokenExpiresIn,
   accessTokenExpiresInMs,

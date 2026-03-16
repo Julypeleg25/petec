@@ -88,16 +88,14 @@ const createMemoryUpload = (
     fileFilter: createFileFilter(allowedMimeTypes),
   });
 
-export const uploadImage = createDiskUpload(
+export const uploadImage = createMemoryUpload(
   UPLOAD.IMAGE_MIME_TYPES,
   UPLOAD.MAX_FILE_SIZE_BYTES,
-  UPLOAD.PATIENT_PHOTOS_DIR,
 );
 
-export const uploadDocument = createDiskUpload(
+export const uploadDocument = createMemoryUpload(
   UPLOAD.DOCUMENT_MIME_TYPES,
   UPLOAD.MAX_FILE_SIZE_BYTES,
-  UPLOAD.PATIENT_DOCUMENTS_DIR,
 );
 
 export const uploadBulkTemplate = createMemoryUpload(
@@ -109,6 +107,10 @@ export const getUploadedStorageKey = (file: Express.Multer.File): string => {
   const withKey = file as MulterFileWithKey;
   if (withKey.storageKey && withKey.storageKey.length > 0) {
     return toPosixPath(withKey.storageKey);
+  }
+
+  if (!file.destination || !file.filename) {
+    return file.originalname;
   }
 
   const destination = (file as Express.Multer.File & { destination?: string })

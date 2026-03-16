@@ -3,7 +3,7 @@ import type {
   IBaseLookup,
   ILookupWithAnimalType,
   IMedicine,
-} from "@models/Lookups.types";
+} from "@models/lookups";
 import type { Types } from "mongoose";
 
 type MongoFilterPrimitive =
