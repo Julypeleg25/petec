@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useActiveSystemTypes,
   useRaceTypesByAnimal,
-} from "../../../../features/system-management/hooks/useSystemTypes";
-import { useUserApi } from "../../../../features/system-management/hooks/useUserApi";
+  useUserApi,
+} from "../../../../features/system-management";
 import {
   SAVE_PATIENT_DEFAULTS,
   SAVE_PATIENT_ELEMENT_IDS,
@@ -24,6 +24,7 @@ export function useSavePatient(
   caseId: string | undefined,
   masterCaseId: string | undefined,
   isEdit: boolean,
+  beforeNavigation?: () => void,
 ) {
   const mountedRef = useRef(true);
   const state = usePatientFormState();
@@ -135,7 +136,13 @@ export function useSavePatient(
     state.initialStateSnapshot !== null &&
     currentStateSnapshot !== state.initialStateSnapshot;
 
-  const actions = useSavePatientActions(state, caseId, isEdit, hasChanges);
+  const actions = useSavePatientActions(
+    state,
+    caseId,
+    isEdit,
+    hasChanges,
+    beforeNavigation,
+  );
 
   const handleCellClick = useCallback(
     async (
@@ -334,6 +341,7 @@ export function useSavePatient(
     setReloadCase: state.setReloadCase,
 
     savePatient: actions.savePatient,
+    savePatientChanges: actions.savePatientChanges,
     getRaceTypes,
     addNewCaseDailyDetails: actions.addNewCaseDailyDetails,
     exportCaseDetails: actions.exportCaseDetails,

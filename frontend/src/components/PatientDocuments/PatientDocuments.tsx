@@ -1,25 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import "./PatientDocuments.css";
-import { patientsApi } from "../../features/patients/patients.api";
-import FormUploadImage from "../../utils/FormUploadImage/FormUploadImage";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { FaTrash } from "react-icons/fa";
-import Modal from "../../utils/Modal/Modal";
 import toast from "react-hot-toast";
-import { useForm } from "react-hook-form";
-import AnesthesiaProcedureForm from "../AnesthesiaProcedureForm/AnesthesiaProcedureForm";
-import { getSharedResolver } from "../../utils/form";
-
 import {
-  UploadDocumentFormDTOSchema,
+  SYSTEM_TYPE_NAMES,
   type PatientDocumentResponseDTO,
-  type UploadDocumentFormDTO,
 } from "@petec/shared";
-
+import { patientsApi } from "../../features/patients/patients.api";
+import { useActiveSystemTypes } from "../../features/system-management";
+import FormUploadImage from "../../utils/FormUploadImage/FormUploadImage";
+import Modal from "../../utils/Modal/Modal";
+import AnesthesiaProcedureForm from "../AnesthesiaProcedureForm/AnesthesiaProcedureForm";
+import "./PatientDocuments.css";
 import {
   getCurrentPatientDocuments,
+  getPatientDocumentAssetUrl,
   getPatientDocumentLabel,
-  getPatientDocumentTypeId,
-  PatientDocumentsNavType,
+  getPatientDocumentType,
+  PATIENT_DOCUMENT_NAV_TYPES,
+  type PatientDocumentsNavType,
 } from "./PatientDocuments.utils";
 
 interface PatientDocumentsProps {
@@ -33,144 +31,138 @@ const PatientDocuments = ({
   patientId,
   caseSerialId,
 }: PatientDocumentsProps) => {
-  const [images, setImages] = useState<PatientDocumentResponseDTO[]>([]);
+  const [documents, setDocuments] = useState<PatientDocumentResponseDTO[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [navType, setNavType] = useState<PatientDocumentsNavType>("blood-tests");
+  const [navType, setNavType] = useState<PatientDocumentsNavType>(
+    PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS,
+  );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletedDocumentId, setDeletedDocumentId] = useState<
     string | undefined
   >(undefined);
-  const {
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<UploadDocumentFormDTO>({
-    resolver: getSharedResolver(UploadDocumentFormDTOSchema),
-    defaultValues: {
-      selectedFileName: "",
-    },
-  });
-
-  const getPatientDocuments = useCallback(async () => {
-    try {
-      const data = await patientsApi.getDocuments(patientId);
-      setImages(data);
-    } catch {}
-  }, [patientId]);
-
-  const uploadPatientDocument = handleSubmit(
-    async () => {
-      if (!(selectedFile instanceof File)) {
-        toast.error("לא נבחר מסמך להעלאה");
-        return;
-      }
-      try {
-        await patientsApi.uploadDocument(
-          {
-            caseId,
-            patientId,
-            patientDocumentTypeId: getPatientDocumentTypeId(navType) || "",
-          },
-          selectedFile,
-        );
-        toast.success("התמונה נשמרה בהצלחה");
-        await getPatientDocuments();
-      } catch {
-        toast.error("שגיאה בהעלאת התמונה");
-      }
-    },
-    (formErrors) => {
-      const firstError = Object.values(formErrors)[0];
-      if (firstError?.message) {
-        toast.error(firstError.message.toString());
-      }
-    },
+  const { data: documentTypes = [] } = useActiveSystemTypes(
+    SYSTEM_TYPE_NAMES.PATIENT_DOCUMENT_TYPES,
   );
+
+  const selectedDocumentType = useMemo(
+    () => getPatientDocumentType(documentTypes, navType),
+    [documentTypes, navType],
+  );
+  const isAnesthesiaTab =
+    navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE;
+
+  const isDocumentUploadDisabled = !selectedDocumentType?.id;
+
+  const getCaseDocuments = useCallback(async () => {
+    try {
+      const data = await patientsApi.getDocuments(caseId);
+      setDocuments(data);
+    } catch {}
+  }, [caseId]);
+
+  const uploadPatientDocument = useCallback(async (
+    e: FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+
+    if (!(selectedFile instanceof File)) {
+      return;
+    }
+    if (!selectedDocumentType?.id) {
+      toast.error("סוג המסמך לא זמין כרגע");
+      return;
+    }
+
+    try {
+      await patientsApi.uploadDocument(
+        {
+          caseId,
+          patientId,
+          patientDocumentTypeId: selectedDocumentType.id,
+        },
+        selectedFile,
+      );
+      toast.success("המסמך נשמר בהצלחה");
+      await getCaseDocuments();
+    } catch {
+      toast.error("שגיאה בהעלאת המסמך");
+    }
+  }, [caseId, getCaseDocuments, patientId, selectedDocumentType?.id, selectedFile]);
 
   const deletePatientDocument = useCallback(async () => {
     if (!deletedDocumentId) return;
     try {
       await patientsApi.deleteDocument(deletedDocumentId);
       setShowDeleteModal(false);
-      setImages((prevImages) =>
-        prevImages.filter((image) => image.id !== deletedDocumentId),
+      setDocuments((prevDocuments) =>
+        prevDocuments.filter((document) => document.id !== deletedDocumentId),
       );
-      toast.success("התמונה נמחקה בהצלחה");
+      toast.success("המסמך נמחק בהצלחה");
     } catch {
-      toast.error("שגיאה במחיקת התמונה");
+      toast.error("שגיאה במחיקת המסמך");
     }
   }, [deletedDocumentId]);
 
   const currentDocuments = useMemo(
-    () => getCurrentPatientDocuments(images, navType),
-    [images, navType],
+    () => getCurrentPatientDocuments(documents, selectedDocumentType?.id),
+    [documents, selectedDocumentType?.id],
   );
 
   useEffect(() => {
-     getPatientDocuments();
-  }, [getPatientDocuments]);
-
-  useEffect(() => {
-    if (selectedFile instanceof File) {
-      setValue("selectedFileName", selectedFile.name, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-      return;
-    }
-
-    setValue("selectedFileName", "", {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [selectedFile, setValue]);
+    void getCaseDocuments();
+  }, [getCaseDocuments]);
 
   return (
     <div className="PatientDocuments">
-      <nav className="navbar patients-navbar">
-        <button
-          className={`btn ${
-            navType === "anesthesia-procedure" ? "" : "btn-active"
-          }`}
-          title="anesthesia-procedure"
-          onClick={() => {
-            setNavType("anesthesia-procedure");
-          }}
-          disabled={navType === "anesthesia-procedure"}
-        >
-          טופס הסכמה לפרוצדורה בהרדמה
-        </button>
-        <button
-          className={`btn ${navType === "xray" ? "" : "btn-active"}`}
-          title="xray"
-          onClick={() => {
-            setNavType("xray");
-          }}
-          disabled={navType === "xray"}
-        >
-          צילומי רנטגן
-        </button>
-        <button
-          className={`btn ${navType === "blood-tests" ? "" : "btn-active"}`}
-          title="blood-tests"
-          onClick={() => {
-            setNavType("blood-tests");
-          }}
-          disabled={navType === "blood-tests"}
-        >
-          בדיקות דם
-        </button>
-      </nav>
-      <label className="form-label patient-documents-label">
-        {getPatientDocumentLabel(navType)}
-      </label>
-      {navType === "anesthesia-procedure" ? (
-        <AnesthesiaProcedureForm
-          caseId={caseId}
-          caseSerialId={caseSerialId}
-        ></AnesthesiaProcedureForm>
-      ) : (
-        <>
+      <div className="patient-documents-sticky-header">
+        <nav className="navbar patients-navbar">
+          <button
+            className={`btn ${
+              navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE
+                ? "btn-selected"
+                : "btn-active"
+            }`}
+            title="anesthesia-procedure"
+            onClick={() => {
+              setNavType(PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE);
+            }}
+            disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE}
+          >
+            טופס הסכמה לפרוצדורה בהרדמה
+          </button>
+          <button
+            className={`btn ${
+              navType === PATIENT_DOCUMENT_NAV_TYPES.XRAY
+                ? "btn-selected"
+                : "btn-active"
+            }`}
+            title="xray"
+            onClick={() => {
+              setNavType(PATIENT_DOCUMENT_NAV_TYPES.XRAY);
+            }}
+            disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.XRAY}
+          >
+            צילומי רנטגן
+          </button>
+          <button
+            className={`btn ${
+              navType === PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS
+                ? "btn-selected"
+                : "btn-active"
+            }`}
+            title="blood-tests"
+            onClick={() => {
+              setNavType(PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS);
+            }}
+            disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS}
+          >
+            בדיקות דם
+          </button>
+        </nav>
+        <label className="form-label patient-documents-label">
+          {getPatientDocumentLabel(navType)}
+        </label>
+        {!isAnesthesiaTab && (
           <section className="upload-patient-documents-section">
             <form onSubmit={uploadPatientDocument} noValidate>
               <FormUploadImage
@@ -178,51 +170,64 @@ const PatientDocuments = ({
                 isLarge={false}
                 setSelectedFile={setSelectedFile}
                 currentImage={"#"}
+                disabled={isDocumentUploadDisabled}
               />
               <button
                 type="submit"
                 className="btn btn-small upload-patient-documents-image-btn"
+                disabled={isDocumentUploadDisabled}
               >
                 העלה
               </button>
             </form>
-            {errors.selectedFileName && (
-              <p className="form-error">{errors.selectedFileName.message}</p>
-            )}
           </section>
-          <section className="view-patient-documents-section">
-            {currentDocuments.length === 0 ? (
-              <p className="patient-documents-no-images">אין תמונות זמינות</p>
-            ) : (
-              <div className="patient-documents">
-                {currentDocuments.map((image, index: number) => (
-                  <div key={image.id ?? `${index}-${image.fileUrl || image.url}`} className="patient-documents-container">
+        )}
+      </div>
+      {isAnesthesiaTab ? (
+        <div className="patient-documents-tab-panel patient-documents-anesthesia-tab-panel">
+          <AnesthesiaProcedureForm caseId={caseId} caseSerialId={caseSerialId} />
+        </div>
+      ) : (
+        <section className="view-patient-documents-section patient-documents-tab-panel">
+          {currentDocuments.length === 0 ? (
+            <p className="patient-documents-no-images">אין תמונות זמינות</p>
+          ) : (
+            <div className="patient-documents">
+              {currentDocuments.map((document) => {
+                const assetUrl = getPatientDocumentAssetUrl(document);
+                if (!assetUrl) {
+                  return null;
+                }
+
+                return (
+                  <div key={document.id} className="patient-documents-container">
                     <img
                       className="patient-document"
-                      src={image.fileUrl || image.url}
+                      src={assetUrl}
                       alt="patient-document"
                     />
                     <button
                       className="btn btn-small btn-round patient-document-delete-btn"
                       onClick={() => {
-                        setDeletedDocumentId(image.id);
+                        setDeletedDocumentId(document.id);
                         setShowDeleteModal(true);
                       }}
                     >
                       <FaTrash />
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+                );
+              })}
+            </div>
+          )}
+        </section>
       )}
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
           component={
             <div className="delete-modal">
+              <h3 className="modal-dialog-title">מחיקת מסמך</h3>
               <p>?האם את/ה בטוח שאת/ה רוצה למחוק את המסמך</p>
               <button className="btn btn-large" onClick={deletePatientDocument}>
                 מחק
@@ -233,6 +238,6 @@ const PatientDocuments = ({
       )}
     </div>
   );
-}
+};
 
 export default PatientDocuments;

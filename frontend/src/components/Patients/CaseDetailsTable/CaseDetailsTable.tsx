@@ -60,6 +60,7 @@ function CaseDetailsTable({
 
   const {
     medicineList,
+    medicineModalTitle,
     optionsUrl,
     selectedOptionsList,
     selectedMedicinesList,
@@ -369,6 +370,7 @@ function CaseDetailsTable({
       <CaseDetailsMedicineModal
         isOpen={showMedicineModal}
         setIsOpen={setShowMedicineModal}
+        title={medicineModalTitle}
         medicineList={medicineList}
         selectedMedicinesList={selectedMedicinesList}
         animalWeight={

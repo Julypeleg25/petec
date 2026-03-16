@@ -112,7 +112,6 @@ const mapUiMedicineCellToDto = (
 
   return {
     medicineId,
-    name: toOptionalText(cell.text),
     dosageText: toOptionalText(cell.dosageText),
     doseAmount: toOptionalNumber(cell.doseAmount),
     measureUnitTypeId: toObjectIdString(cell.measureUnitTypeId),
@@ -135,7 +134,6 @@ const mapUiOptionCellToDto = (
 
   return {
     typeId,
-    name: toOptionalText(cell.text),
     isGiven: cell.isGiven,
     isRequired: cell.isRequired ?? false,
     isEditable: cell.isEditable ?? true,
@@ -153,7 +151,6 @@ const mapUiExaminationCellToDto = (
 
   return {
     typeId,
-    name: toOptionalText(cell.text),
     value: toOptionalText(cell.exam_value ?? null) ?? null,
     isRequired: cell.isRequired ?? false,
     isEditable: cell.isEditable ?? true,

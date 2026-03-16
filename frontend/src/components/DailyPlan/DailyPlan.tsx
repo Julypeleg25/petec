@@ -6,34 +6,62 @@ import MyLoader from "../../utils/MyLoader/MyLoader";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
 import toast from "react-hot-toast";
 import type { DailyPlanDetailDTO } from "@petec/shared";
-import { getCaseSerialPrefix } from "../../features/patients/utils/patients.utils";
 
 import { DailyPlanFormData, ExaminationItem, ProcedureItem, OwnerUpdateItem, ReleaseMedicineItem } from "./DailyPlan.types";
+
+const normalizeDailyPlanComments = (comments?: string | null): string =>
+  comments ?? "";
+
+const toDailyPlanFormData = (
+  details: DailyPlanDetailDTO[],
+): DailyPlanFormData => {
+  const formData: DailyPlanFormData = {};
+
+  for (const item of details) {
+    formData[item.case_id] = {
+      comment: normalizeDailyPlanComments(item.daily_plan_comments),
+    };
+  }
+
+  return formData;
+};
 
 function DailyPlan() {
   const [isLoading, setIsLoading] = useState(true);
   const [dailyPlanDetails, setDailyPlanDetails] = useState<DailyPlanDetailDTO[]>([]);
   const [dailyPlanFormData, setDailyPlanFormData] = useState<DailyPlanFormData>({});
+  const [initialDailyPlanFormData, setInitialDailyPlanFormData] = useState<DailyPlanFormData>({});
+
+  const hasDailyPlanChanges = dailyPlanDetails.some(
+    (item) =>
+      (dailyPlanFormData[item.case_id]?.comment ?? "") !==
+      (initialDailyPlanFormData[item.case_id]?.comment ?? ""),
+  );
 
   const getDailyPlanDetails = async () => {
     try {
       const data = await patientsApi.getDailyPlan();
-      const details: DailyPlanFormData = {};
-      for (const item of data) {
-        details[item.case_id] = {
-          caseId: item.serial_id,
-          comments: item.daily_plan_comments,
-        };
-      }
+      const details = toDailyPlanFormData(data);
       setDailyPlanFormData(details);
+      setInitialDailyPlanFormData(toDailyPlanFormData(data));
       setDailyPlanDetails(data);
+    } catch {
+      toast.error("שגיאה בטעינת פרטי התכנון");
+    } finally {
       setIsLoading(false);
-    } catch { /* handled by interceptor */ }
+    }
   };
 
   const updateDailyPlan = async () => {
+    if (!hasDailyPlanChanges) {
+      return;
+    }
+
     try {
       await patientsApi.updateDailyPlan(dailyPlanFormData);
+      setInitialDailyPlanFormData({
+        ...dailyPlanFormData,
+      });
       toast.success("הפרטים נשמרו בהצלחה");
     } catch {
       toast.error("שגיאה בשמירת הפרטים");
@@ -53,16 +81,21 @@ function DailyPlan() {
           <button
             className="btn btn-small save-daily-plan-btn"
             onClick={updateDailyPlan}
+            disabled={!hasDailyPlanChanges}
           >
             שמור
           </button>
           <div className="daily-plan-table">
             <div className="daily-plan-table-header">
-              <div className="daily-plan-table-header-cell">מספר תיק</div>
-              <div className="daily-plan-table-header-cell">שם</div>
+              <div className="daily-plan-table-header-cell">
+                מספר תיק
+              </div>
+              <div className="daily-plan-table-header-cell">
+                שם
+              </div>
               <div className="daily-plan-table-header-cell">שם בעלים</div>
               <div className="daily-plan-table-header-cell">
-                מספר טלפון בעלים
+                מס' טלפון בעלים
               </div>
               <div className="daily-plan-table-header-cell">סיבת אישפוז</div>
               <div className="daily-plan-table-header-cell daily-plan-table-header-cell-large">
@@ -85,7 +118,7 @@ function DailyPlan() {
               {dailyPlanDetails.map((dailyPlanDetail: DailyPlanDetailDTO, index: number) => (
                 <div key={index} className="daily-plan-table-body-row">
                   <div className="daily-plan-table-body-cell">
-                    {getCaseSerialPrefix(dailyPlanDetail.serial_id)}
+                    {dailyPlanDetail.master_case_id}
                   </div>
                   <div className="daily-plan-table-body-cell">
                     {dailyPlanDetail.name}
@@ -200,14 +233,13 @@ function DailyPlan() {
                   </div>
                   <div className="daily-plan-table-body-cell daily-plan-table-body-cell-large">
                     <FormTextarea
-                      state={dailyPlanFormData[dailyPlanDetail.case_id].comments}
+                      state={dailyPlanFormData[dailyPlanDetail.case_id]?.comment ?? ""}
                       setState={(val: string) => {
                         setDailyPlanFormData((prevState) => ({
                           ...prevState,
                           [dailyPlanDetail.case_id]: {
                             ...prevState[dailyPlanDetail.case_id],
-                            caseId: dailyPlanDetail.serial_id,
-                            comments: val,
+                            comment: val,
                           },
                         }));
                       }}

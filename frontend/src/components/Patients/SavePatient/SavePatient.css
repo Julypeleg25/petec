@@ -10,7 +10,7 @@
   width: 90%;
   margin: 1em auto;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: center;
   padding: 1.5em 1em;
@@ -50,7 +50,7 @@
 .new-patient-form,
 .edit-patient-form {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: center;
   width: 100%;
@@ -63,10 +63,10 @@
 
 .new-patient-form-data-section {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: space-evenly;
   flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
+  -webkit-flex-wrap: wrap; 
   width: 100%;
 }
 
@@ -87,10 +87,10 @@
 .new-patient-form-info-section,
 .edit-patient-form-info-section {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   width: 65%;
   flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
+  -webkit-flex-wrap: wrap; 
   align-items: flex-start;
   justify-content: space-between;
   flex-direction: row-reverse;
@@ -122,11 +122,11 @@
   width: 100%;
   min-width: 150px;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   gap: 0.5em;
   justify-content: flex-end;
   flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
+  -webkit-flex-wrap: wrap; 
 }
 
 .edit-patient-form-checkboxes .form-checkbox-container,
@@ -136,7 +136,7 @@
 
 .edit-patient-btns-container {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   align-items: center;
   flex-direction: row-reverse;
   width: 100%;
@@ -194,7 +194,7 @@
   width: 100%;
   margin-top: 1em;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap-reverse;
@@ -206,7 +206,7 @@
 
 .daily-details-table-fields-info {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
   align-items: flex-end;
   gap: 0.4em;
@@ -219,7 +219,7 @@
 
 .daily-details-table-fields-info > div {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   gap: 1em;
   font-size: 1.1rem;
   text-align: right;
@@ -227,7 +227,7 @@
 
 .daily-details-table-fields-info-field {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: flex-end;
 }
 
@@ -238,18 +238,18 @@
 
 .daily-details-btns-container {
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   flex-direction: column;
 }
 
 .daily-details-btns {
   width: 100%;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   margin-top: 1em;
   justify-content: flex-end;
   flex-wrap: wrap;
-  -webkit-flex-wrap: wrap; /* Safari */
+  -webkit-flex-wrap: wrap; 
   align-items: center;
   gap: 1em;
 }
@@ -262,14 +262,116 @@
   font-size: 1.2rem;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: 0.75em;
+  margin-top: 1.2em;
+}
+
+.archive-confirmation-modal .save-entity-form-btn {
+  display: block;
+  margin: 0.5em auto 0 0;
+}
+
+.modal.unsaved-changes-modal-wrapper.is-saving .close-button {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.modal.unsaved-changes-modal-wrapper {
+  direction: rtl;
+  text-align: right;
+  width: min(680px, 94vw);
+  max-width: 94vw;
+}
+
+.unsaved-changes-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85em;
+  margin-top: 0.4em;
+  padding: 0.45em 0.9em 0.55em;
+  box-sizing: border-box;
+  text-align: right;
+}
+
+.unsaved-changes-modal-title {
+  margin: 0;
+  color: var(--color-main);
+  width: 100%;
+  text-align: right;
+}
+
+.unsaved-changes-modal-text {
+  margin: 0;
+  font-size: 1.05rem;
+  width: 100%;
+  text-align: right;
+  line-height: 1.5;
+}
+
+.unsaved-changes-modal-help {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.unsaved-changes-modal-actions {
+  width: 100%;
+  display: flex;
+  direction: rtl;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
   align-items: center;
-  margin-top: 2em;
+  gap: 0.75em;
+  margin-top: 0.7em;
+}
+
+.unsaved-changes-modal-actions button {
+  margin: 0;
+  min-width: 150px;
+}
+
+.unsaved-changes-save-btn {
+  min-width: 170px;
+}
+
+.unsaved-changes-discard-btn {
+  color: #b42318;
+  border: 2px solid #f5b8b8;
+  background-color: #fff6f6;
+}
+
+.unsaved-changes-discard-btn:hover {
+  color: #ffffff;
+  background-color: #b42318;
+  border-color: #b42318;
+}
+
+@media (max-width: 700px) {
+  .modal.unsaved-changes-modal-wrapper {
+    width: min(560px, 96vw);
+    max-width: 96vw;
+  }
+
+  .unsaved-changes-modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .unsaved-changes-modal-actions button,
+  .unsaved-changes-save-btn {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .child-cases-container {
   width: 100%;
   display: flex;
-  display: -webkit-flex; /* Safari */
+  display: -webkit-flex; 
   justify-content: flex-end;
   gap: 1em;
   margin-bottom: 1em;
@@ -294,7 +396,11 @@
 
 .child-case-disabled:hover {
   cursor: not-allowed !important;
-  border: 2px solid var(--color-light-grey) !important;
+  border: 2px solid var(--color-main) !important;
+}
+
+.child-case.child-case-disabled {
+  border: 2px solid var(--color-main);
 }
 
 .child-case:hover {

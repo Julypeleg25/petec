@@ -63,7 +63,7 @@ export const useReleasePatient = ({
       const data = await medicineApi.getAll();
       setMedicineList(data.map(mapMedicineDtoToSelectOption));
     } catch {
-      /* handled by interceptor */
+      
     }
   }, []);
 
@@ -97,6 +97,7 @@ export const useReleasePatient = ({
     if (isReleased) {
       void getReleasePatientData();
     } else {
+      setReleaseDate(null);
       setLoading(false);
     }
   }, [getMedicines, getReleasePatientData, isReleased]);

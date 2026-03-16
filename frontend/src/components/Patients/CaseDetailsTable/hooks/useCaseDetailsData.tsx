@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { systemTypesApi } from "../../../../features/system-management/systemTypes.api";
+import { systemTypesApi } from "../../../../features/system-management";
 import { medicineApi } from "../../../../features/medicine/medicine.api";
 import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
 import type { MedicineSelectOptionObj } from "../../../MedicinePicker/MedicinePicker.types";

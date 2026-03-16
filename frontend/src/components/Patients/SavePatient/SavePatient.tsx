@@ -1,9 +1,12 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useCallback, useRef } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import CaseDetailsTable from "../CaseDetailsTable/CaseDetailsTable";
 import MyLoader from "../../../utils/MyLoader/MyLoader";
 import "./SavePatient.css";
 import { AppRoutes } from "../../../config/appRoutes";
 import { SavePatientModals } from "./modals/SavePatientModals";
+import { SavePatientUnsavedChangesModal } from "./modals/SavePatientUnsavedChangesModal";
+import { useSavePatientExitGuard } from "./hooks/useSavePatientExitGuard";
 import { useSavePatient } from "./hooks/useSavePatient";
 import SavePatientChildCasesSection from "./sections/SavePatientChildCases.section";
 import SavePatientDailyDetailsSection from "./sections/SavePatientDailyDetails.section";
@@ -13,12 +16,18 @@ import {
   getCaseDateSelectionData,
   resolveSelectedCaseDate,
 } from "./sections/utils/savePatientSections.utils";
+import { resolveChildCaseRoute } from "./utils/savePatientNavigation.utils";
 
 function SavePatient() {
   const location = useLocation();
   const { masterCaseId, caseId } = useParams();
   const isEdit = location.pathname !== AppRoutes.Patients.NewPatient;
   const caseIdString = caseId ?? "";
+  const allowNavigationRef = useRef(false);
+
+  const allowNextNavigation = useCallback(() => {
+    allowNavigationRef.current = true;
+  }, []);
 
   const {
     navigate,
@@ -104,8 +113,8 @@ function SavePatient() {
     patientId,
     disableAddCaseDetailsTable,
     childCases,
-    setReloadCase,
     savePatient,
+    savePatientChanges,
     getRaceTypes,
     addNewCaseDailyDetails,
     exportCaseDetails,
@@ -114,13 +123,38 @@ function SavePatient() {
     handleSetEditableFieldsButtonClick,
     archivePatient,
     setTimeSelectionValue,
-  } = useSavePatient(caseIdString, caseId, masterCaseId, isEdit);
+  } = useSavePatient(
+    caseIdString,
+    caseId,
+    masterCaseId,
+    isEdit,
+    allowNextNavigation,
+  );
+  const handleSaveAndExit = useCallback(
+    () =>
+      savePatientChanges({
+        navigateOnCreate: false,
+        reloadAfterEdit: false,
+      }),
+    [savePatientChanges],
+  );
 
-  const handleSelectChildCase = (childCaseId: string) => {
-    const resolvedMasterCaseId = masterCaseId ?? childCaseId;
-    navigate(AppRoutes.Patients.Details.build(resolvedMasterCaseId, childCaseId));
-    setReloadCase((previousReloadCase) => !previousReloadCase);
-  };
+  const {
+    closeUnsavedChangesDialog,
+    discardAndExit,
+    handleUnsavedChangesModalOpenChange,
+    isUnsavedChangesModalOpen,
+    saveAndExit,
+  } = useSavePatientExitGuard({
+    allowNavigationRef,
+    hasChanges,
+    isSaving,
+    onSaveAndExit: handleSaveAndExit,
+  });
+
+  const handleSelectChildCase = useCallback((childCaseId: string) => {
+    navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
+  }, [masterCaseId, navigate]);
 
   const handleCaseDateChange = (value: string) => {
     const { caseDetailsIndex, selectedHour } = getCaseDateSelectionData(
@@ -299,6 +333,16 @@ function SavePatient() {
         archivePatient={archivePatient}
         showCatheterReplacementModal={showCatheterReplacementModal}
         setShowCatheterReplacementModal={setShowCatheterReplacementModal}
+      />
+      <SavePatientUnsavedChangesModal
+        isOpen={isUnsavedChangesModalOpen}
+        isSaving={isSaving}
+        setIsOpen={handleUnsavedChangesModalOpenChange}
+        onSaveAndExit={() => {
+          void saveAndExit();
+        }}
+        onDiscardAndExit={discardAndExit}
+        onClose={closeUnsavedChangesDialog}
       />
     </div>
   );

@@ -1,8 +1,12 @@
 import { Controller } from "react-hook-form";
 import MedicinePicker from "../MedicinePicker/MedicinePicker";
 import DatePicker from "../../utils/DatePicker/DatePicker";
+import FormInput from "../../utils/FormInput/FormInput";
 import MyLoader from "../../utils/MyLoader/MyLoader";
-import { getDateForInput } from "../../utils/DateFormattingUtil";
+import {
+  getDateForInput,
+  getFormattedDateFromDBdate,
+} from "../../utils/DateFormattingUtil";
 import { useReleasePatient } from "./hooks/useReleasePatient";
 import "./ReleasePatient.css";
 
@@ -45,7 +49,7 @@ function ReleasePatient({
       <div className="save-entity-form-container release-patient-form-container">
         <div className="release-patient-dialog__header">
           <div className="release-patient-dialog__title-wrap">
-            <h2 className="save-entity-form-title release-patient-dialog__title">
+            <h2 className="save-entity-form-title release-patient-dialog__title modal-dialog-title">
               שחרור מטופל
             </h2>
           </div>
@@ -62,16 +66,18 @@ function ReleasePatient({
               noValidate
             >
               <div className="release-patient-dialog__grid">
-                {isReleased && (
-                  <div className="form-group">
-                    <DatePicker
+                {formData.releaseDate ? (
+                  <div className="form-group release-patient-dialog__release-date">
+                    <FormInput
                       labelText="תאריך שחרור"
                       name="releaseDate"
-                      state={formData.releaseDate}
+                      state={getFormattedDateFromDBdate(formData.releaseDate)}
+                      type="text"
+                      width="200px"
                       disabled={true}
                     />
                   </div>
-                )}
+                ) : null}
 
                 <div className="form-group">
                   <Controller
@@ -120,10 +126,15 @@ function ReleasePatient({
                 </div>
               </div>
 
+              <div
+                className="release-patient-dialog__section-divider"
+                aria-hidden="true"
+              />
+
               <div className="form-group release-patient-dialog__medicines-group">
-                <label className="release-patient-dialog__section-label">
+                <h3 className="release-patient-dialog__section-label">
                   תרופות לשחרור
-                </label>
+                </h3>
                 <div className="release-patient-dialog__medicines">
                   <MedicinePicker
                     medicineList={medicineList}

@@ -6,6 +6,7 @@ import type { MedicineSelectOptionObj } from "../../../MedicinePicker/MedicinePi
 interface CaseDetailsMedicineModalProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  title: string;
   medicineList: MedicineSelectOptionObj[];
   selectedMedicinesList: MedicineSelectOptionObj[];
   animalWeight?: number;
@@ -15,6 +16,7 @@ interface CaseDetailsMedicineModalProps {
 export const CaseDetailsMedicineModal = ({
   isOpen,
   setIsOpen,
+  title,
   medicineList,
   selectedMedicinesList,
   animalWeight,
@@ -27,8 +29,11 @@ export const CaseDetailsMedicineModal = ({
   return (
     <Modal
       setIsOpen={setIsOpen}
+      size="lg"
+      className="case-details-medicine-picker-modal"
       component={
-        <div className="case-details-medicine-modal">
+        <div className="case-details-medicine-modal" dir="rtl" lang="he">
+          <h2 className="case-details-modal-title modal-dialog-title">{title}</h2>
           <MedicinePicker
             medicineList={medicineList}
             animalWeight={animalWeight}
@@ -38,7 +43,6 @@ export const CaseDetailsMedicineModal = ({
           />
         </div>
       }
-      closeWhenClickOutside={false}
     />
   );
 };

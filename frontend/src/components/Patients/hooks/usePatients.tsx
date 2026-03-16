@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaExclamationTriangle } from "react-icons/fa";
 import { AppRoutes } from "../../../config/appRoutes";
 import { PatientCardRowDTO, TABLE_QUERY_KEYS } from "@petec/shared";
 import {
   PATIENTS_CARDS_AMOUNT,
   PATIENTS_NAV_TYPES,
-} from "../../../features/patients/constants/patients.constants";
+} from "../../../features/patients";
 import {
-  buildPatientsArgs,
   type PatientCardsFilter,
   buildCaseSearchFilters,
   formatOwnerPhone,
   getCaseSerialPrefix,
   getInitialViewportWidth,
-} from "../../../features/patients/utils/patients.utils";
+} from "../../../features/patients";
 import {
   getPatientImageSrc,
   handlePatientImageLoadError,
-} from "../../../features/patients/utils/patientImage.utils";
+} from "../../../features/patients";
 import {
   PATIENT_FLAG_PILLS,
   PATIENTS_COLUMNS_DATA,
@@ -27,18 +27,43 @@ import {
 type PatientTableType =
   (typeof TABLE_QUERY_KEYS)[keyof typeof TABLE_QUERY_KEYS];
 
+const ALERT_BADGE_PULSE_DURATION_MS = 3600;
+
+function PatientAlertBadge({ count }: { count: number }) {
+  const [isPulsing, setIsPulsing] = useState(true);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsPulsing(false);
+    }, ALERT_BADGE_PULSE_DURATION_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [count]);
+
+  return (
+    <div
+      className={`patient-card-alerts${isPulsing ? " patient-card-alerts-pulse" : ""}`}
+      title={`לתיק יש ${count} התראות`}
+    >
+      <FaExclamationTriangle aria-hidden="true" />
+      <span>{count}</span>
+    </div>
+  );
+}
+
 export function usePatients(patientsNavType?: string) {
   const navigate = useNavigate();
   const isArchive = patientsNavType === PATIENTS_NAV_TYPES.ARCHIVE;
   const [patientSearch, setPatientSearch] = useState("");
   const [proceduresSearch, setProceduresSearch] = useState("");
   const [proceduresFilters, setProceduresFilters] =
-    useState<PatientCardsFilter>(() => buildCaseSearchFilters("", isArchive));
+    useState<PatientCardsFilter>(() =>
+      buildCaseSearchFilters("", isArchive, false),
+    );
   const [patientsFilters, setPatientsFilters] = useState<PatientCardsFilter>(
-    () => buildCaseSearchFilters("", isArchive),
-  );
-  const [patientsArgs, setPatientsArgs] = useState<string[]>(() =>
-    buildPatientsArgs(false, isArchive),
+    () => buildCaseSearchFilters("", isArchive, false),
   );
   const [reloadProceduresCards, setReloadProceduresCards] = useState(false);
   const [reloadPatientsCards, setReloadPatientsCards] = useState(false);
@@ -53,11 +78,10 @@ export function usePatients(patientsNavType?: string) {
   const isShowOneTable = width < 750;
 
   const resetPatientCards = useCallback((isArchived: boolean) => {
-    setPatientsArgs(buildPatientsArgs(false, isArchived));
     setReloadProceduresCards((prev) => !prev);
     setReloadPatientsCards((prev) => !prev);
-    setProceduresFilters(buildCaseSearchFilters("", isArchived));
-    setPatientsFilters(buildCaseSearchFilters("", isArchived));
+    setProceduresFilters(buildCaseSearchFilters("", isArchived, false));
+    setPatientsFilters(buildCaseSearchFilters("", isArchived, false));
     setShowOnlyProceduresWithAlerts(false);
     setShowOnlyPatientsWithAlerts(false);
     setProceduresSearch("");
@@ -111,14 +135,9 @@ export function usePatients(patientsNavType?: string) {
             <span>טלפון בעלים: {formattedPhoneNumber}</span>
             <span>סיבת אישפוז: {row.admission?.hospitalizationReason}</span>
           </div>
-          {row.numOfAlerts !== undefined && row.numOfAlerts > 0 && (
-            <div
-              className="patient-card-alerts"
-              title={`לתיק יש ${row.numOfAlerts} התראות`}
-            >
-              {row.numOfAlerts}
-            </div>
-          )}
+          {row.numOfAlerts !== undefined && row.numOfAlerts > 0 ? (
+            <PatientAlertBadge count={row.numOfAlerts} />
+          ) : null}
         </div>
       );
     },
@@ -147,8 +166,6 @@ export function usePatients(patientsNavType?: string) {
     setProceduresFilters,
     patientsFilters,
     setPatientsFilters,
-    patientsArgs,
-    setPatientsArgs,
     reloadProceduresCards,
     setReloadProceduresCards,
     reloadPatientsCards,

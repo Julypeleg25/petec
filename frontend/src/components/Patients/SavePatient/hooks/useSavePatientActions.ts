@@ -20,6 +20,11 @@ import {
 } from "../utils/savePatientCaseDetails.utils";
 import type { PatientFormState } from "./usePatientFormState";
 
+interface SavePatientChangesOptions {
+    navigateOnCreate?: boolean;
+    reloadAfterEdit?: boolean;
+}
+
 const toRequestDateValue = (
     value?: Date | null,
 ): Date | null | undefined => {
@@ -34,6 +39,7 @@ export function useSavePatientActions(
     caseId: string | undefined,
     isEdit: boolean,
     hasChanges: boolean,
+    beforeNavigation?: () => void,
 ) {
     const navigate = useNavigate();
 
@@ -80,16 +86,19 @@ export function useSavePatientActions(
         });
     }, [caseId, exportCase, state.formData.caseId, state.selectedCaseDate]);
 
-    const savePatient = state.handlePatientFormSubmit(
-        async () => {
+    const savePatientChanges = useCallback(
+        async ({
+            navigateOnCreate = false,
+            reloadAfterEdit = true,
+        }: SavePatientChangesOptions = {}): Promise<boolean> => {
             if (!hasChanges) {
-                return;
+                return false;
             }
 
             const resolvedCaseSerialId = state.formData.caseId;
             if (!resolvedCaseSerialId) {
                 toast.error("אנא הזן/י מספר תיק");
-                return;
+                return false;
             }
 
             let normalizedCaseDetailsList = state.caseDetailsList;
@@ -98,7 +107,7 @@ export function useSavePatientActions(
                 const hourValue = state.selectedStartHour;
                 if (hourValue === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
                     toast.error("אנא בחר/י שעה לתחילת הטבלה");
-                    return;
+                    return false;
                 }
 
                 normalizedCaseDetailsList =
@@ -109,7 +118,7 @@ export function useSavePatientActions(
                 );
                 if (gridHoursError) {
                     toast.error(gridHoursError);
-                    return;
+                    return false;
                 }
 
                 state.setCaseDetailsList(normalizedCaseDetailsList);
@@ -175,7 +184,7 @@ export function useSavePatientActions(
                 if (!caseId) {
                     toast.error("פרטי התיק חסרים");
                     state.disableSaveBtns(false);
-                    return;
+                    return false;
                 }
 
                 const editBody: EditPatientDTO = {
@@ -188,13 +197,16 @@ export function useSavePatientActions(
                     await uploadPatientImageIfNeeded(state.patientId, state.selectedFile);
                     state.setSelectedFile(null);
                     state.setInitialStateSnapshot(null);
-                    state.setReloadCase((previousReloadCase) => !previousReloadCase);
+                    if (reloadAfterEdit) {
+                        state.setReloadCase((previousReloadCase) => !previousReloadCase);
+                    }
+                    return true;
                 } catch {
+                    return false;
                 } finally {
                     state.disableSaveBtns(false);
                     state.setDisableAddCaseDetailsTable(false);
                 }
-                return;
             }
 
             const createBody: NewPatientDTO = {
@@ -209,10 +221,37 @@ export function useSavePatientActions(
                     toast.error("המטופל נשמר ללא מזהה מטופל, העלאת תמונה דולגה");
                 }
                 state.setSelectedFile(null);
-                navigate(AppRoutes.Patients.List);
+                state.setInitialStateSnapshot(null);
+                state.disableSaveBtns(false);
+                if (navigateOnCreate) {
+                    beforeNavigation?.();
+                    navigate(AppRoutes.Patients.List);
+                }
+                return true;
             } catch {
                 state.disableSaveBtns(false);
+                return false;
             }
+        },
+        [
+            beforeNavigation,
+            caseId,
+            createPatient,
+            hasChanges,
+            isEdit,
+            navigate,
+            state,
+            updatePatient,
+            uploadPatientImageIfNeeded,
+        ],
+    );
+
+    const savePatient = state.handlePatientFormSubmit(
+        async () => {
+            await savePatientChanges({
+                navigateOnCreate: true,
+                reloadAfterEdit: true,
+            });
         },
         (formErrors) => {
             const firstError = Object.values(formErrors)[0];
@@ -258,12 +297,13 @@ export function useSavePatientActions(
     const archivePatient = useCallback(() => {
         const caseSerialId = state.formData.caseId;
         if (!caseSerialId) return;
+        const shouldArchive = !state.isArchived;
         archivePatientMutation.mutate(
-            { caseId: caseSerialId },
+            { caseId: caseSerialId, shouldArchive },
             {
                 onSuccess: () => {
                     state.setShowArchiveConfirmationModal(false);
-                    state.setIsArchived((prev) => !prev);
+                    state.setIsArchived(shouldArchive);
                     state.setSelectedFile(null);
                     state.setInitialStateSnapshot(null);
                     state.setReloadCase((previousReloadCase) => !previousReloadCase);
@@ -278,6 +318,7 @@ export function useSavePatientActions(
         isExporting,
         isArchiving,
         savePatient,
+        savePatientChanges,
         exportCaseDetails,
         addNewCaseDailyDetails,
         archivePatient,

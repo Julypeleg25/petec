@@ -12,6 +12,7 @@ import type {
   OptionSectionType,
 } from "../CaseDetailsTable.constants";
 import { getRequiredIndexesByFrequency } from "../utils/caseDetailsFrequency.utils";
+import { getMedicineDisplayDetails } from "../../../../utils/medicineDisplay.utils";
 
 interface ToggleKeyFields {
   isRequiredKey: keyof CaseDetailsData;
@@ -249,33 +250,6 @@ export const updateCollectionItemByValue = <
         item.value === itemValue ? updater(item) : item,
       ) as CaseDetailsData[K],
   );
-
-export const getMedicineDisplayDetails = (
-  doseAmount?: string | number | null,
-  measureUnitText?: string | null,
-  frequencyText?: string | null,
-  routeText?: string | null,
-): string => {
-  const parts: string[] = [];
-
-  if (doseAmount !== null && doseAmount !== undefined && `${doseAmount}` !== "") {
-    parts.push(String(doseAmount));
-  }
-
-  if (measureUnitText) {
-    parts.push(measureUnitText);
-  }
-
-  if (frequencyText) {
-    parts.push(frequencyText);
-  }
-
-  if (routeText) {
-    parts.push(routeText);
-  }
-
-  return parts.join(" ");
-};
 
 export const applySimpleCellToggle = (
   setCaseDetailsList: CaseDetailsStateSetter,

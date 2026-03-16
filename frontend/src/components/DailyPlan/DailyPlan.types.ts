@@ -1,6 +1,6 @@
-import type { DailyPlanDetailDTO, UpdateDailyPlanRequestDTO } from "@petec/shared";
+import type { DailyPlanDetailDTO } from "@petec/shared";
 
-export type DailyPlanFormData = UpdateDailyPlanRequestDTO;
+export type DailyPlanFormData = Record<string, { comment?: string }>;
 
 export type ExaminationItem = DailyPlanDetailDTO["caseExaminations"][number];
 export type ProcedureItem = DailyPlanDetailDTO["caseProcedures"][number];

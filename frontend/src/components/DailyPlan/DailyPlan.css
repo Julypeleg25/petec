@@ -55,16 +55,49 @@
   box-sizing: border-box;
 }
 
+.daily-plan-table-header-cell:first-child,
+.daily-plan-table-body-row > .daily-plan-table-body-cell:first-child {
+  flex: 0.6;
+  min-width: 95px;
+}
+
+.daily-plan-table-header-cell:nth-child(2),
+.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(2) {
+  flex: 0.9;
+  min-width: 120px;
+}
+
+.daily-plan-table-header-cell:nth-child(3),
+.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(3) {
+  flex: 1.15;
+  min-width: 150px;
+}
+
+.daily-plan-table-header-cell:nth-child(4),
+.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(4) {
+  flex: 1.1;
+  min-width: 150px;
+}
+
+.daily-plan-table-header-cell:nth-child(5),
+.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(5) {
+  flex: 1.25;
+  min-width: 180px;
+}
+
 .daily-plan-table-body-cell {
   font-weight: 400;
   flex-direction: column;
-  word-break: word-break;
+  word-break: normal;
+  overflow-wrap: normal;
+  white-space: normal;
   justify-content: flex-start;
 }
 
 .daily-plan-table-header-cell-large,
 .daily-plan-table-body-cell-large {
-  flex-grow: 1.5;
+  flex: 1.8;
+  min-width: 240px;
 }
 
 .daily-plan-table-header > .daily-plan-table-header-cell:first-child {
@@ -124,7 +157,9 @@
 .daily-plan-table-body-cell-number {
   display: flex;
   gap: 0.2em;
-  word-break: break-all;
+  word-break: normal;
+  overflow-wrap: normal;
+  white-space: normal;
 }
 
 .daily-plan-table-body-cell-number .form-checkbox-container {

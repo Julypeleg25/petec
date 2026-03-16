@@ -12,7 +12,6 @@ import type { CaseDetailsInteractiveStateProps } from "../CaseDetailsTable.types
 import {
   findCollectionItemInCell,
   getHeaderCollectionItem,
-  getMedicineDisplayDetails,
   handleMedicineCellToggle,
   haveInteractiveStatePropsChanged,
   resolveBooleanSetterValue,
@@ -21,6 +20,7 @@ import {
   updateMedicineCollection,
 } from "./CaseDetailsRows.common";
 import { hydrateCaseDetailsMedicineCell } from "../utils/CaseDetailsTable.utils";
+import { getMedicineDisplayDetails } from "../../../../utils/medicineDisplay.utils";
 
 interface CaseDetailsMedicineRowProps extends CaseDetailsInteractiveStateProps {
   type: MedicineSectionType;
@@ -89,7 +89,6 @@ export const CaseDetailsMedicineRow = memo(
                     {item.text}
                   </span>
                   {detailsText ? ` ${detailsText}` : ""}
-                  {!detailsText && item.dosageText ? ` ${item.dosageText}` : ""}
                 </div>
               );
             }

@@ -28,9 +28,9 @@ function DeletePatient({
 
   return (
     <div className="DeletePatient">
-      <label className="form-label delete-patient-label">מחיקת מטופל</label>
+      <h2 className="delete-patient-label modal-dialog-title">מחיקת מטופל</h2>
       <div className="delete-patient-details-container">
-        ?האם אתה בטוח ברצונך למחוק את המטופל
+        ?האם אתה בטוח שאת/ה רוצה למחוק את המטופל
       </div>
 
       <button type="submit" className="btn btn-small" onClick={deletePatient}>

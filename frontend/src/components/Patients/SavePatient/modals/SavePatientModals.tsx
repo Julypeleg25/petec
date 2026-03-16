@@ -62,6 +62,8 @@ export function SavePatientModals({
       {showReleasePatientModal && (
         <Modal
           setIsOpen={setShowReleasePatientModal}
+          size="lg"
+          className="release-patient-modal"
           component={
             <ReleasePatient
               caseId={caseIdString}
@@ -72,7 +74,7 @@ export function SavePatientModals({
               animalWeight={weightKg}
             />
           }
-          closeWhenClickOutside={false}
+          closeWhenClickOutside={true}
         />
       )}
       {showDeletePatientCaseModal && (
@@ -93,6 +95,7 @@ export function SavePatientModals({
             <PatientDocuments caseId={caseIdString} patientId={patientId} caseSerialId={caseSerialId} />
           }
           size="lg"
+          className="patient-documents-modal"
         />
       )}
       {showPatientChartsModal && (
@@ -100,6 +103,7 @@ export function SavePatientModals({
           setIsOpen={setShowPatientChartsModal}
           component={<PatientCharts caseId={caseIdString} />}
           size="fullscreen"
+          className="patient-charts-modal"
         />
       )}
       {showArchiveConfirmationModal && (
@@ -107,6 +111,9 @@ export function SavePatientModals({
           setIsOpen={setShowArchiveConfirmationModal}
           component={
             <div className="archive-confirmation-modal">
+              <h3 className="modal-dialog-title">
+                {isArchived ? "הוצאה מהארכיון" : "העברה לארכיון"}
+              </h3>
               <div>
                 {isArchived
                   ? "?האם אתה בטוח שאת/ה רוצה להוציא את המטופל מהארכיון"

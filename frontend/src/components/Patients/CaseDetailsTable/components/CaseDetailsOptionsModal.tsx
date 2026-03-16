@@ -27,8 +27,10 @@ export const CaseDetailsOptionsModal = ({
   return (
     <Modal
       setIsOpen={setIsOpen}
+      size="md"
+      className="case-details-options-picker-modal"
       component={
-        <div className="case-details-options-modal">
+        <div className="case-details-options-modal" dir="rtl" lang="he">
           <SelectOptionsPicker
             optionsList={optionsList}
             afterConfirmation={onConfirm}
@@ -38,7 +40,6 @@ export const CaseDetailsOptionsModal = ({
           />
         </div>
       }
-      closeWhenClickOutside={false}
     />
   );
 };
