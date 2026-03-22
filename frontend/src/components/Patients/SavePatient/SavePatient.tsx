@@ -40,6 +40,7 @@ function SavePatient() {
     formData,
     handleInputChange,
     isArchived,
+    selectedFile,
     setSelectedFile,
     genderTypes,
     selectedGenderType,
@@ -210,6 +211,7 @@ function SavePatient() {
               isEdit={isEdit}
               formData={formData}
               handleInputChange={handleInputChange}
+              selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
               photoName={photoName}
               insuranceList={insuranceList}

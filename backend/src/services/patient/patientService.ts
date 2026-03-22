@@ -514,7 +514,6 @@ export class PatientService {
   ): Promise<CreateAnesthesiaProcedureFormDTO | null> {
     await getCaseByIdPopulatedOrThrow(caseId);
     const form = await anesthesiaFormRepository.findByCaseId(caseId);
-    console.log("Retrieved anesthesia form"+caseId);
     if (!form) return null;
 
     return toAnesthesiaFormDTO(form.toObject());

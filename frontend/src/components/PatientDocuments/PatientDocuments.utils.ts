@@ -12,11 +12,6 @@ export const PATIENT_DOCUMENT_NAV_TYPES = {
 export type PatientDocumentsNavType =
   (typeof PATIENT_DOCUMENT_NAV_TYPES)[keyof typeof PATIENT_DOCUMENT_NAV_TYPES];
 
-const PATIENT_DOCUMENT_TYPE_SERIAL_IDS = {
-  BLOOD_TESTS: "1",
-  XRAY: "2",
-} as const;
-
 const PATIENT_DOCUMENT_LABELS: Record<PatientDocumentsNavType, string> = {
   [PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS]: "בדיקות דם",
   [PATIENT_DOCUMENT_NAV_TYPES.XRAY]: "צילומי רנטגן",
@@ -24,12 +19,11 @@ const PATIENT_DOCUMENT_LABELS: Record<PatientDocumentsNavType, string> = {
     "טופס הסכמה לפרוצדורה בהרדמה",
 };
 
-const PATIENT_DOCUMENT_TYPE_SERIAL_ID_BY_NAV_TYPE: Partial<
+const PATIENT_DOCUMENT_TYPE_NAME_BY_NAV_TYPE: Partial<
   Record<PatientDocumentsNavType, string>
 > = {
-  [PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS]:
-    PATIENT_DOCUMENT_TYPE_SERIAL_IDS.BLOOD_TESTS,
-  [PATIENT_DOCUMENT_NAV_TYPES.XRAY]: PATIENT_DOCUMENT_TYPE_SERIAL_IDS.XRAY,
+  [PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS]: "blood-test",
+  [PATIENT_DOCUMENT_NAV_TYPES.XRAY]: "xray",
 };
 
 export const getPatientDocumentLabel = (
@@ -40,12 +34,14 @@ export const getPatientDocumentType = (
   documentTypes: ReadonlyArray<SimpleSystemTypeDTO>,
   navType: PatientDocumentsNavType,
 ): SimpleSystemTypeDTO | undefined => {
-  const serialId = PATIENT_DOCUMENT_TYPE_SERIAL_ID_BY_NAV_TYPE[navType];
-  if (!serialId) {
+  const systemTypeName = PATIENT_DOCUMENT_TYPE_NAME_BY_NAV_TYPE[navType];
+  if (!systemTypeName) {
     return undefined;
   }
 
-  return documentTypes.find((documentType) => documentType.serialId === serialId);
+  return documentTypes.find(
+    (documentType) => documentType.name === systemTypeName,
+  );
 };
 
 export const getCurrentPatientDocuments = (

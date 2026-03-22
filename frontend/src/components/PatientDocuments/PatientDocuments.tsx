@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import {
@@ -40,6 +46,7 @@ const PatientDocuments = ({
   const [deletedDocumentId, setDeletedDocumentId] = useState<
     string | undefined
   >(undefined);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
   const { data: documentTypes = [] } = useActiveSystemTypes(
     SYSTEM_TYPE_NAMES.PATIENT_DOCUMENT_TYPES,
   );
@@ -60,34 +67,48 @@ const PatientDocuments = ({
     } catch {}
   }, [caseId]);
 
-  const uploadPatientDocument = useCallback(async (
-    e: FormEvent<HTMLFormElement>,
-  ) => {
-    e.preventDefault();
+  const uploadPatientDocument = useCallback(
+    async (file: File) => {
+      if (!selectedDocumentType?.id) {
+        toast.error("סוג המסמך לא זמין כרגע");
+        return;
+      }
 
-    if (!(selectedFile instanceof File)) {
-      return;
-    }
-    if (!selectedDocumentType?.id) {
-      toast.error("סוג המסמך לא זמין כרגע");
-      return;
-    }
+      try {
+        setIsUploadingDocument(true);
+        await patientsApi.uploadDocument(
+          {
+            caseId,
+            patientId,
+            patientDocumentTypeId: selectedDocumentType.id,
+          },
+          file,
+        );
+        setSelectedFile(null);
+        toast.success("המסמך נשמר בהצלחה");
+        await getCaseDocuments();
+      } catch {
+        toast.error("שגיאה בהעלאת המסמך");
+      } finally {
+        setIsUploadingDocument(false);
+      }
+    },
+    [caseId, getCaseDocuments, patientId, selectedDocumentType?.id, setSelectedFile],
+  );
 
-    try {
-      await patientsApi.uploadDocument(
-        {
-          caseId,
-          patientId,
-          patientDocumentTypeId: selectedDocumentType.id,
-        },
-        selectedFile,
-      );
-      toast.success("המסמך נשמר בהצלחה");
-      await getCaseDocuments();
-    } catch {
-      toast.error("שגיאה בהעלאת המסמך");
-    }
-  }, [caseId, getCaseDocuments, patientId, selectedDocumentType?.id, selectedFile]);
+  const handleSubmitUpload = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (!(selectedFile instanceof File)) {
+        toast.error("יש לבחור קובץ להעלאה");
+        return;
+      }
+
+      await uploadPatientDocument(selectedFile);
+    },
+    [selectedFile, uploadPatientDocument],
+  );
 
   const deletePatientDocument = useCallback(async () => {
     if (!deletedDocumentId) return;
@@ -113,8 +134,18 @@ const PatientDocuments = ({
   }, [getCaseDocuments]);
 
   return (
-    <div className="PatientDocuments">
-      <div className="patient-documents-sticky-header">
+    <div
+      className={`PatientDocuments ${
+        isAnesthesiaTab
+          ? "patient-documents-anesthesia-layout"
+          : "patient-documents-scroll-layout"
+      }`}
+    >
+      <div
+        className={`patient-documents-header ${
+          isAnesthesiaTab ? "patient-documents-header-sticky" : ""
+        }`}
+      >
         <nav className="navbar patients-navbar">
           <button
             className={`btn ${
@@ -126,7 +157,9 @@ const PatientDocuments = ({
             onClick={() => {
               setNavType(PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE);
             }}
-            disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE}
+            disabled={
+              navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE
+            }
           >
             טופס הסכמה לפרוצדורה בהרדמה
           </button>
@@ -164,20 +197,25 @@ const PatientDocuments = ({
         </label>
         {!isAnesthesiaTab && (
           <section className="upload-patient-documents-section">
-            <form onSubmit={uploadPatientDocument} noValidate>
+            <form onSubmit={handleSubmitUpload} noValidate>
               <FormUploadImage
                 uploadedImageId="patient-documents-uploaded-img"
                 isLarge={false}
+                selectedFile={selectedFile}
                 setSelectedFile={setSelectedFile}
                 currentImage={"#"}
-                disabled={isDocumentUploadDisabled}
+                disabled={isDocumentUploadDisabled || isUploadingDocument}
               />
               <button
                 type="submit"
                 className="btn btn-small upload-patient-documents-image-btn"
-                disabled={isDocumentUploadDisabled}
+                disabled={
+                  isDocumentUploadDisabled ||
+                  isUploadingDocument ||
+                  !(selectedFile instanceof File)
+                }
               >
-                העלה
+                {isUploadingDocument ? "...מעלה" : "העלה"}
               </button>
             </form>
           </section>
@@ -185,7 +223,10 @@ const PatientDocuments = ({
       </div>
       {isAnesthesiaTab ? (
         <div className="patient-documents-tab-panel patient-documents-anesthesia-tab-panel">
-          <AnesthesiaProcedureForm caseId={caseId} caseSerialId={caseSerialId} />
+          <AnesthesiaProcedureForm
+            caseId={caseId}
+            caseSerialId={caseSerialId}
+          />
         </div>
       ) : (
         <section className="view-patient-documents-section patient-documents-tab-panel">
@@ -200,7 +241,10 @@ const PatientDocuments = ({
                 }
 
                 return (
-                  <div key={document.id} className="patient-documents-container">
+                  <div
+                    key={document.id}
+                    className="patient-documents-container"
+                  >
                     <img
                       className="patient-document"
                       src={assetUrl}
@@ -226,12 +270,19 @@ const PatientDocuments = ({
         <Modal
           setIsOpen={setShowDeleteModal}
           component={
-            <div className="delete-modal">
+            <div className="patient-documents-delete-modal" dir="rtl">
               <h3 className="modal-dialog-title">מחיקת מסמך</h3>
-              <p>?האם את/ה בטוח שאת/ה רוצה למחוק את המסמך</p>
-              <button className="btn btn-large" onClick={deletePatientDocument}>
-                מחק
-              </button>
+              <p className="patient-documents-delete-modal__text">
+                האם את/ה בטוח שאת/ה רוצה למחוק את המסמך?
+              </p>
+              <div className="patient-documents-delete-modal__actions">
+                <button
+                  className="btn btn-large patient-documents-delete-modal__confirm-btn"
+                  onClick={deletePatientDocument}
+                >
+                  מחק
+                </button>
+              </div>
             </div>
           }
         />

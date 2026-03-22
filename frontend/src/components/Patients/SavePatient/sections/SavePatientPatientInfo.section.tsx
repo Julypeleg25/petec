@@ -19,6 +19,7 @@ interface SavePatientPatientInfoSectionProps {
   isEdit: boolean;
   formData: NewPatientData;
   handleInputChange: SavePatientInputChangeHandler;
+  selectedFile?: File | null;
   setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
   photoName?: string;
   insuranceList: SelectOptionObj[];
@@ -72,6 +73,7 @@ function SavePatientPatientInfoSection({
   isEdit,
   formData,
   handleInputChange,
+  selectedFile,
   setSelectedFile,
   photoName,
   insuranceList,
@@ -130,6 +132,7 @@ function SavePatientPatientInfoSection({
         <FormUploadImage
           uploadedImageId="save-patient-img"
           isLarge={true}
+          selectedFile={selectedFile}
           setSelectedFile={setSelectedFile}
           currentImage={currentPatientImage}
           isDefault={isEdit}

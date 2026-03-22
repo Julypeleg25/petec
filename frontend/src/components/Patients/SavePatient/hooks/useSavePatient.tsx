@@ -259,6 +259,7 @@ export function useSavePatient(
     handleInputChange: state.handleInputChange,
 
     isArchived: state.isArchived,
+    selectedFile: state.selectedFile,
     setSelectedFile: state.withDirty(state.setSelectedFile),
 
     genderTypes: state.genderTypes,

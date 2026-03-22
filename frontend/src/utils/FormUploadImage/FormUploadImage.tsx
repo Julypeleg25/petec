@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, Fragment } from "react";
+import React, { useCallback, useEffect, useRef, useState, Fragment } from "react";
 import "./FormUploadImage.css";
 import { FaImage } from "react-icons/fa";
 import Webcam from "react-webcam";
@@ -21,6 +21,7 @@ function FormUploadImage({
   isLarge = false,
   isDefault = false,
   currentImage = "#",
+  selectedFile,
   setSelectedFile,
   disabled = false,
 }: FormUploadImageProps) {
@@ -28,8 +29,14 @@ function FormUploadImage({
   const [showWebcam, setShowWebcam] = useState(false);
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  
   const [localPreviewSrc, setLocalPreviewSrc] = useState<string | null>(null);
+  const hasServerImage = currentImage !== "#" && currentImage !== "";
+
+  useEffect(() => {
+    if (!selectedFile && !hasServerImage) {
+      setLocalPreviewSrc(null);
+    }
+  }, [hasServerImage, selectedFile]);
 
   const isValidImageFile = useCallback((file: File): boolean => {
     if (!ALLOWED_IMAGE_MIME_TYPE_SET.has(file.type)) {
@@ -121,7 +128,6 @@ function FormUploadImage({
     toast.error("לא ניתן לגשת למצלמה במכשיר זה");
   }, [facingMode]);
 
-  const hasServerImage = currentImage && currentImage !== "#" && currentImage !== "";
   const displaySrc = localPreviewSrc || (hasServerImage ? currentImage : null);
 
   return (
