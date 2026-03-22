@@ -6,16 +6,25 @@ export class AppError extends Error {
   public readonly statusCode: StatusCode;
   public readonly isOperational: boolean;
   public readonly details?: ApiErrorDetails;
+  public readonly cause?: Error;
 
   constructor(args: AppErrorArgs) {
-    super(args.message, args.cause ? { cause: args.cause } : undefined);
+    super(args.message);
     this.name = new.target.name;
     this.statusCode = args.statusCode;
     if (args.details !== undefined) {
       this.details = args.details;
     }
+    if (args.cause !== undefined) {
+      this.cause = args.cause;
+    }
     this.isOperational = args.isOperational ?? true;
-    Error.captureStackTrace(this, new.target);
+
+    const errorWithCaptureStackTrace = Error as ErrorConstructor & {
+      captureStackTrace?: (targetObject: object, constructorOpt?: Function) => void;
+    };
+
+    errorWithCaptureStackTrace.captureStackTrace?.(this, new.target);
   }
 }
 
