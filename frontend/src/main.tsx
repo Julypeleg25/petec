@@ -1,21 +1,22 @@
 import { createRoot } from "react-dom/client";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
-import "./index.css";
 import { setupHebrewZodErrorMap } from "@petec/shared";
 import App from "./App";
+import "./index.css";
 import { appHistory } from "./router/appHistory";
 
 setupHebrewZodErrorMap();
 
-const rootElement = document.getElementById("root");
+const ROOT_ELEMENT_ID = "root";
+
+const rootElement = document.getElementById(ROOT_ELEMENT_ID);
+
 if (!rootElement) {
-  throw new Error(
-    'אלמנט השורש עם המזהה "root" לא נמצא. יש לוודא שבקובץ public/index.html קיים <div id="root">.'
-  );
+  throw new Error(`Root element "#${ROOT_ELEMENT_ID}" was not found.`);
 }
 
 createRoot(rootElement).render(
   <HistoryRouter history={appHistory}>
     <App />
-  </HistoryRouter>
+  </HistoryRouter>,
 );
