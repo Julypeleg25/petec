@@ -1,5 +1,6 @@
 import { Role, UserStatus } from "@petec/shared";
 import type { IUser } from "@models/user";
+import { toMapperIdString } from "@mappers/common/common.mappers.utils";
 
 export type UserMapperInput = Partial<
     Pick<
@@ -16,9 +17,7 @@ export type UserMapperInput = Partial<
 };
 
 export const toUserIdString = (value: UserMapperInput["_id"]): string => {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-    return value.toString();
+    return toMapperIdString(value);
 };
 
 export const toUserIsoString = (value?: Date | string): string => {

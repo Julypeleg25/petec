@@ -5,12 +5,15 @@ import type {
 } from "@app-types/medicine.types";
 import type { MedicineDTO, SimpleSystemTypeDTO } from "@petec/shared";
 
-const toReferenceId = (value?: PopulatedRefDoc | null): string =>
+const toRefIdString = (value?: string | { toString(): string } | null): string =>
     value == null
         ? ""
-        : typeof value._id === "object"
-            ? value._id.toString()
-            : String(value._id);
+        : typeof value === "string"
+            ? value
+            : value.toString();
+
+const toReferenceId = (value?: PopulatedRefDoc | null): string =>
+    value == null ? "" : toRefIdString(value._id);
 
 export const toPopulatedReference = (
     value?: PopulatedRefDoc | null,
@@ -35,7 +38,7 @@ export const toPopulatedReference = (
 };
 
 export const mapMedicineDocToDto = (doc: MedicineLeanDoc): MedicineDTO => ({
-    id: String(doc._id),
+    id: toRefIdString(doc._id),
     name: doc.name,
     description: doc.description,
     isDeleted: doc.isDeleted,
@@ -54,7 +57,7 @@ export const mapMedicineDocToDto = (doc: MedicineLeanDoc): MedicineDTO => ({
 export const mapSimpleTypeDocToDto = (
     doc: SimpleTypeLeanDoc,
 ): SimpleSystemTypeDTO => ({
-    id: String(doc._id),
+    id: toRefIdString(doc._id),
     name: doc.name,
     description: doc.description,
     isDeleted: doc.isDeleted,

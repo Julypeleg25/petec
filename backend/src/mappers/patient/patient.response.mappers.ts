@@ -37,21 +37,21 @@ import type {
 export const toPatientDocumentResponseDTO = (
   doc: IPatientDocument,
 ): PatientDocumentResponseDTO => ({
-  id: doc._id.toString(),
-  patientId: doc.patientId.toString(),
-  caseId: doc.caseId?.toString(),
-  patientDocumentTypeId: doc.patientDocumentTypeId.toString(),
+  id: toMapperIdString(doc._id),
+  patientId: toMapperIdString(doc.patientId),
+  caseId: toMapperIdString(doc.caseId) || undefined,
+  patientDocumentTypeId: toMapperIdString(doc.patientDocumentTypeId),
   fileName: doc.fileName,
   storageKey: doc.storageKey,
   fileUrl: doc.storageKey,
-  uploadedByUserId: doc.uploadedByUserId?.toString(),
+  uploadedByUserId: toMapperIdString(doc.uploadedByUserId) || undefined,
   uploadedAt: doc.uploadedAt.toISOString(),
 });
 
 export const toAnesthesiaFormDTO = (
   value: IAnesthesiaForm,
 ): CreateAnesthesiaProcedureFormDTO => ({
-  caseId: value.caseId.toString(),
+  caseId: toMapperIdString(value.caseId),
   ownerName: toOptionalString(value.ownerName),
   name: toOptionalString(value.name),
   date: value.date instanceof Date ? value.date : undefined,
@@ -83,7 +83,7 @@ export const toCaseDetailsResponseDTO = (
   const caseSerialId =
     typeof caseData.serialId === "string" && caseData.serialId.trim().length > 0
       ? caseData.serialId
-      : caseData._id.toString();
+      : toMapperIdString(caseData._id);
   const patient = isPopulatedPatient(caseData.patientId)
     ? caseData.patientId
     : undefined;

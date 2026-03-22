@@ -5,6 +5,7 @@ import { auditRepository } from "@repositories/audit";
 import { caseRepository } from "@repositories/patient";
 import { userRepository } from "@repositories/user";
 import { mapUserToRow } from "@mappers/user/user.mappers";
+import { toMapperIdString } from "@mappers/common/common.mappers.utils";
 import {
   buildAuditLogsFilter,
   buildCasesFilter,
@@ -45,12 +46,7 @@ export const mapCaseToPatientCardRowDTO = (
   doc: PatientCardCaseTableDoc,
 ) => {
   const patient = doc.patientId || {};
-  const patientRefId =
-    patient._id instanceof Types.ObjectId
-      ? patient._id.toString()
-      : typeof patient._id === "string"
-        ? patient._id
-        : undefined;
+  const patientRefId = toMapperIdString(patient._id) || undefined;
   const patientName = typeof patient.name === "string" ? patient.name : "";
   const ownerName =
     typeof patient.owner?.name === "string" ? patient.owner.name : "";
@@ -70,9 +66,9 @@ export const mapCaseToPatientCardRowDTO = (
     patient.updatedAt,
   ) ?? undefined;
   return {
-    _id: doc._id?.toString() || "",
+    _id: toMapperIdString(doc._id),
     serialId: typeof doc.serialId === "string" ? doc.serialId : "",
-    masterCaseId: doc.masterCaseId?.toString(),
+    masterCaseId: toMapperIdString(doc.masterCaseId) || undefined,
     patientId: {
       name: patientName,
       owner: {
@@ -125,7 +121,7 @@ const mapAuditLogsToRows = async (
     );
 
     for (const matchedCase of matchedCases) {
-      caseSerialIdMap.set(matchedCase._id.toString(), matchedCase.serialId);
+      caseSerialIdMap.set(toMapperIdString(matchedCase._id), matchedCase.serialId);
     }
   }
 
@@ -137,7 +133,7 @@ const mapAuditLogsToRows = async (
     const caseSerialId = caseId ? (caseSerialIdMap.get(caseId) ?? "") : "";
 
     return {
-      id: doc._id?.toString() || "",
+      id: toMapperIdString(doc._id),
       subject: doc.subject ?? "",
       description: doc.description ?? "",
       created_at: doc.createdAt ? new Date(doc.createdAt).toISOString() : "",
