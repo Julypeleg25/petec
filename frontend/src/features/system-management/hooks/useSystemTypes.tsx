@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { systemTypesApi, SystemTypeCreatePayload, SystemTypeEditPayload } from "../systemTypes.api";
-import { SYSTEM_TYPE_NAMES, type SystemTypeName } from "@petec/shared";
+import { type SystemTypeName } from "@petec/shared";
 import { systemTypeKeys } from "./systemTypes.keys";
 
 export type CreatePayload = SystemTypeCreatePayload;

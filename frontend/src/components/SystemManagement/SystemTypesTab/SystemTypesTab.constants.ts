@@ -1,10 +1,12 @@
 import {
   systemTypesData,
+  isSystemTypeKey,
   type SystemTypeConfig,
   type SystemTypeKey,
 } from "../config";
 
-export { isSystemTypeKey, type SystemTypeKey } from "../config";
+export { isSystemTypeKey };
+export type { SystemTypeKey };
 
 export const SYSTEM_TYPE_OPTIONS: ReadonlyArray<{
   value: SystemTypeKey;

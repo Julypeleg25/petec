@@ -17,10 +17,10 @@ import {
 } from "@petec/shared";
 import { API_ROUTES } from "../config/apiRoutes";
 import { AppRoutes } from "../config/appRoutes";
+import { ENV } from "../config/config";
 import { logger } from "./logger";
 import type { RetryableConfig } from "./apiClient.types";
 import { toHebrewErrorMessage } from "./errorMessages";
-import { ENV } from "src/config/config";
 
 export const apiClient = axios.create({
   baseURL: ENV.API_URL,

@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { ENV } from "../../config/config";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -20,8 +21,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: ErrorInfo): void {
-    if (process.env.NODE_ENV !== "production") {
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    if (ENV.NODE_ENV !== "production") {
       console.error("[ErrorBoundary]", error, info);
     }
   }

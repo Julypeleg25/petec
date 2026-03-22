@@ -1,5 +1,5 @@
 import type { GetTableDataDTO } from "@petec/shared";
-import { ColumnDef } from "src/types/table.types";
+import { ColumnDef } from "../../types/table.types";
 
 export type RowData = Record<string, string | number | boolean | null | undefined | object>;
 export type SearchObj = Record<string, string | number | boolean>;
