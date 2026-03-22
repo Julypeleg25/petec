@@ -4,7 +4,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
-    "rootDir": "../",
+    "rootDir": ".",
     "outDir": "dist",
     "sourceMap": true,
     "esModuleInterop": true,
@@ -16,30 +16,21 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@controllers/*": ["./src/controllers/*"],
-      "@db/*": ["./src/db/*"],
-      "@routes/*": ["./src/routes/*"],
-      "@mappers/*": ["./src/mappers/*"],
-      "@middlewares/*": ["./src/middlewares/*"],
-      "@services/*": ["./src/services/*"],
-      "@repositories/*": ["./src/repositories/*"],
-      "@models/*": ["./src/models/*"],
-      "@constants/*": ["./src/constants/*"],
-      "@app-types/*": ["./src/types/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@config/*": ["./src/config/*"],
-      "@shared/*": ["./src/shared/*"],
-      "@petec/shared": [
-        "../packages/shared/src/index.ts",
-        "../packages/shared/dist/index.d.ts"
-      ],
-      "@petec/shared/*": [
-        "../packages/shared/src/*",
-        "../packages/shared/dist/*"
-      ],
-      "@petec-shared/*": ["../packages/shared/src/*"]
+      "@controllers/*": ["src/controllers/*"],
+      "@db/*": ["src/db/*"],
+      "@routes/*": ["src/routes/*"],
+      "@mappers/*": ["src/mappers/*"],
+      "@middlewares/*": ["src/middlewares/*"],
+      "@services/*": ["src/services/*"],
+      "@repositories/*": ["src/repositories/*"],
+      "@models/*": ["src/models/*"],
+      "@constants/*": ["src/constants/*"],
+      "@app-types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@shared/*": ["src/shared/*"]
     }
   },
-  "include": ["src/**/*", "../packages/shared/src/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

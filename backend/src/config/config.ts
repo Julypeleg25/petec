@@ -10,7 +10,7 @@ import {
 dotenv.config();
 
 const envSchema = z.object({
-  PORT: z.coerce.number().default(3000),
+  PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().min(1),
   NODE_ENV: z.enum(NODE_ENV_VALUES).default("development"),
   FRONTEND_URL: z.string().min(1),

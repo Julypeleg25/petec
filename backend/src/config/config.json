@@ -1,7 +1,7 @@
 {
   "PORT": 5000,
   "MONGODB_URI": "mongodb://localhost:27017/petec_v1",
-  "FRONTEND_URL": "http://localhost:3000",
+  "FRONTEND_URL": "http://localhost:5173",
   "ACCESS_TOKEN_EXPIRES_IN": "1h",
   "REFRESH_TOKEN_EXPIRES_IN": "1d",
   "MAIL_ADMIN": "julypeleg@gmail.com"
