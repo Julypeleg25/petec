@@ -8,7 +8,7 @@
  * - Robust date parsing for Postgres date/timestamp formats
  *
  * Usage:
- *   node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo mongodb://localhost:27017 --db petec_v2
+ *   node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo mongodb://localhost:27017 --db petec
  *
  * Options:
  *   --dry    Parse + build docs and print counts, but DO NOT connect/insert.

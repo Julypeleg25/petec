@@ -7,7 +7,7 @@ This converter reads PostgreSQL `pg_dump` text format `COPY` blocks and inserts 
 
 Run (changes in DB):
 ```bash
-node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo mongodb://localhost:27017 --db petec_v2
+node petec_pgsql_to_mongo_seed.js --input ./PETEC-SCRIPT.pgsql --mongo mongodb://localhost:27017 --db petec
 ```
 
 Dry run (no changes in DB):
