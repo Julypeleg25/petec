@@ -5,7 +5,7 @@
   "dependencies": {
     "@remix-run/router": "^1.23.2",
     "@hookform/resolvers": "^3.9.0",
-    "@petec/shared": "*",
+    "@petec/shared": "file:../packages/shared",
     "@tanstack/react-query": "^5.62.16",
     "axios": "^1.6.8",
     "jwt-decode": "^4.0.0",
