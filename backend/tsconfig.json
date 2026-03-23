@@ -28,7 +28,8 @@
       "@app-types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@petec/shared": ["../packages/shared/dist/index.d.ts"]
     }
   },
   "include": ["src/**/*"],
