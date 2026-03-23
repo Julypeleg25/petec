@@ -1,30 +1,30 @@
-import { patientRepository } from "@repositories/patient";
-import { caseRepository } from "@repositories/patient";
-import { masterCaseRepository } from "@repositories/patient";
-import { anesthesiaFormRepository } from "@repositories/patient";
-import { documentRepository } from "@repositories/patient";
-import { patientMedicineRepository } from "@repositories/patient";
-import { auditRepository } from "@repositories/audit";
-import { storageService } from "@services/storage";
-import { caseGridService } from "@services/patient";
-import { logger } from "@config/logger";
-import { uploadToCloudinary, deleteFromCloudinary } from "@utils/cloudinary.utils";
-import { NotFoundError, BadRequestError } from "@constants/error.constants";
-import { PATIENT_STORAGE } from "@constants/patient.constants";
+import { patientRepository } from "../../repositories/patient/index.js";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { masterCaseRepository } from "../../repositories/patient/index.js";
+import { anesthesiaFormRepository } from "../../repositories/patient/index.js";
+import { documentRepository } from "../../repositories/patient/index.js";
+import { patientMedicineRepository } from "../../repositories/patient/index.js";
+import { auditRepository } from "../../repositories/audit/index.js";
+import { storageService } from "../storage/index.js";
+import { caseGridService } from "./index.js";
+import { logger } from "../../config/logger.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../../utils/cloudinary.utils.js";
+import { NotFoundError, BadRequestError } from "../../constants/error.constants.js";
+import { PATIENT_STORAGE } from "../../constants/patient.constants.js";
 import {
   toAnesthesiaFormDTO,
   toCaseDetailsResponseDTO,
   withMasterCaseDetails,
   toPatientDocumentResponseDTO,
   toReleasePatientDataResponseDTO,
-} from "@mappers/patient/patient.response.mappers";
+} from "../../mappers/patient/patient.response.mappers.js";
 import {
   isPhotoStorageKey,
   mapCaseToChartsDataResponse,
   mapCaseToDailyPlanDetail,
   mapRelatedCasesToMasterCaseDetails,
   toPhotoContentType,
-} from "@mappers/patient/patient.service.mappers";
+} from "../../mappers/patient/patient.service.mappers.js";
 import {
   getCaseSerialPrefix,
   type NewPatientDTO,
@@ -40,36 +40,36 @@ import {
   type CaseDetailsResponseDTO,
   type ReleasePatientDataResponseDTO,
 } from "@petec/shared";
-import type { ICase, CaseDocument } from "@models/case";
+import type { ICase, CaseDocument } from "../../models/case/index.js";
 import type { ReadStream } from "node:fs";
 
-import { toObjectId } from "@utils/objectId.utils";
-import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
+import { toObjectId } from "../../utils/objectId.utils.js";
+import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
 import {
   mapNewPatientDtoToPatientData,
   mapEditDtoToPatientUpdate,
-} from "@mappers/patient/patient.patient-data.mappers";
+} from "../../mappers/patient/patient.patient-data.mappers.js";
 import {
   mapEditDtoToCaseUpdate,
   mapNewPatientDtoToCaseData,
-} from "@mappers/patient/patient.case-data.mappers";
-import { mapGridDtoToRows } from "@mappers/patient/patient.case-grid.request.mappers";
+} from "../../mappers/patient/patient.case-data.mappers.js";
+import { mapGridDtoToRows } from "../../mappers/patient/patient.case-grid.request.mappers.js";
 import {
   mapReleaseMedicineToData,
   mapUploadDocumentToData,
-} from "@mappers/patient/patient.release-document.mappers";
+} from "../../mappers/patient/patient.release-document.mappers.js";
 import type {
   AnesthesiaFormUpsertData,
   CaseWithPopulatedPatient,
   MedWithPopulatedName,
-} from "@app-types/patient.types";
+} from "../../types/patient.types.js";
 import {
   ensureDedicatedPatientForCase,
   getCaseByIdOrThrow,
   getCaseByIdPopulatedOrThrow,
   getCaseBySerialIdOrThrow,
   resolveMasterCaseBySerialPrefix,
-} from "@services/patient/utils/patientService.utils";
+} from "./utils/patientService.utils.js";
 
 const MODULE = "patient";
 const ENTITY_TYPE_PATIENT = "Patient";

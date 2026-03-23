@@ -4,7 +4,7 @@ import {
     ICaseDetailsOptionsObj,
     ICaseDetailsExamObj,
     ICaseDetailsRow,
-} from "./Case.types";
+} from "./Case.types.js";
 
 export const caseDetailsMedicineObjSchema = new Schema<ICaseDetailsMedicineObj>(
     {

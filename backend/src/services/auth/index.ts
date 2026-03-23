@@ -1,2 +1,2 @@
-export * from "./authService";
-export * from "./utils/authService.utils";
+export * from "./authService.js";
+export * from "./utils/authService.utils.js";

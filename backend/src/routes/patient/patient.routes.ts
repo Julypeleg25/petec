@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { patientController } from "@controllers/patient";
-import { authenticate, requirePermission } from "@middlewares/auth.middleware";
-import { validateBody, validateParams } from "@middlewares/validate";
-import { uploadImage } from "@middlewares/upload";
+import { patientController } from "../../controllers/patient/index.js";
+import { authenticate, requirePermission } from "../../middlewares/auth.middleware.js";
+import { validateBody, validateParams } from "../../middlewares/validate.js";
+import { uploadImage } from "../../middlewares/upload.js";
 import { Permission, UPLOAD } from "@petec/shared";
 import {
     NewPatientDTOSchema,
@@ -17,7 +17,7 @@ import {
     PatientIdParamsDTOSchema,
     DocumentIdParamsDTOSchema,
 } from "@petec/shared";
-import { PATIENT_ROUTE_PATHS } from "./patientRoutes.constants";
+import { PATIENT_ROUTE_PATHS } from "./patientRoutes.constants.js";
 
 const router = Router();
 

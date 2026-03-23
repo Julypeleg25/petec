@@ -1,5 +1,5 @@
-import type { HttpStatus } from "../constants/index";
-import type { ApiErrorDetails } from "../types/index";
+import type { HttpStatus } from "../constants/index.js";
+import type { ApiErrorDetails } from "../types/index.js";
 
 export type StatusCode = (typeof HttpStatus)[keyof typeof HttpStatus];
 

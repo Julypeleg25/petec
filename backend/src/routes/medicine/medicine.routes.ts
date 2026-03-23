@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { medicineController } from "@controllers/medicine";
-import { authenticate } from "@middlewares/auth.middleware";
-import { validateParams } from "@middlewares/validate";
+import { medicineController } from "../../controllers/medicine/index.js";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { validateParams } from "../../middlewares/validate.js";
 import { CategoryTypeParamsDTOSchema } from "@petec/shared";
-import { MEDICINE_ROUTE_PATHS } from "./medicineRoutes.constants";
+import { MEDICINE_ROUTE_PATHS } from "./medicineRoutes.constants.js";
 
 const router = Router();
 

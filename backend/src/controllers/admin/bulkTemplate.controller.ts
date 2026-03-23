@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
-import { bulkTemplateService } from "@services/admin";
-import { sendSuccess } from "@utils/apiResponse";
-import { getValidatedBody, getValidatedParams } from "@utils/request.utils";
-import { BadRequestError } from "@constants/error.constants";
+import { bulkTemplateService } from "../../services/admin/index.js";
+import { sendSuccess } from "../../utils/apiResponse.js";
+import { getValidatedBody, getValidatedParams } from "../../utils/request.utils.js";
+import { BadRequestError } from "../../constants/error.constants.js";
 import type {
     BulkTemplateDownloadDTO,
     BulkTemplateUploadParamsDTO,

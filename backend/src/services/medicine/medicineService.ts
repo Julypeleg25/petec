@@ -1,4 +1,4 @@
-import { systemTypesRepository } from "@repositories/admin";
+import { systemTypesRepository } from "../../repositories/admin/index.js";
 import type {
   MedicineDTO,
   MedicineCategoryType,
@@ -8,16 +8,16 @@ import { SYSTEM_TYPE_NAMES } from "@petec/shared";
 import type {
   MedicineLeanDoc,
   SimpleTypeLeanDoc,
-} from "@app-types/medicine.types";
+} from "../../types/medicine.types.js";
 import {
   MEDICINE_ACTIVE_FILTER,
   MEDICINE_SORT,
   type MedicineCategoryLeanDoc,
-} from "@services/medicine/utils/medicineService.utils";
+} from "./utils/medicineService.utils.js";
 import {
   mapMedicineDocToDto,
   mapSimpleTypeDocToDto,
-} from "@mappers/medicine/medicine.mappers";
+} from "../../mappers/medicine/medicine.mappers.js";
 
 const resolveCategoryDoc = async (
   categoryType: MedicineCategoryType,

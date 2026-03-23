@@ -1,1 +1,1 @@
-export { default } from "./admin.routes";
+export { default } from "./admin.routes.js";

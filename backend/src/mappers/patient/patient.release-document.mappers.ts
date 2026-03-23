@@ -1,5 +1,5 @@
 import type { Types } from "mongoose";
-import { toObjectId } from "@utils/objectId.utils";
+import { toObjectId } from "../../utils/objectId.utils.js";
 import type {
     ReleasePatientDTO,
     UploadDocumentDTO,
@@ -7,7 +7,7 @@ import type {
 import type {
     ReleaseMedicineData,
     UploadDocumentData,
-} from "./patient.mappers.types";
+} from "./patient.mappers.types.js";
 
 export const mapReleaseMedicineToData = (
     medicine: ReleasePatientDTO["medicines"][number],

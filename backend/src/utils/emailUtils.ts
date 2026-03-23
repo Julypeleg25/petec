@@ -1,8 +1,8 @@
 import Mailjet from "node-mailjet";
-import { ENV } from "@config/config";
-import { logger } from "@config/logger";
-import { InternalServerError } from "@constants/error.constants";
-import type { SendEmailOptions } from "@app-types/emailUtils.types";
+import { ENV } from "../config/config.js";
+import { logger } from "../config/logger.js";
+import { InternalServerError } from "../constants/error.constants.js";
+import type { SendEmailOptions } from "../types/emailUtils.types.js";
 
 const MAILJET_SEND_RESOURCE = "send";
 const MAILJET_VERSION = "v3.1";
@@ -26,10 +26,10 @@ export const sendEmail = async (options: SendEmailOptions): Promise<void> => {
     subject: options.subject,
   });
 
-  const mailjet = Mailjet.apiConnect(
-    ENV.mailjetPublicKey,
-    ENV.mailjetPrivateKey,
-  );
+  const mailjet = new Mailjet.Client({
+    apiKey: ENV.mailjetPublicKey,
+    apiSecret: ENV.mailjetPrivateKey,
+  });
 
   try {
     await mailjet

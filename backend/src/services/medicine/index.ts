@@ -1,2 +1,2 @@
-export * from "./medicineService";
-export * from "./utils/medicineService.utils";
+export * from "./medicineService.js";
+export * from "./utils/medicineService.utils.js";

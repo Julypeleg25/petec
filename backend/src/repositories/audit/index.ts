@@ -1,1 +1,1 @@
-export * from "./audit.repository";
+export * from "./audit.repository.js";

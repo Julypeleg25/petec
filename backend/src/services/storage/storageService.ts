@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
-import { logger } from "@config/logger";
+import { logger } from "../../config/logger.js";
 import {
   resolveStoragePath,
   STORAGE_CONSTANTS,
-} from "@services/storage/utils/storageService.utils";
+} from "./utils/storageService.utils.js";
 
 const MODULE = STORAGE_CONSTANTS.MODULE;
 

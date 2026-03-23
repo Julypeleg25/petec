@@ -1,1 +1,1 @@
-export * from "./admin.response.mappers";
+export * from "./admin.response.mappers.js";

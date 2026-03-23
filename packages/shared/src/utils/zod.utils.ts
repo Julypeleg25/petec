@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdSchema } from "./index";
+import { objectIdSchema } from "./index.js";
 
 export const optionalNullableNonNegativeNumberInputSchema = z.preprocess(
   (value) => {

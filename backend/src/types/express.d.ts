@@ -1,4 +1,4 @@
-import type { RequestContext } from "../shared/http/requestContext";
+import type { RequestContext } from "../shared/http/requestContext.js";
 
 declare global {
     namespace Express {

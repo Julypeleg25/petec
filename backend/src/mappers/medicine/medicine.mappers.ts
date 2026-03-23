@@ -2,7 +2,7 @@ import type {
     MedicineLeanDoc,
     PopulatedRefDoc,
     SimpleTypeLeanDoc,
-} from "@app-types/medicine.types";
+} from "../../types/medicine.types.js";
 import type { MedicineDTO, SimpleSystemTypeDTO } from "@petec/shared";
 
 const toRefIdString = (value?: string | { toString(): string } | null): string =>

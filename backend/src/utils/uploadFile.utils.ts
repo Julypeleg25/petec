@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { FILE_EXTENSION_BY_MIME_TYPE } from "@petec/shared";
-import { BadRequestError } from "@constants/error.constants";
+import { BadRequestError } from "../constants/error.constants.js";
 
 const UUID_HYPHEN_REGEX = /-/g;
 const INVALID_FILE_NAME_CHARS_REGEX = /[<>:"/\\|?*\x00-\x1F]/g;

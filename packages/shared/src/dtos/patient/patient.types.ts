@@ -24,7 +24,7 @@ import type {
     UploadPatientPhotoResponseDTOSchema,
     baseMedicineSchema,
     caseDetailsRowSchema,
-} from "./patient.schemas";
+} from "./patient.schemas.js";
 
 export type BaseMedicineSchema = z.infer<typeof baseMedicineSchema>;
 export type CaseDetailsDataSchema = z.infer<typeof caseDetailsRowSchema>;

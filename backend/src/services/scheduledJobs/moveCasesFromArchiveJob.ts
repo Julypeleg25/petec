@@ -1,5 +1,5 @@
-import { logger } from "@config/logger";
-import { caseRepository } from "@repositories/patient";
+import { logger } from "../../config/logger.js";
+import { caseRepository } from "../../repositories/patient/index.js";
 
 const MODULE = "scheduled-jobs";
 

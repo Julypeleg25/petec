@@ -1,6 +1,6 @@
-import { toObjectId, toOptionalObjectId } from "@utils/objectId.utils";
+import { toObjectId, toOptionalObjectId } from "../../utils/objectId.utils.js";
 import type { EditPatientDTO } from "@petec/shared";
-import type { ICaseDetailsRow } from "@models/case";
+import type { ICaseDetailsRow } from "../../models/case/index.js";
 
 const toNumericDoseAmount = (
     value?: number | string | null,

@@ -4,7 +4,7 @@ import {
   SortOrders,
   SORT_ORDER_VALUES,
   TABLE_DEFAULT_SORT_BY,
-} from "../constants/index";
+} from "../constants/index.js";
 
 export const dateCoerceSchema = z.coerce.date();
 

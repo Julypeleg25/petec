@@ -1,14 +1,14 @@
 import { Model, HydratedDocument, Types } from "mongoose";
 
-import { SYSTEM_TYPE_MODEL_MAP } from "@models/lookups";
+import { SYSTEM_TYPE_MODEL_MAP } from "../../models/lookups/index.js";
 import {
   SORT_DIRECTIONS,
   SortOrders,
   type SortOrder,
   type SystemTypeName,
 } from "@petec/shared";
-import type { BaseLookup, MongoFilter } from "@app-types/global.types";
-import { escapeRegex } from "@mappers/table/table.mappers.utils";
+import type { BaseLookup, MongoFilter } from "../../types/global.types.js";
+import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
 
 const NOT_DELETED_FILTER: MongoFilter = {
   isDeleted: { $ne: true },

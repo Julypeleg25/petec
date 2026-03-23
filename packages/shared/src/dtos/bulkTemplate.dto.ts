@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SYSTEM_TYPE_NAMES_VALUES } from "../constants/index";
+import { SYSTEM_TYPE_NAMES_VALUES } from "../constants/index.js";
 
 export const BulkTemplateDownloadDTOSchema = z.object({
     systemType: z.enum(SYSTEM_TYPE_NAMES_VALUES),

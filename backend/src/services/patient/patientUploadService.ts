@@ -1,13 +1,13 @@
-import { patientService } from "@services/patient";
-import { sanitizeUploadedFileName } from "@utils/uploadFile.utils";
-import { PATIENT_STORAGE } from "@constants/patient.constants";
+import { patientService } from "./index.js";
+import { sanitizeUploadedFileName } from "../../utils/uploadFile.utils.js";
+import { PATIENT_STORAGE } from "../../constants/patient.constants.js";
 import type {
   UploadDocumentDTO,
   PatientDocumentResponseDTO,
 } from "@petec/shared";
 import {
   requireUploadedFile,
-} from "@services/patient/utils/patientUploadService.utils";
+} from "./utils/patientUploadService.utils.js";
 
 type UploadPatientPhotoParams = {
   patientId: string;

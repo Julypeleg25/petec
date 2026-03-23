@@ -1,6 +1,6 @@
-import { systemTypesRepository } from "@repositories/admin";
-import { BadRequestError } from "@constants/error.constants";
-import type { BaseLookup } from "@app-types/global.types";
+import { systemTypesRepository } from "../../../repositories/admin/index.js";
+import { BadRequestError } from "../../../constants/error.constants.js";
+import type { BaseLookup } from "../../../types/global.types.js";
 import { SYSTEM_TYPE_NAMES, type SystemTypeName } from "@petec/shared";
 
 type SystemTypeMutationPayload = Partial<BaseLookup> & {

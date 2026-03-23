@@ -1,19 +1,19 @@
-import { CASE_ALERT_FIELDS, CASE_ALERT_RULES, CASE_ALERTS_CONSTANTS } from "@constants/caseAlerts.constants";
-import { toMapperIdString, toParsedDate } from "@mappers/common/common.mappers.utils";
+import { CASE_ALERT_FIELDS, CASE_ALERT_RULES, CASE_ALERTS_CONSTANTS } from "../../../constants/caseAlerts.constants.js";
+import { toMapperIdString, toParsedDate } from "../../../mappers/common/common.mappers.utils.js";
 import type {
   ICase,
   ICaseDetailsExamObj,
   ICaseDetailsMedicineObj,
   ICaseDetailsOptionsObj,
   ICaseDetailsRow,
-} from "@models/case";
-import type { IAnimalVitals } from "@models/lookups";
-import type { IPatient } from "@models/patient";
+} from "../../../models/case/index.js";
+import type { IAnimalVitals } from "../../../models/lookups/index.js";
+import type { IPatient } from "../../../models/patient/index.js";
 import {
   ANIMAL_VITAL_TYPES,
   getLatestVitalRows,
   isValueInRange,
-} from "@utils/animalVitals.utils";
+} from "../../../utils/animalVitals.utils.js";
 
 type CasePatientRef = Partial<Pick<IPatient, "refs">>;
 

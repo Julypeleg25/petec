@@ -1,12 +1,12 @@
-import { logger } from "@config/logger";
-import { caseRepository } from "@repositories/patient";
-import { NotFoundError, ValidationError } from "@constants/error.constants";
-import type { ICaseDetailsRow } from "@models/case";
+import { logger } from "../../config/logger.js";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { NotFoundError, ValidationError } from "../../constants/error.constants.js";
+import type { ICaseDetailsRow } from "../../models/case/index.js";
 import {
   normalizeCaseDetailsGrid,
   toGridValidationDetails,
   validateCaseDetailsGrid,
-} from "@services/patient/utils/caseGridService.utils";
+} from "./utils/caseGridService.utils.js";
 
 const MODULE = "caseGrid";
 

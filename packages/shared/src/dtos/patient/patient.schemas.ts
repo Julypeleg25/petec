@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { CASE_DATE_FIELDS } from "../../constants/index";
+import { CASE_DATE_FIELDS } from "../../constants/index.js";
 import {
     caseSerialIdSchema,
     nullableOptionalDateCoerceSchema,
     objectIdSchema,
-} from "../../utils/index";
+} from "../../utils/index.js";
 
 export const baseMedicineSchema = z.object({
     medicineId: objectIdSchema,

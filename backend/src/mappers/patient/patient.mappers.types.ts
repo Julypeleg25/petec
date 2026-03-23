@@ -1,5 +1,5 @@
 import type { Types } from "mongoose";
-import type { ICase } from "@models/case";
+import type { ICase } from "../../models/case/index.js";
 
 export interface CaseRefsData {
     animalTypeId?: Types.ObjectId;

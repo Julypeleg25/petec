@@ -1,4 +1,4 @@
-import type { SafeJsonObject, SafeJsonValue } from "@app-types/sanitizer.types";
+import type { SafeJsonObject, SafeJsonValue } from "../types/sanitizer.types.js";
 
 const SENSITIVE_KEYS = [
   "password",

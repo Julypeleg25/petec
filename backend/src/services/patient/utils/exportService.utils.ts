@@ -1,4 +1,4 @@
-import type { ICase } from "@models/case";
+import type { ICase } from "../../../models/case/index.js";
 
 export const EXPORT_SERVICE_CONSTANTS = {
   MODULE: "export",

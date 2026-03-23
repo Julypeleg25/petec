@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { IRefreshToken, UserDocument } from "@models/user";
+import type { IRefreshToken, UserDocument } from "../../../models/user/index.js";
 import type { TokenPayload } from "@petec/shared";
 
 export const isActiveUser = (user: Pick<UserDocument, "status" | "isDeleted">): boolean =>

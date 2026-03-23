@@ -1,6 +1,6 @@
-import { BaseRepository } from "../base.repository";
-import { UserModel } from "@models/user";
-import type { IUser, UserDocument, IRefreshToken } from "@models/user";
+import { BaseRepository } from "../base.repository.js";
+import { UserModel } from "../../models/user/index.js";
+import type { IUser, UserDocument, IRefreshToken } from "../../models/user/index.js";
 import type { Types } from "mongoose";
 import { Role, UserStatus } from "@petec/shared";
 

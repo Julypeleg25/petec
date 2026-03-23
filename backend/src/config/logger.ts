@@ -1,5 +1,5 @@
 import winston from "winston";
-import { ENV } from "@config/config";
+import { ENV } from "./config.js";
 import path from "path";
 
 type LogMetaValue = string | number | boolean | null | undefined | object;

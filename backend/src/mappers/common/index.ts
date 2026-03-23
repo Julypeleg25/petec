@@ -1,1 +1,1 @@
-export * from "./common.mappers.utils";
+export * from "./common.mappers.utils.js";

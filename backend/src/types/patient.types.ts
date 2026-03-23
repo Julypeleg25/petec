@@ -1,10 +1,10 @@
 import type { Types } from "mongoose";
-import type { IAnesthesiaForm } from "@models/anesthesiaForm";
-import type { ICase } from "@models/case";
-import type { IPatient } from "@models/patient";
-import type { IPatientMedicine } from "@models/patientMedicine";
+import type { IAnesthesiaForm } from "../models/anesthesiaForm/index.js";
+import type { ICase } from "../models/case/index.js";
+import type { IPatient } from "../models/patient/index.js";
+import type { IPatientMedicine } from "../models/patientMedicine/index.js";
 import type { ChartsDataResponseDTO } from "@petec/shared";
-import type { MapperReferenceId, MapperIdValue } from "@mappers/common/common.mappers.utils";
+import type { MapperReferenceId, MapperIdValue } from "../mappers/common/common.mappers.utils.js";
 
 export interface PopulatedNameRef {
   _id: MapperIdValue;

@@ -1,4 +1,4 @@
-import { TABLE_ALLOW_LIST, SortOrders } from "../constants/index";
+import { TABLE_ALLOW_LIST, SortOrders } from "../constants/index.js";
 
 export type AllowedTableName = (typeof TABLE_ALLOW_LIST)[number];
 export type SortOrderKey = keyof typeof SortOrders;

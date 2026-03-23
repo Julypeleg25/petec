@@ -1,5 +1,5 @@
-import { ENV } from "@config/config";
-import { logger } from "@config/logger";
+import { ENV } from "../config/config.js";
+import { logger } from "../config/logger.js";
 import mongoose from "mongoose";
 
 const connectToDatabase = async () => {

@@ -5,8 +5,8 @@ import {
     SORT_ORDER_VALUES,
     TABLE_ALLOW_LIST,
     TABLE_DEFAULT_SORT_BY,
-} from "../constants/index";
-import { PatientCardRowDTOSchema } from "./patient.dto";
+} from "../constants/index.js";
+import { PatientCardRowDTOSchema } from "./patient.dto.js";
 
 const filterScalarSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 const filterValueSchema: z.ZodType<

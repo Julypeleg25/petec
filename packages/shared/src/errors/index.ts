@@ -1,2 +1,2 @@
-export * from "./app-error";
-export * from "./app-error.types";
+export * from "./app-error.js";
+export * from "./app-error.types.js";

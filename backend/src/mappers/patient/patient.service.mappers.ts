@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { Types } from "mongoose";
-import type { ICase } from "@models/case";
-import { PATIENT_STORAGE } from "@constants/patient.constants";
+import type { ICase } from "../../models/case/index.js";
+import { PATIENT_STORAGE } from "../../constants/patient.constants.js";
 import {
   DEFAULT_IMAGE_MIME_TYPE,
   IMAGE_MIME_TYPE_BY_EXTENSION,
@@ -12,21 +12,21 @@ import type {
   ChartsDataResponseDTO,
   DailyPlanDetailDTO,
 } from "@petec/shared";
-import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
-import { toMapperNamedReference } from "@mappers/common/common.mappers.utils";
-import { toFiniteNumber } from "@mappers/common/common.mappers.utils";
+import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
+import { toMapperNamedReference } from "../common/common.mappers.utils.js";
+import { toFiniteNumber } from "../common/common.mappers.utils.js";
 import {
   toNormalizedDate,
   toNormalizedTime,
-} from "@mappers/common/common.mappers.utils";
+} from "../common/common.mappers.utils.js";
 import type {
   CaseWithPopulatedPatient,
   ChartDataPoint,
   DailyPlanPopulatedPatient,
-} from "@app-types/patient.types";
+} from "../../types/patient.types.js";
 import {
   PATIENT_MAPPER_OBJECT_KEYS,
-} from "./patient.mapper.constants";
+} from "./patient.mapper.constants.js";
 
 type MasterCaseDetailsItem = CaseDetailsResponseDTO["masterCaseDetails"][number];
 

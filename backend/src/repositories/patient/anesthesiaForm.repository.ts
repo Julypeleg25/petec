@@ -1,6 +1,6 @@
-import { BaseRepository } from "../base.repository";
-import { AnesthesiaFormModel } from "@models/anesthesiaForm";
-import type { IAnesthesiaForm, AnesthesiaFormDocument } from "@models/anesthesiaForm";
+import { BaseRepository } from "../base.repository.js";
+import { AnesthesiaFormModel } from "../../models/anesthesiaForm/index.js";
+import type { IAnesthesiaForm, AnesthesiaFormDocument } from "../../models/anesthesiaForm/index.js";
 
 export class AnesthesiaFormRepository extends BaseRepository<IAnesthesiaForm> {
     constructor() {

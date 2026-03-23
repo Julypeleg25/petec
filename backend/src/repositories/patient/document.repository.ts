@@ -1,6 +1,6 @@
-import { BaseRepository } from "../base.repository";
-import { PatientDocumentModel } from "@models/patientDocument";
-import type { IPatientDocument, PatientDocumentDocument } from "@models/patientDocument";
+import { BaseRepository } from "../base.repository.js";
+import { PatientDocumentModel } from "../../models/patientDocument/index.js";
+import type { IPatientDocument, PatientDocumentDocument } from "../../models/patientDocument/index.js";
 import type { Types } from "mongoose";
 
 export class DocumentRepository extends BaseRepository<IPatientDocument> {

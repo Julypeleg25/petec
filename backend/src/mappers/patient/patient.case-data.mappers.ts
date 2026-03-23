@@ -1,17 +1,17 @@
 import { Types } from "mongoose";
-import { toObjectId } from "@utils/objectId.utils";
+import { toObjectId } from "../../utils/objectId.utils.js";
 import {
     CASE_DATE_FIELDS,
     type EditPatientDTO,
     type NewPatientDTO,
 } from "@petec/shared";
-import type { ICase } from "@models/case";
+import type { ICase } from "../../models/case/index.js";
 import type {
     CaseCreateData,
     CaseRefsData,
     CaseUpdateData,
     CaseUpdateSource,
-} from "./patient.mappers.types";
+} from "./patient.mappers.types.js";
 
 type CreateCaseDatesInput = NonNullable<NewPatientDTO["dates"]>;
 type UpdateCaseDatesInput = NonNullable<EditPatientDTO["dates"]>;

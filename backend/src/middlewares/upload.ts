@@ -3,10 +3,10 @@ import path from "node:path";
 import multer, { FileFilterCallback } from "multer";
 import type { Request } from "express";
 import { UPLOAD } from "@petec/shared";
-import { ValidationError } from "@constants/error.constants";
-import { logger } from "@config/logger";
-import { buildOpaqueStorageKey } from "@utils/uploadFile.utils";
-import { UPLOAD_ROOT_DIR, toPosixPath } from "@utils/uploadPath.utils";
+import { ValidationError } from "../constants/error.constants.js";
+import { logger } from "../config/logger.js";
+import { buildOpaqueStorageKey } from "../utils/uploadFile.utils.js";
+import { UPLOAD_ROOT_DIR, toPosixPath } from "../utils/uploadPath.utils.js";
 
 type MulterFileWithKey = Express.Multer.File & { storageKey?: string };
 const MODULE = "upload";

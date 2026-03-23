@@ -1,13 +1,13 @@
-import { systemTypesRepository } from "@repositories/admin";
-import { logger } from "@config/logger";
-import { NotFoundError } from "@constants/error.constants";
+import { systemTypesRepository } from "../../repositories/admin/index.js";
+import { logger } from "../../config/logger.js";
+import { NotFoundError } from "../../constants/error.constants.js";
 import type { SystemTypeName } from "@petec/shared";
-import type { BaseLookup } from "@app-types/global.types";
+import type { BaseLookup } from "../../types/global.types.js";
 import {
   ensureSystemTypeNameIsUnique,
   toCreateSystemTypePayload,
   toUpdateSystemTypePayload,
-} from "@services/admin/utils";
+} from "./utils/index.js";
 
 const ADMIN_MODULE = "admin";
 export class SystemTypesService {

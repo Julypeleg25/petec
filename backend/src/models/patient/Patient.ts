@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { CASE_SERIAL_ID_REGEX } from "@petec/shared";
-import type { IPatient, IPatientOwner } from "./Patient.types";
+import type { IPatient, IPatientOwner } from "./Patient.types.js";
 
 const ownerSubSchema = new Schema<IPatientOwner>(
   {
@@ -59,4 +59,4 @@ patientSchema.index({ serialId: 1 }, { unique: true, sparse: true });
 
 export const PatientModel = mongoose.model<IPatient>("Patient", patientSchema, "patients");
 
-export type { IPatient, IPatientOwner, PatientDocument } from "./Patient.types";
+export type { IPatient, IPatientOwner, PatientDocument } from "./Patient.types.js";

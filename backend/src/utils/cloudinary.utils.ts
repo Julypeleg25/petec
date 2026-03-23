@@ -2,11 +2,11 @@ import path from "node:path";
 import { randomUUID } from "crypto";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import streamifier from "streamifier";
-import { ENV } from "@config/config";
-import { logger } from "@config/logger";
-import { BadRequestError } from "@constants/error.constants";
+import { ENV } from "../config/config.js";
+import { logger } from "../config/logger.js";
+import { BadRequestError } from "../constants/error.constants.js";
 import { UPLOAD } from "@petec/shared";
-import { sanitizeUploadedFileName } from "@utils/uploadFile.utils";
+import { sanitizeUploadedFileName } from "./uploadFile.utils.js";
 
 type CloudinaryUploadFolder =
   | typeof UPLOAD.PATIENT_PHOTOS_DIR

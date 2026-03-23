@@ -2,8 +2,8 @@ import type { Response } from "express";
 import { z } from "zod";
 import { HttpStatus, InternalServerError } from "@petec/shared";
 import type { ApiErrorDetails } from "@petec/shared";
-import { logger } from "@config/logger";
-import { formatZodIssuesForLog } from "@utils/zodError.utils";
+import { logger } from "../config/logger.js";
+import { formatZodIssuesForLog } from "./zodError.utils.js";
 
 export type ApiError = Readonly<{
   code: string;

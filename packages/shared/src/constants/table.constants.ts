@@ -1,4 +1,4 @@
-import { SYSTEM_TYPE_NAMES_VALUES } from "./systemTypes.constants";
+import { SYSTEM_TYPE_NAMES_VALUES } from "./systemTypes.constants.js";
 
 export const BASE_TABLE_NAMES = [
   "patients",

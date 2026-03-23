@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import { userRepository } from "@repositories/user";
-import { auditRepository } from "@repositories/audit";
+import { userRepository } from "../../repositories/user/index.js";
+import { auditRepository } from "../../repositories/audit/index.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -9,21 +9,21 @@ import {
   verifyResetPasswordToken,
   setRefreshCookie,
   clearRefreshCookie,
-} from "@utils/authTokens";
-import { sendEmail } from "@utils/emailUtils";
-import { logger } from "@config/logger";
-import { ENV } from "@config/config";
-import { AuthError, ConflictError, NotFoundError, BadRequestError } from "@constants/error.constants";
+} from "../../utils/authTokens.js";
+import { sendEmail } from "../../utils/emailUtils.js";
+import { logger } from "../../config/logger.js";
+import { ENV } from "../../config/config.js";
+import { AuthError, ConflictError, NotFoundError, BadRequestError } from "../../constants/error.constants.js";
 import { BCRYPT_SALT_ROUNDS, TOKEN_EXPIRY } from "@petec/shared";
 import type { Response } from "express";
-import type { IRefreshToken, UserDocument } from "@models/user";
+import type { IRefreshToken, UserDocument } from "../../models/user/index.js";
 import type { LoginDTO, LoginResponseDTO, ForgotPasswordDTO, ResetPasswordDTO, RefreshResponseDTO, RegisterDTO, RegisterResponseDTO, TokenPayload, ResetPasswordTokenPayload } from "@petec/shared";
 import {
   buildAuthTokenPayload,
   buildUserFullName,
   findMatchingRefreshToken,
   isActiveUser,
-} from "@services/auth/utils/authService.utils";
+} from "./utils/authService.utils.js";
 import { buildResetPasswordPath } from "@petec/shared";
 
 const MODULE = "auth";

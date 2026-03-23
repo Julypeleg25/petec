@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
-import { ValidationError } from "@constants/error.constants";
-import type { ICaseDetailsRow } from "@models/case";
+import { ValidationError } from "../../../constants/error.constants.js";
+import type { ICaseDetailsRow } from "../../../models/case/index.js";
 
 export interface GridValidationIssue {
   path: string;

@@ -1,5 +1,5 @@
-import { logger } from "@config/logger";
-import { moveCasesFromArchive } from "@services/scheduledJobs/moveCasesFromArchiveJob";
+import { logger } from "../config/logger.js";
+import { moveCasesFromArchive } from "../services/scheduledJobs/moveCasesFromArchiveJob.js";
 
 const SCHEDULE_TICK_MS = 60_000;
 const MOVE_CASES_FROM_ARCHIVE_HOUR = 8;

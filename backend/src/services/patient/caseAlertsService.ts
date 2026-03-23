@@ -1,13 +1,13 @@
-import type { IAnimalVitals } from "@models/lookups";
-import { systemTypesRepository } from "@repositories/admin";
+import type { IAnimalVitals } from "../../models/lookups/index.js";
+import { systemTypesRepository } from "../../repositories/admin/index.js";
 import { SYSTEM_TYPE_NAMES } from "@petec/shared";
-import { buildAnimalVitalsMap } from "@utils/animalVitals.utils";
+import { buildAnimalVitalsMap } from "../../utils/animalVitals.utils.js";
 import {
   buildCaseAlertSummary,
   getCaseAnimalTypeId,
   type CaseAlertEvaluable,
   type CaseAlertSummary,
-} from "@services/patient/utils/caseAlertsService.utils";
+} from "./utils/caseAlertsService.utils.js";
 
 export class CaseAlertsService {
   async attachAlertCounts<TCase extends CaseAlertEvaluable>(

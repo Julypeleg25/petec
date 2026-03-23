@@ -10,7 +10,7 @@ import type {
   ILookupWithAnimalType,
   IMedicine,
   IMedicineCategory,
-} from "./Lookups.types";
+} from "./Lookups.types.js";
 
 const createLookupSchema = (): Schema<IBaseLookup> => {
   const schema = new Schema<IBaseLookup>(
@@ -152,4 +152,4 @@ export type {
   LookupWithAnimalTypeDocument,
   MedicineDocument,
   MedicineCategoryDocument,
-} from "./Lookups.types";
+} from "./Lookups.types.js";

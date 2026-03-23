@@ -1,8 +1,8 @@
 import type { ErrorRequestHandler } from "express";
 import { AppError, HttpStatus, ValidationError } from "@petec/shared";
-import { sendError } from "@utils/apiResponse";
-import { logger } from "@config/logger";
-import { ENV } from "@config/config";
+import { sendError } from "../utils/apiResponse.js";
+import { logger } from "../config/logger.js";
+import { ENV } from "../config/config.js";
 
 const isAppError = (value: Error): value is AppError => value instanceof AppError;
 

@@ -1,6 +1,6 @@
 import type { AllowedTableName, PaginatedResponse } from "@petec/shared";
-import { BadRequestError } from "@constants/error.constants";
-import type { CollectionHandler, TableRow, TableKey } from "./table.mappers.types";
+import { BadRequestError } from "../../constants/error.constants.js";
+import type { CollectionHandler, TableRow, TableKey } from "./table.mappers.types.js";
 
 export const ensureAllowedTableName = (
   tableName: AllowedTableName,

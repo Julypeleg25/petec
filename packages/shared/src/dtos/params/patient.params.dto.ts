@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdSchema } from "../../utils/index";
+import { objectIdSchema } from "../../utils/index.js";
 
 export const CaseIdParamsDTOSchema = z.object({
     caseId: objectIdSchema,

@@ -1,1 +1,1 @@
-export * from "./systemTypes.repository";
+export * from "./systemTypes.repository.js";

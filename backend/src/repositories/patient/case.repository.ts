@@ -1,7 +1,7 @@
-import { escapeRegex } from "@mappers/table/table.mappers.utils";
-import { BaseRepository } from "../base.repository";
-import { CaseModel } from "@models/case";
-import type { ICase, CaseDocument, ICaseDetailsRow } from "@models/case";
+import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
+import { BaseRepository } from "../base.repository.js";
+import { CaseModel } from "../../models/case/index.js";
+import type { ICase, CaseDocument, ICaseDetailsRow } from "../../models/case/index.js";
 import type { Types, UpdateQuery } from "mongoose";
 
 const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>

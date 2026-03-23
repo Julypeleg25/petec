@@ -2,11 +2,10 @@ import puppeteer from "puppeteer";
 import Handlebars from "handlebars";
 import fs from "fs";
 import path from "path";
-import { logger } from "@config/logger";
+import { logger } from "../config/logger.js";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PDF_FILE_EXTENSION = ".pdf";
 
 export const createPdf = async <T extends Record<string, string | number | boolean | undefined | null>>(

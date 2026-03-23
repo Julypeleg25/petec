@@ -1,6 +1,6 @@
-import { BaseRepository } from "../base.repository";
-import { MasterCaseModel } from "@models/masterCase";
-import type { IMasterCase } from "@models/masterCase";
+import { BaseRepository } from "../base.repository.js";
+import { MasterCaseModel } from "../../models/masterCase/index.js";
+import type { IMasterCase } from "../../models/masterCase/index.js";
 import type { Types } from "mongoose";
 
 export class MasterCaseRepository extends BaseRepository<IMasterCase> {

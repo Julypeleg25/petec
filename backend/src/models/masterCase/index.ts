@@ -1,2 +1,2 @@
-export * from "./MasterCase";
-export * from "./MasterCase.types";
+export * from "./MasterCase.js";
+export * from "./MasterCase.types.js";

@@ -1,6 +1,6 @@
-import { HttpStatus } from "../constants/index";
-import type { ApiErrorDetails } from "../types/index";
-import type { AppErrorArgs, StatusCode } from "./app-error.types";
+import { HttpStatus } from "../constants/index.js";
+import type { ApiErrorDetails } from "../types/index.js";
+import type { AppErrorArgs, StatusCode } from "./app-error.types.js";
 
 export class AppError extends Error {
   public readonly statusCode: StatusCode;
@@ -101,4 +101,4 @@ export class InternalServerError extends AppError {
   }
 }
 
-export type { AppErrorArgs, StatusCode } from "./app-error.types";
+export type { AppErrorArgs, StatusCode } from "./app-error.types.js";

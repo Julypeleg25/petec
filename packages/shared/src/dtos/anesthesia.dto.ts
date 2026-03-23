@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdSchema } from "../utils";
+import { objectIdSchema } from "../utils/index.js";
 
 const anesthesiaOptionalCommentSchema = z
     .string()

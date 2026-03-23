@@ -1,4 +1,4 @@
-import type { BaseLookup } from "@app-types/global.types";
+import type { BaseLookup } from "../../../types/global.types.js";
 
 export const BULK_TEMPLATE_CSV = {
   HEADER: "name,isDeleted",

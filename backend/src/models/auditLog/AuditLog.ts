@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from "mongoose";
-import type { IAuditLog } from "./AuditLog.types";
+import type { IAuditLog } from "./AuditLog.types.js";
 
 const auditLogSchema = new Schema<IAuditLog, Model<IAuditLog>>(
   {
@@ -20,4 +20,4 @@ auditLogSchema.index({ createdAt: 1 });
 
 export const AuditLogModel = mongoose.model<IAuditLog>("AuditLog", auditLogSchema, "audit_logs");
 
-export type { IAuditLog, AuditLogDocument } from "./AuditLog.types";
+export type { IAuditLog, AuditLogDocument } from "./AuditLog.types.js";

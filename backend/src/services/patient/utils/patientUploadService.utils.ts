@@ -1,5 +1,5 @@
-import { BadRequestError } from "@constants/error.constants";
-import { storageService } from "@services/storage";
+import { BadRequestError } from "../../../constants/error.constants.js";
+import { storageService } from "../../storage/index.js";
 
 export const requireUploadedFile = (
   file?: Express.Multer.File,

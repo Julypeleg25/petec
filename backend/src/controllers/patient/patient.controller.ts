@@ -1,11 +1,11 @@
-import { logger } from "@config/logger";
+import { logger } from "../../config/logger.js";
 import type { Request, Response, NextFunction } from "express";
-import { patientService } from "@services/patient";
-import { exportService } from "@services/patient";
-import { patientUploadService } from "@services/patient";
-import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
-import { cleanupFile } from "@utils/fileCleanup.utils";
-import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "@utils/request.utils";
+import { patientService } from "../../services/patient/index.js";
+import { exportService } from "../../services/patient/index.js";
+import { patientUploadService } from "../../services/patient/index.js";
+import { sendSuccess, sendCreated, sendNoContent } from "../../utils/apiResponse.js";
+import { cleanupFile } from "../../utils/fileCleanup.utils.js";
+import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "../../utils/request.utils.js";
 import {
   HttpStatus,
   buildPatientExportFileName,

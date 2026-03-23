@@ -1,5 +1,5 @@
-import { logger } from "@config/logger";
-import { auditRepository } from "@repositories/audit";
+import { logger } from "../../config/logger.js";
+import { auditRepository } from "../../repositories/audit/index.js";
 import type { Types } from "mongoose";
 
 const MODULE = "audit";

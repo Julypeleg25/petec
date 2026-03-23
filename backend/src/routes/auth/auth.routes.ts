@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { authController } from "@controllers/auth";
-import { authenticate, requireAdmin } from "@middlewares/auth.middleware";
-import { validateBody } from "@middlewares/validate";
+import { authController } from "../../controllers/auth/index.js";
+import { authenticate, requireAdmin } from "../../middlewares/auth.middleware.js";
+import { validateBody } from "../../middlewares/validate.js";
 import {
   RegisterDTOSchema,
   LoginDTOSchema,
   ForgotPasswordDTOSchema,
   ResetPasswordDTOSchema,
 } from "@petec/shared";
-import { AUTH_ROUTE_PATHS } from "./authRoutes.constants";
+import { AUTH_ROUTE_PATHS } from "./authRoutes.constants.js";
 
 const router = Router();
 

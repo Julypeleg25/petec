@@ -4,15 +4,15 @@ import type {
   SortOrder,
 } from "@petec/shared";
 import { PATIENT_CARD_TABLE_NAMES, TABLE_ALLOW_LIST } from "@petec/shared";
-import type { MongoFilter } from "@app-types/global.types";
-import { TABLE_HANDLERS } from "@mappers/table/table.mappers";
-import type { TableRow } from "@mappers/table/table.mappers.types";
+import type { MongoFilter } from "../../types/global.types.js";
+import { TABLE_HANDLERS } from "../../mappers/table/table.mappers.js";
+import type { TableRow } from "../../mappers/table/table.mappers.types.js";
 import {
   buildPaginatedTableResponse,
   ensureAllowedTableName,
   resolveTableHandler,
-} from "@mappers/table/table.service.mappers";
-import { patientCardsTableService } from "@services/table";
+} from "../../mappers/table/table.service.mappers.js";
+import { patientCardsTableService } from "./index.js";
 
 const ALLOWED_TABLE_NAMES = new Set<AllowedTableName>(TABLE_ALLOW_LIST);
 

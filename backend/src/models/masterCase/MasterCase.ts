@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from "mongoose";
-import type { IMasterCase } from "./MasterCase.types";
+import type { IMasterCase } from "./MasterCase.types.js";
 
 const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
     {
@@ -17,4 +17,4 @@ const masterCaseSchema = new Schema<IMasterCase, Model<IMasterCase>>(
 
 export const MasterCaseModel = mongoose.model<IMasterCase>("MasterCase", masterCaseSchema, "master_cases");
 
-export type { IMasterCase, MasterCaseDocument } from "./MasterCase.types";
+export type { IMasterCase, MasterCaseDocument } from "./MasterCase.types.js";

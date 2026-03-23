@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { tableController } from "@controllers/table";
-import { authenticate } from "@middlewares/auth.middleware";
-import { validateBody } from "@middlewares/validate";
+import { tableController } from "../../controllers/table/index.js";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { validateBody } from "../../middlewares/validate.js";
 import { GetTableDataDTOSchema } from "@petec/shared";
-import { TABLE_ROUTE_PATHS } from "./tableRoutes.constants";
+import { TABLE_ROUTE_PATHS } from "./tableRoutes.constants.js";
 
 const router = Router();
 

@@ -6,10 +6,10 @@ import {
   toNullableIsoDateString,
   toNullableTrimmedString,
   type MapperReferenceId,
-} from "@mappers/common/common.mappers.utils";
+} from "../common/common.mappers.utils.js";
 import {
   MEDICINE_ADMIN_MAPPER_OBJECT_KEYS,
-} from "./medicine.admin.mapper.constants";
+} from "./medicine.admin.mapper.constants.js";
 
 type NamedLookupRef = {
   _id?: MapperReferenceId;

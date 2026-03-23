@@ -1,14 +1,14 @@
 import type { Request, Response, NextFunction } from "express";
-import { systemTypesService } from "@services/admin";
-import { userService } from "@services/user";
-import { sendSuccess, sendCreated, sendNoContent } from "@utils/apiResponse";
-import { getValidatedBody, getValidatedParams } from "@utils/request.utils";
-import type { BaseLookup } from "@app-types/global.types";
+import { systemTypesService } from "../../services/admin/index.js";
+import { userService } from "../../services/user/index.js";
+import { sendSuccess, sendCreated, sendNoContent } from "../../utils/apiResponse.js";
+import { getValidatedBody, getValidatedParams } from "../../utils/request.utils.js";
+import type { BaseLookup } from "../../types/global.types.js";
 import {
   toAnimalVitalDTO,
   toRaceTypeDTO,
   toSimpleSystemTypeDTO,
-} from "@mappers/admin";
+} from "../../mappers/admin/index.js";
 import type { UpdateUserDTO } from "@petec/shared";
 import type {
   SystemTypeNameParamsDTO,

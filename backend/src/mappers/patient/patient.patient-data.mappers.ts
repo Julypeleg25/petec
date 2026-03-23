@@ -5,7 +5,7 @@ import type {
 import type {
     PatientCreateData,
     PatientUpdateData,
-} from "./patient.mappers.types";
+} from "./patient.mappers.types.js";
 
 export const mapNewPatientDtoToPatientData = (
     dto: NewPatientDTO,

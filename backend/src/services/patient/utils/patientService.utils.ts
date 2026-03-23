@@ -1,10 +1,10 @@
-import { logger } from "@config/logger";
-import { NotFoundError } from "@constants/error.constants";
-import { caseRepository } from "@repositories/patient";
-import { masterCaseRepository } from "@repositories/patient";
-import { patientRepository } from "@repositories/patient";
+import { logger } from "../../../config/logger.js";
+import { NotFoundError } from "../../../constants/error.constants.js";
+import { caseRepository } from "../../../repositories/patient/index.js";
+import { masterCaseRepository } from "../../../repositories/patient/index.js";
+import { patientRepository } from "../../../repositories/patient/index.js";
 import { getCaseSerialPrefix } from "@petec/shared";
-import type { CaseDocument, ICase } from "@models/case";
+import type { CaseDocument, ICase } from "../../../models/case/index.js";
 
 const MODULE = "patient";
 

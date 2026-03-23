@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { objectIdSchema } from "../utils/index";
+import { objectIdSchema } from "../utils/index.js";
 import {
     optionalNullableNonNegativeNumberInputSchema,
     optionalNullableObjectIdInputSchema,
     numberStringSchema
-} from "../utils/zod.utils";
-import type { SystemTypeName } from "../constants";
+} from "../utils/zod.utils.js";
+import type { SystemTypeName } from "../constants/index.js";
 
 const isoDateTimeSchema = z.string().datetime({ offset: true });
 

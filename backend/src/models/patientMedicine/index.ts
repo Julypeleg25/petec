@@ -1,2 +1,2 @@
-export * from "./PatientMedicine";
-export * from "./PatientMedicine.types";
+export * from "./PatientMedicine.js";
+export * from "./PatientMedicine.types.js";

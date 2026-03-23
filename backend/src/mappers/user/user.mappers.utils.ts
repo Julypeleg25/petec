@@ -1,6 +1,6 @@
 import { Role, UserStatus } from "@petec/shared";
-import type { IUser } from "@models/user";
-import { toMapperIdString } from "@mappers/common/common.mappers.utils";
+import type { IUser } from "../../models/user/index.js";
+import { toMapperIdString } from "../common/common.mappers.utils.js";
 
 export type UserMapperInput = Partial<
     Pick<

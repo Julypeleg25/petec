@@ -1,1 +1,1 @@
-export { default } from "./patient.routes";
+export { default } from "./patient.routes.js";

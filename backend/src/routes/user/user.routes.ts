@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { userController } from "@controllers/user";
-import { authenticate } from "@middlewares/auth.middleware";
-import { USER_ROUTE_PATHS } from "./userRoutes.constants";
+import { userController } from "../../controllers/user/index.js";
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { USER_ROUTE_PATHS } from "./userRoutes.constants.js";
 
 const router = Router();
 

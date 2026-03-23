@@ -1,2 +1,2 @@
-export * from "./bulkTemplateService";
-export * from "./systemTypesService";
+export * from "./bulkTemplateService.js";
+export * from "./systemTypesService.js";

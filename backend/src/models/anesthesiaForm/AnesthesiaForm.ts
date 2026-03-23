@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from "mongoose";
-import type { IAnesthesiaForm } from "./AnesthesiaForm.types";
+import type { IAnesthesiaForm } from "./AnesthesiaForm.types.js";
 
 const anesthesiaFormSchema = new Schema<IAnesthesiaForm, Model<IAnesthesiaForm>>(
     {
@@ -40,4 +40,4 @@ export const AnesthesiaFormModel = mongoose.model<IAnesthesiaForm>(
     "anesthesia_forms"
 );
 
-export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm.types";
+export type { IAnesthesiaForm, AnesthesiaFormDocument } from "./AnesthesiaForm.types.js";

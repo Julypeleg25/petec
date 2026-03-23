@@ -1,12 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import { sendSuccess } from "@utils/apiResponse";
-import { getValidatedParams } from "@utils/request.utils";
+import { sendSuccess } from "../../utils/apiResponse.js";
+import { getValidatedParams } from "../../utils/request.utils.js";
 import type { CategoryTypeParamsDTO } from "@petec/shared";
 import {
   SimpleSystemTypeListResponseDTOSchema,
   MedicineListResponseDTOSchema,
 } from "@petec/shared";
-import { medicineService } from "@services/medicine";
+import { medicineService } from "../../services/medicine/index.js";
 
 export class MedicineController {
   async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {

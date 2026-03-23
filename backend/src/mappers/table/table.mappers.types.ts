@@ -1,6 +1,6 @@
 import { BASE_TABLE_NAMES, type SortOrder, type SystemTypeName } from "@petec/shared";
-import type { MongoFilter, SortRecord } from "@app-types/global.types";
-import type { MapperReferenceId } from "@mappers/common/common.mappers.utils";
+import type { MongoFilter, SortRecord } from "../../types/global.types.js";
+import type { MapperReferenceId } from "../common/common.mappers.utils.js";
 
 export type TableScalar = string | number | boolean | null | undefined;
 export type TableValue = TableScalar | TableRow;

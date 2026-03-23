@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PASSWORD_POLICY, roles } from "../constants";
+import { PASSWORD_POLICY, roles } from "../constants/index.js";
 
 const passwordSchema = z
   .string()

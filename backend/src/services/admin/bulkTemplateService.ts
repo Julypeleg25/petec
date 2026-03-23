@@ -1,13 +1,13 @@
-import { logger } from "@config/logger";
-import { systemTypesRepository } from "@repositories/admin";
-import { ValidationError } from "@constants/error.constants";
+import { logger } from "../../config/logger.js";
+import { systemTypesRepository } from "../../repositories/admin/index.js";
+import { ValidationError } from "../../constants/error.constants.js";
 import type { SystemTypeName } from "@petec/shared";
-import type { BaseLookup } from "@app-types/global.types";
+import type { BaseLookup } from "../../types/global.types.js";
 import {
   BULK_TEMPLATE_CSV,
   parseBulkTemplateCsvLine,
   toBulkTemplateCsvRow,
-} from "@services/admin/utils";
+} from "./utils/index.js";
 
 const MODULE = "bulkTemplate";
 

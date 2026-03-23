@@ -1,7 +1,7 @@
-import { escapeRegex } from "@mappers/table/table.mappers.utils";
-import { BaseRepository } from "../base.repository";
-import { PatientModel } from "@models/patient";
-import type { IPatient, PatientDocument } from "@models/patient";
+import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
+import { BaseRepository } from "../base.repository.js";
+import { PatientModel } from "../../models/patient/index.js";
+import type { IPatient, PatientDocument } from "../../models/patient/index.js";
 import type { Types } from "mongoose";
 
 const toFlexiblePhoneRegex = (value: string): RegExp => {

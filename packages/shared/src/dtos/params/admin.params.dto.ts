@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { SYSTEM_TYPE_NAMES_VALUES } from "../../constants/index";
-import { objectIdSchema } from "../../utils/index";
+import { SYSTEM_TYPE_NAMES_VALUES } from "../../constants/index.js";
+import { objectIdSchema } from "../../utils/index.js";
 
 export const SystemTypeNameParamsDTOSchema = z.object({
     typeName: z.enum(SYSTEM_TYPE_NAMES_VALUES),

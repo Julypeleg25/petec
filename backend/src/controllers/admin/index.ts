@@ -1,2 +1,2 @@
-export * from "./admin.controller";
-export * from "./bulkTemplate.controller";
+export * from "./admin.controller.js";
+export * from "./bulkTemplate.controller.js";

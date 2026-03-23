@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { HttpStatus } from "@petec/shared";
-import { logger } from "@config/logger";
-import { ENV } from "@config/config";
-import type { RequestContext } from "@shared/http/requestContext";
+import { logger } from "../../config/logger.js";
+import { ENV } from "../../config/config.js";
+import type { RequestContext } from "../http/requestContext.js";
 
 type SafeMetaValue = string | number | boolean | null | undefined;
 type SafeMeta = Record<string, SafeMetaValue | SafeMetaValue[] | Record<string, SafeMetaValue>>;

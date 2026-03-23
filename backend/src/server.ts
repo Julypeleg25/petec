@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import app from "./app";
-import { ENV } from "@config/config";
-import { logger } from "@config/logger";
+import app from "./app.js";
+import { ENV } from "./config/config.js";
+import { logger } from "./config/logger.js";
 import { APP_EXIT_CODE_ERROR } from "@petec/shared";
-import connectToDatabase from "@db/dbConnection";
-import { initializeScheduledJobs } from "@utils/serverSchedule.utils";
+import connectToDatabase from "./db/dbConnection.js";
+import { initializeScheduledJobs } from "./utils/serverSchedule.utils.js";
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 10000;
 
@@ -13,7 +13,9 @@ const startServer = async (): Promise<void> => {
     await connectToDatabase();
 
     const server = app.listen(ENV.port, () => {
-      logger.info(`Server running on port ${String(ENV.port)} in ${ENV.nodeEnv} mode`);
+      logger.info(
+        `Server running on port ${String(ENV.port)} in ${ENV.nodeEnv} mode`,
+      );
     });
     const stopScheduledJobs = initializeScheduledJobs(ENV.isProduction);
 
@@ -36,7 +38,9 @@ const startServer = async (): Promise<void> => {
     process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
     process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   } catch (err) {
-    logger.error("Failed to start server", { error: err instanceof Error ? err.message : String(err) });
+    logger.error("Failed to start server", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     process.exit(APP_EXIT_CODE_ERROR);
   }
 };

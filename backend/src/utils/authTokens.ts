@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { ENV } from "@config/config";
+import { ENV } from "../config/config.js";
 import { TOKEN_EXPIRY, COOKIE_OPTIONS, COOKIE_NAMES } from "@petec/shared";
 import type { TokenPayload, ResetPasswordTokenPayload } from "@petec/shared";
 import type { Response, CookieOptions } from "express";

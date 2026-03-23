@@ -1,1 +1,1 @@
-export * from "./medicine.controller";
+export * from "./medicine.controller.js";

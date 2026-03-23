@@ -1,11 +1,11 @@
 import { SORT_DIRECTIONS, SYSTEM_TYPE_NAMES_VALUES } from "@petec/shared";
 import { Types } from "mongoose";
 
-import { auditRepository } from "@repositories/audit";
-import { caseRepository } from "@repositories/patient";
-import { userRepository } from "@repositories/user";
-import { mapUserToRow } from "@mappers/user/user.mappers";
-import { toMapperIdString } from "@mappers/common/common.mappers.utils";
+import { auditRepository } from "../../repositories/audit/index.js";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { userRepository } from "../../repositories/user/index.js";
+import { mapUserToRow } from "../user/user.mappers.js";
+import { toMapperIdString } from "../common/common.mappers.utils.js";
 import {
   buildAuditLogsFilter,
   buildCasesFilter,
@@ -16,19 +16,19 @@ import {
   toSortRecord,
   toCreatedByName,
   type AuditLogLean,
-} from "@mappers/table/table.mappers.utils";
+} from "./table.mappers.utils.js";
 
-import type { MongoFilter } from "@app-types/global.types";
-import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
+import type { MongoFilter } from "../../types/global.types.js";
+import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
 import type {
   BaseTableKey,
   CollectionHandler,
   PaginationArgs,
   TableKey,
   TableRow,
-} from "@mappers/table/table.mappers.types";
-import type { IPatient } from "@models/patient";
-import type { ICase } from "@models/case";
+} from "./table.mappers.types.js";
+import type { IPatient } from "../../models/patient/index.js";
+import type { ICase } from "../../models/case/index.js";
 
 export type PatientCardCaseTableDoc = Pick<
   ICase,

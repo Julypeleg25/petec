@@ -1,5 +1,5 @@
 import path from "node:path";
-import { UPLOAD_ROOT_DIR } from "@utils/uploadPath.utils";
+import { UPLOAD_ROOT_DIR } from "../../../utils/uploadPath.utils.js";
 
 export const STORAGE_CONSTANTS = {
   MODULE: "storage",

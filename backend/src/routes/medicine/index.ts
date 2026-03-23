@@ -1,1 +1,1 @@
-export { default } from "./medicine.routes";
+export { default } from "./medicine.routes.js";

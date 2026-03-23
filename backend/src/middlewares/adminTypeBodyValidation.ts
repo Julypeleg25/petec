@@ -10,8 +10,8 @@ import {
     EditAnimalVitalsDTOSchema,
     EditTypeDTOSchema,
 } from "@petec/shared";
-import { ValidationError } from "@constants/error.constants";
-import { toValidationErrorDetails } from "@utils/zodError.utils";
+import { ValidationError } from "../constants/error.constants.js";
+import { toValidationErrorDetails } from "../utils/zodError.utils.js";
 
 const toStrictSchema = (schema: ZodSchema): ZodSchema => {
     if (schema instanceof z.ZodObject) {

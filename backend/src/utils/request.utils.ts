@@ -1,5 +1,5 @@
 import type { Request } from "express";
-import { AuthError, BadRequestError } from "@constants/error.constants";
+import { AuthError, BadRequestError } from "../constants/error.constants.js";
 
 export const getParam = (req: Request, key: string): string => {
   const val = req.params[key];

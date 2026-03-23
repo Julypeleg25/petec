@@ -1,6 +1,6 @@
-import { BaseRepository } from "../base.repository";
-import { AuditLogModel } from "@models/auditLog";
-import type { IAuditLog, AuditLogDocument } from "@models/auditLog";
+import { BaseRepository } from "../base.repository.js";
+import { AuditLogModel } from "../../models/auditLog/index.js";
+import type { IAuditLog, AuditLogDocument } from "../../models/auditLog/index.js";
 import type { Types } from "mongoose";
 
 export class AuditRepository extends BaseRepository<IAuditLog> {

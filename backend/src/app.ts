@@ -6,17 +6,17 @@ import {
   URL_ENCODED_BODY_LIMIT,
   HttpStatus,
 } from "@petec/shared";
-import { requestIdMiddleware } from "@middlewares/requestId";
-import { requestLoggerMiddleware } from "@middlewares/requestLogger.middleware";
-import { applyAppSecurity } from "@middlewares/security";
-import { errorHandler } from "@middlewares/error.middleware";
-import { notFound } from "@middlewares/notFound.middleware";
-import authRoutes from "@routes/auth";
-import patientRoutes from "@routes/patient";
-import adminRoutes from "@routes/admin";
-import tableRoutes from "@routes/table";
-import userRoutes from "@routes/user";
-import medicineRoutes from "@routes/medicine";
+import { requestIdMiddleware } from "./middlewares/requestId.js";
+import { requestLoggerMiddleware } from "./middlewares/requestLogger.middleware.js";
+import { applyAppSecurity } from "./middlewares/security.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import { notFound } from "./middlewares/notFound.middleware.js";
+import authRoutes from "./routes/auth/index.js";
+import patientRoutes from "./routes/patient/index.js";
+import adminRoutes from "./routes/admin/index.js";
+import tableRoutes from "./routes/table/index.js";
+import userRoutes from "./routes/user/index.js";
+import medicineRoutes from "./routes/medicine/index.js";
 
 const app = express();
 

@@ -1,14 +1,14 @@
-import type { MongoFilter } from "@app-types/global.types";
-import { mapCaseToPatientCardRowDTO, type PatientCardCaseTableDoc } from "@mappers/table/table.mappers";
-import { buildPaginatedTableResponse } from "@mappers/table/table.service.mappers";
+import type { MongoFilter } from "../../types/global.types.js";
+import { mapCaseToPatientCardRowDTO, type PatientCardCaseTableDoc } from "../../mappers/table/table.mappers.js";
+import { buildPaginatedTableResponse } from "../../mappers/table/table.service.mappers.js";
 import {
   buildCasesFilter,
   extractHasAlertsFilter,
   toSkip,
   toSortRecord,
-} from "@mappers/table/table.mappers.utils";
-import { caseRepository } from "@repositories/patient";
-import { caseAlertsService } from "@services/patient";
+} from "../../mappers/table/table.mappers.utils.js";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { caseAlertsService } from "../patient/index.js";
 import type { AllowedTableName, PaginatedResponse, SortOrder } from "@petec/shared";
 
 const PATIENT_CARD_CASE_SELECT_FIELDS = [

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { userService } from "@services/user";
-import { sendSuccess } from "@utils/apiResponse";
+import { userService } from "../../services/user/index.js";
+import { sendSuccess } from "../../utils/apiResponse.js";
 import { StaffMemberListResponseDTOSchema } from "@petec/shared";
 
 export class UserController {

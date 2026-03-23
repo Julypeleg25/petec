@@ -1,5 +1,5 @@
 import mongoose, { Schema, Model } from "mongoose";
-import type { IPatientDocument } from "./PatientDocument.types";
+import type { IPatientDocument } from "./PatientDocument.types.js";
 
 const patientDocumentSchema = new Schema<IPatientDocument, Model<IPatientDocument>>(
     {
@@ -38,4 +38,4 @@ export const PatientDocumentModel = mongoose.model<IPatientDocument>(
     "patient_documents"
 );
 
-export type { IPatientDocument, PatientDocumentDocument } from "./PatientDocument.types";
+export type { IPatientDocument, PatientDocumentDocument } from "./PatientDocument.types.js";

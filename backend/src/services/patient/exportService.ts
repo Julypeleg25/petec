@@ -1,20 +1,20 @@
-import { logger } from "@config/logger";
-import { NotFoundError } from "@constants/error.constants";
-import type { ICase } from "@models/case";
-import { AnimalVitalsModel } from "@models/lookups";
+import { logger } from "../../config/logger.js";
+import { NotFoundError } from "../../constants/error.constants.js";
+import type { ICase } from "../../models/case/index.js";
+import { AnimalVitalsModel } from "../../models/lookups/index.js";
 import { buildPatientExportFileName } from "@petec/shared";
-import { caseRepository } from "@repositories/patient";
-import { patientMedicineRepository } from "@repositories/patient";
-import type { PopulatedCase } from "@services/patient/exportService.types";
-import { EXPORT_SERVICE_CONSTANTS } from "@services/patient/utils/exportService.utils";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { patientMedicineRepository } from "../../repositories/patient/index.js";
+import type { PopulatedCase } from "./exportService.types.js";
+import { EXPORT_SERVICE_CONSTANTS } from "./utils/exportService.utils.js";
 import {
   buildCaseExportTemplateData,
   resolveCaseExportRows,
   sortCaseGridRows,
-} from "@utils/caseExport.utils";
-import { buildAnimalVitalsMap } from "@utils/animalVitals.utils";
-import { createPdf } from "@utils/puppeteer.utils";
-import type { MedWithPopulatedName } from "@app-types/patient.types";
+} from "../../utils/caseExport.utils.js";
+import { buildAnimalVitalsMap } from "../../utils/animalVitals.utils.js";
+import { createPdf } from "../../utils/puppeteer.utils.js";
+import type { MedWithPopulatedName } from "../../types/patient.types.js";
 
 const MODULE = EXPORT_SERVICE_CONSTANTS.MODULE;
 

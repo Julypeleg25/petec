@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyAccessToken } from "@utils/authTokens";
-import { AuthError, ForbiddenError } from "@constants/error.constants";
-import { logger } from "@config/logger";
+import { verifyAccessToken } from "../utils/authTokens.js";
+import { AuthError, ForbiddenError } from "../constants/error.constants.js";
+import { logger } from "../config/logger.js";
 import type { AuthenticatedUser } from "@petec/shared";
 import { ROLE_PERMISSIONS, Permission, Role, roles } from "@petec/shared";
 

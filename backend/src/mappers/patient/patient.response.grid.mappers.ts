@@ -9,7 +9,7 @@ import type {
   ICaseDetailsMedicineObj,
   ICaseDetailsOptionsObj,
   ICaseDetailsRow,
-} from "@models/case";
+} from "../../models/case/index.js";
 import {
   toBooleanOrNull,
   toBooleanWithDefault,
@@ -22,8 +22,8 @@ import {
   toOptionalString,
   toStringOrNull,
   type MapperReferenceId,
-} from "@mappers/common/common.mappers.utils";
-import { PATIENT_MAPPER_DEFAULTS } from "./patient.mapper.constants";
+} from "../common/common.mappers.utils.js";
+import { PATIENT_MAPPER_DEFAULTS } from "./patient.mapper.constants.js";
 
 const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/;
 

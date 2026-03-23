@@ -1,9 +1,9 @@
 import { Schema, Model } from "mongoose";
 import { CASE_SERIAL_ID_REGEX } from "@petec/shared";
-import { ICase } from "./Case.types";
+import { ICase } from "./Case.types.js";
 import {
     caseDetailsRowSchema,
-} from "./CaseDetails.schema";
+} from "./CaseDetails.schema.js";
 
 export const caseSchema = new Schema<ICase, Model<ICase>>(
     {

@@ -1,9 +1,9 @@
-import type { BaseLookup } from "@app-types/global.types";
+import type { BaseLookup } from "../../types/global.types.js";
 import {
   MapperIdValue,
   MapperReferenceId,
   toMapperIdString,
-} from "@mappers/common/common.mappers.utils";
+} from "../common/common.mappers.utils.js";
 import type {
   AnimalVitalDTO,
   RaceTypeDTO,

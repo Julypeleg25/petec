@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import { logger } from "@config/logger";
+import { logger } from "../config/logger.js";
 
 type CleanupFileOptions = Readonly<{
   reason?: string;

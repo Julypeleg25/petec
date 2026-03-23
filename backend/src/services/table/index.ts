@@ -1,2 +1,2 @@
-export * from "./patientCardsTableService";
-export * from "./tableService";
+export * from "./patientCardsTableService.js";
+export * from "./tableService.js";

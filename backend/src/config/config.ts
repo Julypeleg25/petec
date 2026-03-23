@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 import { NODE_ENV_VALUES, UPLOAD } from "@petec/shared";
 import { z } from "zod";
-import configFile from "./config.json";
+import configFile from "./config.json" with { type: "json" };
 import {
   normalizeDurationString,
   parseDurationToMilliseconds,
-} from "./config.utils";
+} from "./config.utils.js";
 
 dotenv.config();
 

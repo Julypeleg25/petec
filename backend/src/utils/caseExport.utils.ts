@@ -1,5 +1,5 @@
-import type { MedWithPopulatedName, PopulatedNameRef } from "@app-types/patient.types";
-import type { IAnimalVitals } from "@models/lookups";
+import type { MedWithPopulatedName, PopulatedNameRef } from "../types/patient.types.js";
+import type { IAnimalVitals } from "../models/lookups/index.js";
 import type {
   CaseExportTemplateData,
   PopulatedCase,
@@ -7,12 +7,12 @@ import type {
   PopulatedExamObj,
   PopulatedMedicineObj,
   PopulatedOptionsObj,
-} from "@services/patient/exportService.types";
-import { EXPORT_SERVICE_CONSTANTS } from "@services/patient/utils/exportService.utils";
+} from "../services/patient/exportService.types.js";
+import { EXPORT_SERVICE_CONSTANTS } from "../services/patient/utils/exportService.utils.js";
 import {
   getLatestVitalRows,
   isValueInRange,
-} from "@utils/animalVitals.utils";
+} from "./animalVitals.utils.js";
 
 type ResolveCaseExportRowsResult = Readonly<{
   dayRowsForGrid: PopulatedCaseDetailsRow[];

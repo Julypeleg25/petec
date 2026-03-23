@@ -2,8 +2,8 @@ import type { Types } from "mongoose";
 import type {
   CaseRefsReference,
   PopulatedPatient,
-} from "./patient.response.mappers.types";
-import { PATIENT_MAPPER_OBJECT_KEYS } from "./patient.mapper.constants";
+} from "./patient.response.mappers.types.js";
+import { PATIENT_MAPPER_OBJECT_KEYS } from "./patient.mapper.constants.js";
 
 export const resolveCaseRefs = (
   caseRefs?: CaseRefsReference,

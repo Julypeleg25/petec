@@ -1,7 +1,7 @@
 import { Application } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import { ENV } from "@config/config";
+import { ENV } from "../config/config.js";
 
 const CORS_METHODS = [
   "GET",

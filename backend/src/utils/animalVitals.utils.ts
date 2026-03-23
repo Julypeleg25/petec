@@ -1,4 +1,4 @@
-import type { IAnimalVitals } from "@models/lookups";
+import type { IAnimalVitals } from "../models/lookups/index.js";
 
 type VitalRowLike = Readonly<{
   dateTime: Date | string;

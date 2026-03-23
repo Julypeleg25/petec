@@ -1,1 +1,1 @@
-export * from "./medicine.mappers";
+export * from "./medicine.mappers.js";

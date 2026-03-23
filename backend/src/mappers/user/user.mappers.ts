@@ -5,14 +5,14 @@ import {
     type UserResponseDTO,
     type UserRowDTO,
 } from "@petec/shared";
-import type { UserDocument } from "@models/user";
+import type { UserDocument } from "../../models/user/index.js";
 import {
     toFullName,
     toUserIdString,
     toUserIsoString,
     toUserStatus,
     type UserMapperInput,
-} from "./user.mappers.utils";
+} from "./user.mappers.utils.js";
 
 export const mapUserToResponse = (user: UserMapperInput | UserDocument): UserResponseDTO => ({
     id: toUserIdString(user._id),

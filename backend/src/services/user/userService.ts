@@ -1,9 +1,9 @@
-import { userRepository } from "@repositories/user";
-import { auditRepository } from "@repositories/audit";
-import { logger } from "@config/logger";
-import { NotFoundError } from "@constants/error.constants";
+import { userRepository } from "../../repositories/user/index.js";
+import { auditRepository } from "../../repositories/audit/index.js";
+import { logger } from "../../config/logger.js";
+import { NotFoundError } from "../../constants/error.constants.js";
 import { type UpdateUserDTO, type UserResponseDTO, type UserRowDTO, type StaffMemberDTO, roles } from "@petec/shared";
-import { mapUserToResponse, mapUserToRow, mapUserToStaffMember } from "@mappers/user/user.mappers";
+import { mapUserToResponse, mapUserToRow, mapUserToStaffMember } from "../../mappers/user/user.mappers.js";
 
 const ENTITY_TYPE = "User";
 const AUDIT_SUBJECT = "User Management";

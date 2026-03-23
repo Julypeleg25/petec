@@ -5,4 +5,4 @@ export type {
   MedWithPopulatedName,
   PopulatedNameRef,
   PopulatedPatient,
-} from "@app-types/patient.types";
+} from "../../types/patient.types.js";

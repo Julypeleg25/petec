@@ -3,7 +3,7 @@ import type {
     GetTableDataDTOSchema,
     TableDataResponseDTOSchema,
     PatientCardTableDataResponseDTOSchema,
-} from "./table.dto";
+} from "./table.dto.js";
 
 export type GetTableDataDTO = z.infer<typeof GetTableDataDTOSchema>;
 export type TableDataResponseDTO = z.infer<typeof TableDataResponseDTOSchema>;

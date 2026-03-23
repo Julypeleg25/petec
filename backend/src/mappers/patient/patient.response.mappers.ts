@@ -7,9 +7,9 @@ import type {
   PatientDocumentResponseDTO,
   ReleasePatientDataResponseDTO,
 } from "@petec/shared";
-import type { ICase } from "@models/case";
-import type { IAnesthesiaForm } from "@models/anesthesiaForm";
-import type { IPatientDocument } from "@models/patientDocument";
+import type { ICase } from "../../models/case/index.js";
+import type { IAnesthesiaForm } from "../../models/anesthesiaForm/index.js";
+import type { IPatientDocument } from "../../models/patientDocument/index.js";
 import {
   toDateInputString,
   toFiniteNumber,
@@ -18,21 +18,21 @@ import {
   toMapperNamedReference,
   toOptionalBoolean,
   toOptionalString,
-} from "@mappers/common/common.mappers.utils";
+} from "../common/common.mappers.utils.js";
 import {
   isPopulatedPatient,
   resolveCaseRefs,
-} from "./patient.response.mappers.utils";
+} from "./patient.response.mappers.utils.js";
 import {
   groupCaseDetailsRows,
   mapGridRowToDto,
-} from "./patient.response.grid.mappers";
-import { toPatientPhotoUrl } from "@utils/patientPhoto.utils";
+} from "./patient.response.grid.mappers.js";
+import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
 import type {
   CaseWithPopulatedPatient,
   MedWithPopulatedName,
   PopulatedMedicineRef,
-} from "./patient.response.mappers.types";
+} from "./patient.response.mappers.types.js";
 
 export const toPatientDocumentResponseDTO = (
   doc: IPatientDocument,

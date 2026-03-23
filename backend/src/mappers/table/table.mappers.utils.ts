@@ -7,10 +7,10 @@ import {
 } from "@petec/shared";
 import { Types } from "mongoose";
 
-import { patientRepository } from "@repositories/patient";
-import { caseRepository } from "@repositories/patient";
-import { systemTypesRepository } from "@repositories/admin";
-import { userRepository } from "@repositories/user";
+import { patientRepository } from "../../repositories/patient/index.js";
+import { caseRepository } from "../../repositories/patient/index.js";
+import { systemTypesRepository } from "../../repositories/admin/index.js";
+import { userRepository } from "../../repositories/user/index.js";
 import {
   toBooleanWithDefault,
   toMapperIdString,
@@ -18,10 +18,10 @@ import {
   toNullableIsoDateString,
   toNullableTrimmedString,
   type MapperReferenceId,
-} from "@mappers/common/common.mappers.utils";
-import { toAdminMedicineRowDTO } from "@mappers/systemManagement";
+} from "../common/common.mappers.utils.js";
+import { toAdminMedicineRowDTO } from "../systemManagement/index.js";
 
-import type { BaseLookup, MongoFilter, SortRecord } from "@app-types/global.types";
+import type { BaseLookup, MongoFilter, SortRecord } from "../../types/global.types.js";
 import type {
   CollectionHandler,
   FilterValue,
@@ -32,7 +32,7 @@ import type {
   SystemTypeTableDoc,
   SystemTypeTableRow,
   TableRow,
-} from "@mappers/table/table.mappers.types";
+} from "./table.mappers.types.js";
 import {
   CASE_SEARCH_RESULT_LIMIT,
   CASE_TEXT_FILTER_KEYS,
@@ -40,10 +40,10 @@ import {
   SYSTEM_TYPE_NUMERIC_FIELDS,
   SYSTEM_TYPE_REFERENCE_FILTER_TARGETS,
   USER_FILTER_KEY_MAP,
-} from "@mappers/table/table.mappers.constants";
+} from "./table.mappers.constants.js";
 import { TABLE_SEARCH_FILTER_KEYS, TABLE_SORT_FIELDS } from "@petec/shared";
-import type { IAuditLog } from "@models/auditLog";
-import type { IUser } from "@models/user";
+import type { IAuditLog } from "../../models/auditLog/index.js";
+import type { IUser } from "../../models/user/index.js";
 
 
 const mapSystemTypeFieldName = (fieldName: string): string =>

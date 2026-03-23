@@ -1,1 +1,1 @@
-export { default } from "./table.routes";
+export { default } from "./table.routes.js";

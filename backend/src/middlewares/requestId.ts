@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { randomUUID } from "crypto";
-import type { RequestContext } from "@shared/http/requestContext";
+import type { RequestContext } from "../shared/http/requestContext.js";
 
 const REQUEST_ID_HEADER = "x-request-id";
 const MAX_REQUEST_ID_LENGTH = 128;

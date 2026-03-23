@@ -1,6 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { roles, UserStatus } from "@petec/shared";
-import type { IRefreshToken, IUser } from "./User.types";
+import type { IRefreshToken, IUser } from "./User.types.js";
 
 const refreshTokenSubSchema = new Schema<IRefreshToken>(
   {
@@ -81,4 +81,4 @@ const userSchema = new Schema<IUser, Model<IUser>>(
 
 export const UserModel = mongoose.model<IUser>("User", userSchema, "users");
 
-export type { IRefreshToken, IUser, UserDocument } from "./User.types";
+export type { IRefreshToken, IUser, UserDocument } from "./User.types.js";

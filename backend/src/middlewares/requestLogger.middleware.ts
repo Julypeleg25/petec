@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { logger } from "@config/logger";
+import { logger } from "../config/logger.js";
 import { HttpStatus } from "@petec/shared";
 
 const parseContentLength = (value?: string | number | string[]): number | undefined => {

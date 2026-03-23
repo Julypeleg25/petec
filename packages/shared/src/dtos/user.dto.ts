@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { roles, UserStatus } from "../constants";
-import { RegisterDTOSchema } from "./auth.dto";
+import { roles, UserStatus } from "../constants/index.js";
+import { RegisterDTOSchema } from "./auth.dto.js";
 
 export const CreateUserFormSchema = RegisterDTOSchema.extend({
   role: z.enum(roles),

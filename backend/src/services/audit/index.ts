@@ -1,1 +1,1 @@
-export * from "./auditService";
+export * from "./auditService.js";

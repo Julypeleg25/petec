@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { adminController, bulkTemplateController } from "@controllers/admin";
+import { adminController, bulkTemplateController } from "../../controllers/admin/index.js";
 import {
   authenticate,
   requireAdmin,
   requirePermission,
-} from "@middlewares/auth.middleware";
-import { validateBody, validateParams } from "@middlewares/validate";
-import { validateAdminCreateTypeBody, validateAdminUpdateTypeBody } from "@middlewares/adminTypeBodyValidation";
-import { uploadBulkTemplate } from "@middlewares/upload";
+} from "../../middlewares/auth.middleware.js";
+import { validateBody, validateParams } from "../../middlewares/validate.js";
+import { validateAdminCreateTypeBody, validateAdminUpdateTypeBody } from "../../middlewares/adminTypeBodyValidation.js";
+import { uploadBulkTemplate } from "../../middlewares/upload.js";
 import { Permission, UPLOAD } from "@petec/shared";
 import {
   SystemTypeNameParamsDTOSchema,
@@ -18,7 +18,7 @@ import {
   BulkTemplateDownloadDTOSchema,
   BulkTemplateUploadParamsDTOSchema,
 } from "@petec/shared";
-import { ADMIN_ROUTE_PATHS } from "./adminRoutes.constants";
+import { ADMIN_ROUTE_PATHS } from "./adminRoutes.constants.js";
 
 const router = Router();
 

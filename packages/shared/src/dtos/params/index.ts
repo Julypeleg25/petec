@@ -1,3 +1,3 @@
-export * from "./patient.params.dto";
-export * from "./admin.params.dto";
-export * from "./medicine.params.dto";
+export * from "./patient.params.dto.js";
+export * from "./admin.params.dto.js";
+export * from "./medicine.params.dto.js";

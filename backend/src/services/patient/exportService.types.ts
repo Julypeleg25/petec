@@ -1,5 +1,5 @@
-import type { ICase, ICaseDetailsRow, ICaseDetailsMedicineObj, ICaseDetailsOptionsObj, ICaseDetailsExamObj } from "@models/case";
-import type { PopulatedPatient, PopulatedNameRef } from "@app-types/patient.types";
+import type { ICase, ICaseDetailsRow, ICaseDetailsMedicineObj, ICaseDetailsOptionsObj, ICaseDetailsExamObj } from "../../models/case/index.js";
+import type { PopulatedPatient, PopulatedNameRef } from "../../types/patient.types.js";
 
 export type PopulatedMedicineObj = Omit<ICaseDetailsMedicineObj, "medicineId" | "measureUnitTypeId" | "dosageFrequencyId" | "routeOfAdministrationId"> & {
     medicineId: PopulatedNameRef;

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodSchema } from "zod";
-import { ValidationError } from "@constants/error.constants";
-import type { ValidateSchemas } from "@app-types/validation.types";
-import { toValidationErrorDetails } from "@utils/zodError.utils";
+import { ValidationError } from "../constants/error.constants.js";
+import type { ValidateSchemas } from "../types/validation.types.js";
+import { toValidationErrorDetails } from "../utils/zodError.utils.js";
 
 const toStrictSchema = (schema: ZodSchema): ZodSchema => {
   if (schema instanceof z.ZodObject) {

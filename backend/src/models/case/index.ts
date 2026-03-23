@@ -1,1 +1,1 @@
-export * from "./Case.model";
+export * from "./Case.model.js";
