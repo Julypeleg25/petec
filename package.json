@@ -1,7 +1,7 @@
 {
   "name": "petec",
   "private": true,
-  "packageManager": "npm@10",
+  "packageManager": "npm@10.9.3",
   "workspaces": ["frontend","backend","packages/shared"],
   "scripts": {
     "install:clean": "rimraf node_modules package-lock.json && npm install",
