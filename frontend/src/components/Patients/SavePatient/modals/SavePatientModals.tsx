@@ -132,7 +132,7 @@ export function SavePatientModals({
           }
         />
       )}
-      {showCatheterReplacementModal && catheterDate && (
+      {!isArchived && showCatheterReplacementModal && catheterDate && (
         <Modal
           setIsOpen={setShowCatheterReplacementModal}
           component={

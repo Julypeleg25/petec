@@ -91,6 +91,7 @@ export function useCaseDetailsState(
             setInitialStateSnapshot(null);
 
             const isCatheterDue =
+                !cd.is_archived &&
                 isCatheterReplacementDue(
                     cd.catheter_date_for_input ?? null,
                     SAVE_PATIENT_DEFAULTS.CATHETER_REPLACEMENT_DAYS_THRESHOLD,

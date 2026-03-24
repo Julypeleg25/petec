@@ -11,7 +11,7 @@ import {
   getCaseDayPrimaryDataRow,
   getCaseDayRowByIndex,
 } from "../../CaseDetailsTable/caseGrid.utils";
-import { type AnimalVitals, type CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
+import { type CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
 import { mapAnimalVitals } from "../../CaseDetailsTable/hooks/useCaseDetailsData.utils";
 import {
   getLatestVitals,
