@@ -128,10 +128,6 @@ export const usePatientApi = () => {
         },
     });
 
-    const exportCase = useMutation({
-        mutationFn: ({ caseId, date }: { caseId: string; date?: string }) => patientsApi.exportCase(caseId, date),
-    });
-
     return {
         createPatient,
         updatePatient,
@@ -142,6 +138,5 @@ export const usePatientApi = () => {
         uploadPatientPhoto,
         deleteDocument,
         upsertAnesthesiaForm,
-        exportCase,
     };
 };

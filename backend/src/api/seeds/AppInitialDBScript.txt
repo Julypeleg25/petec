@@ -1,0 +1,183 @@
+
+INSERT INTO petec.medicine_category(
+name, created_at)
+VALUES ('תרופות', now());
+
+INSERT INTO petec.medicine_category(
+name, created_at)
+VALUES ('נוזלים', now());
+
+INSERT INTO petec.medicine_category(
+name, created_at)
+VALUES ('תוספות לנוזלים', now());
+
+INSERT INTO petec.route_of_administration(
+name, description, created_at)
+VALUES ('SIV', 'מתן וורידי איטי', now());
+
+INSERT INTO petec.route_of_administration(
+name, description, created_at)
+VALUES ('IV', 'מתן וורידי', now());
+
+INSERT INTO petec.route_of_administration(
+name, description, created_at)
+VALUES ('IM', 'מתן שרירי', now());
+
+INSERT INTO petec.user_role(
+id, name, created_at)
+VALUES (0, 'ADMIN', now());
+
+INSERT INTO petec.user_role(
+id, name, created_at)
+VALUES (1, 'רופא', now());
+
+INSERT INTO petec.user_role(
+id, name, created_at)
+VALUES (2,'אחות', now());
+
+INSERT INTO petec.user_role(
+id, name, created_at)
+VALUES (3, 'קבלה', now());
+
+INSERT INTO petec."user"(
+username, first_name, last_name, created_at, role_id, password, email)
+VALUES ('systemAdmin', 'System', 'Admin', now(), 1, '$2b$10$AfNe.pzo52y925cr2ZT6VuGCK/FYTFyNKhwGv356q8mNUX83Pxxzy', '');
+
+INSERT INTO petec.patient_document_type(id,name) values (1, 'blood-test');
+INSERT INTO petec.patient_document_type(id,name) values (2, 'xray');
+
+DROP VIEW petec.case_notifications;
+
+CREATE OR REPLACE VIEW petec.case_notifications
+ AS
+ SELECT case_id,
+    count(*) AS num_of_alerts
+   FROM ( SELECT cdd."time",
+            cdd.date,
+            cddm.case_daily_details_id,
+            cdd.case_id
+           FROM petec.case_daily_details_medicines cddm
+             LEFT JOIN petec.case_daily_details cdd ON cdd.id = cddm.case_daily_details_id
+          WHERE cddm.is_editable = true AND cddm.is_required = true AND (cddm.is_given IS NULL OR cddm.is_given = false) AND (cdd.date + cdd."time") BETWEEN (((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem') - INTERVAL '12 hours') AT TIME ZONE 'Asia/Jerusalem'::text) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem'::text)
+        UNION ALL
+		SELECT cdd."time",
+            cdd.date,
+            cdde.case_daily_details_id,
+            cdd.case_id
+           FROM petec.case_daily_details_examinations cdde
+             LEFT JOIN petec.case_daily_details cdd ON cdd.id = cdde.case_daily_details_id
+          WHERE cdde.is_editable = true AND cdde.is_required = true AND (cdde.value IS NULL OR cdde.value = '') AND (cdd.date + cdd."time") BETWEEN (((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem') - INTERVAL '12 hours') AT TIME ZONE 'Asia/Jerusalem'::text) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem'::text)
+        UNION ALL
+		SELECT cdd."time",
+            cdd.date,
+            cddfe.case_daily_details_id,
+            cdd.case_id
+           FROM petec.case_daily_details_food_extras cddfe
+             LEFT JOIN petec.case_daily_details cdd ON cdd.id = cddfe.case_daily_details_id
+          WHERE cddfe.is_editable = true AND cddfe.is_required = true AND (cddfe.is_given IS NULL OR cddfe.is_given = false) AND (cdd.date + cdd."time") BETWEEN (((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem') - INTERVAL '12 hours') AT TIME ZONE 'Asia/Jerusalem'::text) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem'::text)
+        UNION ALL
+		SELECT '00:00' AS "time",  
+		       DATE(c.catheter_date) AS date,
+		       -1 AS case_daily_details_id,
+		       c.id
+		      FROM petec.case c
+		    WHERE DATE(c.catheter_date AT TIME ZONE 'Asia/Jerusalem') = DATE(NOW() AT TIME ZONE 'Asia/Jerusalem') - INTERVAL '3 days'
+        UNION ALL
+         SELECT unnest_table."time",
+            unnest_table.date,
+            unnest_table.id AS case_daily_details_id,
+            unnest_table.case_id
+           FROM ( SELECT cdd.id,
+                    cdd.created_at,
+                    cdd.updated_at,
+                    cdd.date,
+                    cdd."time",
+                    cdd.is_box_clean,
+                    cdd.is_release,
+                    cdd.is_walk_trip,
+                    cdd.is_puke,
+                    cdd.puke_comments,
+                    cdd.weigh,
+                    cdd.food_and_water,
+                    cdd.comments,
+                    cdd.owner_update,
+                    cdd.case_id,
+                    cdd.created_by,
+                    cdd.updated_by,
+                    cdd.urine_type_id,
+                    cdd.feces_type_id,
+                    cdd.urine_comments,
+                    cdd.feces_comments,
+                    cdd.temp_is_required,
+                    cdd.pulse_is_required,
+                    cdd.respiration_is_required,
+                    cdd.urine_is_required,
+                    cdd.feces_is_required,
+                    cdd.is_box_clean_is_required,
+                    cdd.is_release_is_required,
+                    cdd.is_walk_trip_is_required,
+                    cdd.puke_is_required,
+                    cdd.weigh_is_required,
+                    cdd.food_and_water_is_required,
+                    cdd.comments_is_required,
+                    cdd.owner_update_is_required,
+					          cdd.temp_is_editable,
+                    cdd.pulse_is_editable,
+                    cdd.respiration_is_editable,
+                    cdd.urine_is_editable,
+                    cdd.feces_is_editable,
+                    cdd.is_box_clean_is_editable,
+                    cdd.is_release_is_editable,
+                    cdd.is_walk_trip_is_editable,
+                    cdd.puke_is_editable,
+                    cdd.weigh_is_editable,
+                    cdd.food_and_water_is_editable,
+                    cdd.comments_is_editable,
+                    cdd.owner_update_is_editable,
+                    cdd.temp,
+                    cdd.pulse,
+                    cdd.respiration,
+	 				avt.range_min AS temp_range_min,
+	 				avt.range_max AS temp_range_max,
+	 				avp.range_min AS pulse_range_min,
+	 				avp.range_max AS pulse_range_max,
+	 				avr.range_min AS respiration_range_min,
+	 				avr.range_max AS respiration_range_max,
+                    unnest(ARRAY['temp'::text, 'pulse'::text, 'respiration'::text, 'is_box_clean'::text, 'is_release'::text, 'is_walk_trip'::text, 'is_puke'::text, 'weigh'::text, 'food_and_water'::text, 'comments'::text, 'owner_update'::text, 'urine_type_id'::text, 'feces_type_id'::text]) AS field
+                   FROM petec.case_daily_details cdd
+	 				LEFT JOIN petec.case c ON c.id = cdd.case_id 
+	 				LEFT JOIN petec.patient p ON p.id = c.patient_id
+	 				LEFT JOIN petec.animal_vitals avt ON p.animal_id = avt.animal_id AND avt.vitals_type = 'T'
+	 				LEFT JOIN petec.animal_vitals avp ON p.animal_id = avp.animal_id AND avp.vitals_type = 'P'        
+	        		LEFT JOIN petec.animal_vitals avr ON p.animal_id = avr.animal_id AND avr.vitals_type = 'R'
+                  WHERE (cdd.date + cdd."time") BETWEEN (((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem') - INTERVAL '12 hours') AT TIME ZONE 'Asia/Jerusalem'::text) AND (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jerusalem'::text)) unnest_table
+             LEFT JOIN ( SELECT DISTINCT ON (case_daily_details.case_id) case_daily_details.case_id,
+                    case_daily_details.temp,
+                    case_daily_details.id
+                   FROM petec.case_daily_details
+                  WHERE case_daily_details.temp IS NOT NULL
+                  ORDER BY case_daily_details.case_id, case_daily_details.id DESC) latest_temp ON latest_temp.id = unnest_table.id
+             LEFT JOIN ( SELECT DISTINCT ON (case_daily_details.case_id) case_daily_details.case_id,
+                    case_daily_details.pulse,
+                    case_daily_details.id
+                   FROM petec.case_daily_details
+                  WHERE case_daily_details.pulse IS NOT NULL
+                  ORDER BY case_daily_details.case_id, case_daily_details.id DESC) latest_pulse ON latest_pulse.id = unnest_table.id
+             LEFT JOIN ( SELECT DISTINCT ON (case_daily_details.case_id) case_daily_details.case_id,
+                    case_daily_details.respiration,
+                    case_daily_details.id
+                   FROM petec.case_daily_details
+                  WHERE case_daily_details.respiration IS NOT NULL
+                  ORDER BY case_daily_details.case_id, case_daily_details.id DESC) latest_respiration ON latest_respiration.id = unnest_table.id
+          WHERE unnest_table.field = 'temp'::text AND (unnest_table.temp_is_editable = true AND unnest_table.temp_is_required = true AND unnest_table.temp IS NULL OR (latest_temp.temp IS NOT NULL AND latest_temp.temp not between unnest_table.temp_range_min::double precision AND unnest_table.temp_range_max::double precision)) OR unnest_table.field = 'pulse'::text AND (unnest_table.pulse_is_editable = true AND unnest_table.pulse_is_required = true AND unnest_table.pulse IS NULL OR (latest_pulse.pulse IS NOT NULL AND latest_pulse.pulse not between unnest_table.pulse_range_min::double precision AND unnest_table.pulse_range_max::double precision)) OR unnest_table.field = 'respiration'::text AND (unnest_table.respiration_is_editable = true AND unnest_table.respiration_is_required = true AND unnest_table.respiration IS NULL OR (latest_respiration.respiration IS NOT NULL AND latest_respiration.respiration not between unnest_table.respiration_range_min::double precision AND unnest_table.respiration_range_max::double precision)) OR unnest_table.field = 'urine_type_id'::text AND unnest_table.urine_is_editable = true AND unnest_table.urine_is_required = true AND unnest_table.urine_type_id IS NULL OR unnest_table.field = 'feces_type_id'::text AND unnest_table.feces_is_editable = true AND unnest_table.feces_is_required = true AND unnest_table.feces_type_id IS NULL OR unnest_table.field = 'is_box_clean'::text AND unnest_table.is_box_clean_is_editable = true AND unnest_table.is_box_clean_is_required = true AND unnest_table.is_box_clean IS NULL OR unnest_table.field = 'is_release'::text AND unnest_table.is_release_is_editable = true AND unnest_table.is_release_is_required = true AND unnest_table.is_release IS NULL OR unnest_table.field = 'is_walk_trip'::text AND unnest_table.is_walk_trip_is_editable = true AND unnest_table.is_walk_trip_is_required = true AND unnest_table.is_walk_trip IS NULL OR unnest_table.field = 'is_puke'::text AND unnest_table.puke_is_editable = true AND unnest_table.puke_is_required = true AND unnest_table.is_puke IS NULL OR unnest_table.field = 'weigh'::text AND unnest_table.weigh_is_editable = true AND unnest_table.weigh_is_required = true AND unnest_table.weigh IS NULL OR unnest_table.field = 'food_and_water'::text AND unnest_table.food_and_water_is_editable = true AND unnest_table.food_and_water_is_required = true AND (unnest_table.food_and_water IS NULL OR unnest_table.food_and_water::text = ''::text) OR unnest_table.field = 'owner_update'::text AND unnest_table.owner_update_is_editable = true AND unnest_table.owner_update_is_required = true AND (unnest_table.owner_update IS NULL OR unnest_table.owner_update::text = ''::text) OR unnest_table.field = 'comments'::text AND unnest_table.comments_is_editable = true AND unnest_table.comments_is_required = true AND (unnest_table.comments IS NULL OR unnest_table.comments::text = ''::text)) unnamed_subquery
+  GROUP BY case_id;
+
+ALTER TABLE petec.case_notifications
+    OWNER TO postgres;
+
+GRANT ALL ON TABLE petec.case_notifications TO postgres;
+GRANT ALL ON TABLE petec.case_notifications TO "postgres";
+
+
+
+	

@@ -1,14 +1,11 @@
 import { logger } from "../../config/logger.js";
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "../../services/patient/index.js";
-import { exportService } from "../../services/patient/index.js";
 import { patientUploadService } from "../../services/patient/index.js";
 import { sendSuccess, sendCreated, sendNoContent } from "../../utils/apiResponse.js";
-import { cleanupFile } from "../../utils/fileCleanup.utils.js";
 import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "../../utils/request.utils.js";
 import {
   HttpStatus,
-  buildPatientExportFileName,
 } from "@petec/shared";
 import type {
   NewPatientDTO,
@@ -195,28 +192,6 @@ export class PatientController {
       const data = getValidatedBody<UpdateDailyPlanRequestDTO>(req);
       await patientService.updateDailyPlan(data);
       sendNoContent(res);
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  async exportCase(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
-      const targetDate = req.query.date as string | undefined;
-      const { pdfPath, caseData } = await exportService.exportCase(caseId, targetDate);
-
-      const fileName = buildPatientExportFileName(caseData.serialId);
-
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("X-Filename", fileName);
-
-      res.download(pdfPath, fileName, (err) => {
-        if (err) {
-          logger.error("Error downloading PDF", { error: err });
-        }
-        cleanupFile(pdfPath, { reason: "patient export download completed" });
-      });
     } catch (err) {
       next(err);
     }

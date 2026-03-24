@@ -1,0 +1,48 @@
+# fly.toml app configuration file generated for petec-main-polished-butterfly-3416 on 2025-08-19T11:49:57+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'petec-eliav'
+primary_region = 'ams'
+
+[build]
+
+[env]
+  CLOUDINARY_CLOUD_NAME = 'dsq8xsnta'
+  DB_HOST = 'main.pet-ec-db.internal'
+  DB_NAME = 'postgres'
+  DB_PORT = '5432'
+  DB_SCHEMA = 'petec-main'
+  DB_USERNAME = 'postgres'
+  FLY_APP_URL = 'main.pet-ec.com'
+  GOOGLE_DRIVE_AUTH_PROVIDER_X509_CERT_URL = 'https://www.googleapis.com/oauth2/v1/certs'
+  GOOGLE_DRIVE_AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+  GOOGLE_DRIVE_CLIENT_EMAIL = 'pet-ec-drive@pet-ec-drive.iam.gserviceaccount.com'
+  GOOGLE_DRIVE_CLIENT_ID = '116869651829339483111'
+  GOOGLE_DRIVE_CLIENT_X509_CERT_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/pet-ec-drive%40pet-ec-drive.iam.gserviceaccount.com'
+  GOOGLE_DRIVE_PRIVATE_KEY_ID = 'f53dc315fb7cf4589e8df2cd165cb40968af861f'
+  GOOGLE_DRIVE_PROJECT_ID = 'pet-ec-drive'
+  GOOGLE_DRIVE_TOKEN_URI = 'https://oauth2.googleapis.com/token'
+  GOOGLE_DRIVE_TYPE = 'service_account'
+  GOOGLE_DRIVE_UNIVERSE_DOMAIN = 'googleapis.com'
+  MJ_APIKEY_PUBLIC = '4edb2b05db0e2400ab732360cfeced57'
+  NODE_ENV = 'production'
+  PORT = '3000'
+  RESET_PASSWORD_EXPIRATION = '1h'
+
+[[mounts]]
+  source = 'images'
+  destination = '/app/patient-images'
+
+[http_service]
+  internal_port = 3000
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

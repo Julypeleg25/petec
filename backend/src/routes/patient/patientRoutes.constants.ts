@@ -14,7 +14,6 @@ export const PATIENT_ROUTE_PATHS = {
   documentUpload: "/documents/upload",
   documentDelete: "/documents/:documentId",
   caseAnesthesia: "/case/anesthesia/:caseId",
-  caseExport: "/case/export/:caseId",
   caseCharts: "/case/charts/:caseId",
   dailyPlan: "/dailyPlan",
 } as const;

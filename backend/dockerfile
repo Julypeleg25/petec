@@ -1,0 +1,63 @@
+# Use Ubuntu 22.04 (Jammy)
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Jerusalem \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    # Puppeteer will use the system Chrome:
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+# 1) Base tools & timezone
+RUN apt-get update && apt-get install -y \
+    tzdata curl wget ca-certificates gnupg2 software-properties-common \
+  && rm -rf /var/lib/apt/lists/*
+
+# 2) Node.js 20 (Nodesource)
+RUN apt-get update && apt-get install -y curl gnupg2 \
+  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
+  && rm -rf /var/lib/apt/lists/*
+
+# 3) Google Chrome (signed-by keyring, no apt-key)
+RUN apt-get update && apt-get install -y curl gnupg \
+  && curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub \
+     | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+     > /etc/apt/sources.list.d/google-chrome.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends google-chrome-stable \
+  && rm -rf /var/lib/apt/lists/*
+
+# 4) PostgreSQL 16 client from PGDG (jammy)
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+     | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg \
+  && echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main" \
+     > /etc/apt/sources.list.d/pgdg.list \
+  && apt-get update \
+  && apt-get install -y postgresql-client-16 \
+  && rm -rf /var/lib/apt/lists/*
+
+# 5) Fonts (Hebrew + MS core fonts) for PDF exports
+# Accept EULA for MS fonts in noninteractive mode
+RUN apt-get update && apt-get install -y \
+      fonts-dejavu-core fonts-freefont-ttf \
+  && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+  && add-apt-repository multiverse \
+  && apt-get update \
+  && apt-get install -y ttf-mscorefonts-installer \
+  && fc-cache -f -v \
+  && rm -rf /var/lib/apt/lists/*
+
+# 6) App
+RUN echo ">>> Starting backend build...==============================="
+
+WORKDIR /app
+COPY . .
+
+RUN ls
+# If you use package-lock.json, prefer a clean, repeatable install:
+# RUN npm ci --omit=dev
+RUN npm install --production
+
+# 7) Start
+CMD ["npm", "run", "prod"]
