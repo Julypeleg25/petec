@@ -1,13 +1,17 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
-    buildPatientExportFileName,
+    SYSTEM_TYPE_NAMES,
+    type AnimalVitalDTO,
     type EditPatientDTO,
     type NewPatientDTO,
+    type ReleasePatientDataResponseDTO,
+    type SimpleSystemTypeDTO,
 } from "@petec/shared";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { downloadFileFromBlob } from "../../../../utils/FileUtils";
 import { usePatientApi } from "../../../../features/patients/hooks/usePatientApi";
+import { patientsApi } from "../../../../features/patients/patients.api";
+import { systemTypesApi } from "../../../../features/system-management/systemTypes.api";
 import { AppRoutes } from "../../../../config/appRoutes";
 import { getCaseDayPrimaryDataRow, resolveCaseDayStartHour } from "../../CaseDetailsTable/caseGrid.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
@@ -19,6 +23,8 @@ import {
     validateCaseDetailsGridHours,
 } from "../utils/savePatientCaseDetails.utils";
 import type { PatientFormState } from "./usePatientFormState";
+import { downloadCaseExportPdf } from "../utils/savePatientExport.utils";
+import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
 
 interface SavePatientChangesOptions {
     navigateOnCreate?: boolean;
@@ -42,18 +48,81 @@ export function useSavePatientActions(
     beforeNavigation?: () => void,
 ) {
     const navigate = useNavigate();
+    const [isExporting, setIsExporting] = useState(false);
 
     const {
         createPatient,
         updatePatient,
         uploadPatientPhoto,
-        exportCase,
         archivePatient: archivePatientMutation,
     } = usePatientApi();
 
     const isSaving = updatePatient.isPending || createPatient.isPending;
-    const isExporting = exportCase.isPending;
     const isArchiving = archivePatientMutation.isPending;
+
+    const getSelectedOptionText = useCallback(
+        (
+            options: readonly SelectOptionObj[],
+            selectedValue: string,
+        ): string => options.find((option) => option.value === selectedValue)?.text ?? "",
+        [],
+    );
+
+    const getExportLookups = useCallback(async (): Promise<{
+        animalColorText: string;
+        animalTypeText: string;
+        doctorText: string;
+        fecesTypes: SimpleSystemTypeDTO[];
+        foodTypeText: string;
+        genderText: string;
+        insuranceText: string;
+        releaseData: ReleasePatientDataResponseDTO;
+        urineTypes: SimpleSystemTypeDTO[];
+        vitals: AnimalVitalDTO[];
+    }> => {
+        if (!caseId) {
+            throw new Error("Missing case id");
+        }
+
+        const animalTypeId =
+            state.selectedAnimalType !== SAVE_PATIENT_DEFAULTS.EMPTY_VALUE
+                ? state.selectedAnimalType
+                : "";
+
+        const [releaseData, urineTypes, fecesTypes, vitals] = await Promise.all([
+            patientsApi.getReleasePatientData(caseId),
+            systemTypesApi.getActive(SYSTEM_TYPE_NAMES.URINE_TYPES),
+            systemTypesApi.getActive(SYSTEM_TYPE_NAMES.FECES_TYPES),
+            animalTypeId
+                ? systemTypesApi.getAnimalVitalsByAnimal(animalTypeId)
+                : Promise.resolve([]),
+        ]);
+
+        return {
+            animalColorText: getSelectedOptionText(
+                state.animalColors,
+                state.selectedAnimalColor,
+            ),
+            animalTypeText: getSelectedOptionText(
+                state.animalTypes,
+                state.selectedAnimalType,
+            ),
+            doctorText: getSelectedOptionText(state.doctors, state.selectedDoctor),
+            fecesTypes,
+            foodTypeText: getSelectedOptionText(state.foodTypes, state.selectedFoodType),
+            genderText: getSelectedOptionText(
+                state.genderTypes,
+                state.selectedGenderType,
+            ),
+            insuranceText: getSelectedOptionText(
+                state.insuranceList,
+                state.selectedInsurance,
+            ),
+            releaseData,
+            urineTypes,
+            vitals,
+        };
+    }, [caseId, getSelectedOptionText, state]);
 
     const uploadPatientImageIfNeeded = useCallback(
         async (resolvedPatientId: string, file: File | null): Promise<void> => {
@@ -73,18 +142,36 @@ export function useSavePatientActions(
         [uploadPatientPhoto, state],
     );
 
-    const exportCaseDetails = useCallback(() => {
-        if (!caseId) return;
-        exportCase.mutate({ caseId, date: state.selectedCaseDate }, {
-            onSuccess: (blob: Blob) => {
-                downloadFileFromBlob(
-                    { data: blob, headers: {} },
-                    "application/pdf",
-                    buildPatientExportFileName(state.formData.caseId),
-                );
-            },
-        });
-    }, [caseId, exportCase, state.formData.caseId, state.selectedCaseDate]);
+    const exportCaseDetails = useCallback(async () => {
+        if (!caseId) {
+            return;
+        }
+
+        setIsExporting(true);
+        try {
+            const exportLookups = await getExportLookups();
+            const didGeneratePdf = await downloadCaseExportPdf(
+                state.formData,
+                state.caseDetailsList,
+                state.selectedCaseDate,
+                exportLookups,
+            );
+
+            if (!didGeneratePdf) {
+                toast.error("לא ניתן לייצא את הקובץ");
+            }
+        } catch {
+            toast.error("ייצוא הקובץ נכשל");
+        } finally {
+            setIsExporting(false);
+        }
+    }, [
+        caseId,
+        getExportLookups,
+        state.caseDetailsList,
+        state.formData,
+        state.selectedCaseDate,
+    ]);
 
     const savePatientChanges = useCallback(
         async ({
