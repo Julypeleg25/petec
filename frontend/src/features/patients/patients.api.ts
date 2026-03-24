@@ -1,5 +1,4 @@
 import {
-  requestBlob,
   requestFormDataWithResponseSchema,
   requestNoContent,
   requestWithRequestAndResponseSchema,
@@ -189,15 +188,6 @@ export const patientsApi = {
       { method: HTTP_METHODS.GET, url: API_ROUTES.patient.chartsData(params.caseId) },
       ChartsDataResponseDTOSchema,
     );
-  },
-
-  exportCase: (caseId: string, date?: string): Promise<Blob> => {
-    const params = CaseIdParamsDTOSchema.parse({ caseId });
-    const url = new URL(API_ROUTES.patient.exportCase(params.caseId), window.location.origin);
-    if (date) {
-      url.searchParams.append("date", date);
-    }
-    return requestBlob({ method: HTTP_METHODS.GET, url: url.pathname + url.search });
   },
 
   getDailyPlan: (): Promise<DailyPlanDetailDTO[]> =>

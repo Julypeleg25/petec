@@ -145,13 +145,6 @@ router.post(
 );
 
 router.get(
-    PATIENT_ROUTE_PATHS.caseExport,
-    requirePermission(Permission.READ_CASE),
-    validateParams(CaseIdParamsDTOSchema),
-    patientController.exportCase,
-);
-
-router.get(
     PATIENT_ROUTE_PATHS.caseCharts,
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
