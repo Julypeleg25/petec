@@ -34,22 +34,23 @@ export const verifyResetPasswordToken = (token: string): ResetPasswordTokenPaylo
   return jwt.verify(token, ENV.jwtResetPasswordSecret) as ResetPasswordTokenPayload;
 };
 
+const getRefreshCookieSameSite = (): CookieOptions["sameSite"] =>
+  ENV.isProduction ? "none" : "lax";
+
+const buildRefreshCookieOptions = (): CookieOptions => ({
+  httpOnly: COOKIE_OPTIONS.HTTP_ONLY,
+  secure: ENV.isProduction,
+  sameSite: getRefreshCookieSameSite(),
+  maxAge: ENV.refreshTokenExpiresInMs,
+  path: COOKIE_OPTIONS.REFRESH_PATH,
+});
+
 export const setRefreshCookie = (res: Response, token: string): void => {
-  const options: CookieOptions = {
-    httpOnly: COOKIE_OPTIONS.HTTP_ONLY,
-    secure: ENV.isProduction,
-    sameSite: COOKIE_OPTIONS.SAME_SITE,
-    maxAge: ENV.refreshTokenExpiresInMs,
-    path: COOKIE_OPTIONS.REFRESH_PATH,
-  };
-  res.cookie(COOKIE_NAMES.REFRESH, token, options);
+  res.cookie(COOKIE_NAMES.REFRESH, token, buildRefreshCookieOptions());
 };
 
 export const clearRefreshCookie = (res: Response): void => {
-  res.clearCookie(COOKIE_NAMES.REFRESH, {
-    httpOnly: COOKIE_OPTIONS.HTTP_ONLY,
-    secure: ENV.isProduction,
-    sameSite: COOKIE_OPTIONS.SAME_SITE,
-    path: COOKIE_OPTIONS.REFRESH_PATH,
-  });
+  const { maxAge, ...options } = buildRefreshCookieOptions();
+  void maxAge;
+  res.clearCookie(COOKIE_NAMES.REFRESH, options);
 };
