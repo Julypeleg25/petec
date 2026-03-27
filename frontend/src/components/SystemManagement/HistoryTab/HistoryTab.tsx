@@ -4,7 +4,6 @@ import type { RowData } from "../../../utils/TableGenerator/TableGenerator";
 import { FaEye, FaHistory } from "react-icons/fa";
 import HistoryItemDetails from "../HistoryItemDetails/HistoryItemDetails";
 import type { HistoryItem } from "../HistoryItemDetails/HistoryItemDetails";
-import { getCaseSerialPrefix } from "../../../features/patients/utils/patients.utils";
 import { getFormattedDateTimeFromDBdate } from "../../../utils/DateFormattingUtil";
 
 import "./HistoryTab.css";
@@ -39,10 +38,8 @@ export default function HistoryTab() {
       colName: "מספר תיק",
       searchObjField: "case_serial_id",
       minWidth: "200px",
-      formatter: (cellValue?: string | number | boolean | object | null) => {
-        if (!cellValue) return "";
-        return getCaseSerialPrefix(String(cellValue));
-      },
+      formatter: (cellValue?: string | number | boolean | object | null) =>
+        typeof cellValue === "string" ? cellValue : "",
     },
     { colName: "שם מטופל", searchObjField: "patient_name", minWidth: "200px" },
   ];

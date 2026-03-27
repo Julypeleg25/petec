@@ -3,7 +3,6 @@ import FormInput from "../../../utils/FormInput/FormInput";
 import "./HistoryItemDetails.css";
 import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
 import type { RowData } from "../../../utils/TableGenerator/TableGenerator.types";
-import { getCaseSerialPrefix } from "../../../features/patients/utils/patients.utils";
 
 export interface HistoryItem extends RowData {
   subject: string;
@@ -60,7 +59,7 @@ function HistoryItemDetails({
           />
           <FormInput
             labelText=":מספר תיק"
-            state={getCaseSerialPrefix(historyObj.case_serial_id)}
+            state={historyObj.case_serial_id}
             disabled={true}
           />
           <FormInput

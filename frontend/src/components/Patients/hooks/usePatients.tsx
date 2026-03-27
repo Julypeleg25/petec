@@ -11,7 +11,6 @@ import {
   type PatientCardsFilter,
   buildCaseSearchFilters,
   formatOwnerPhone,
-  getCaseSerialPrefix,
   getInitialViewportWidth,
 } from "../../../features/patients";
 import {
@@ -129,7 +128,7 @@ export function usePatients(patientsNavType?: string) {
           </div>
 
           <div className="patient-card-info">
-            <span>מספר תיק: {getCaseSerialPrefix(row.serialId)}</span>
+            <span>מספר תיק: {row.serialId}</span>
             <span>שם: {row.patientId?.name}</span>
             <span>שם בעלים: {row.patientId?.owner?.name} </span>
             <span>טלפון בעלים: {formattedPhoneNumber}</span>

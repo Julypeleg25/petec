@@ -13,7 +13,6 @@ import type { NewPatientData } from "../types/savePatient.types";
 import type { SavePatientInputChangeHandler } from "./types/savePatientSections.types";
 import SavePatientFlagsSection from "./SavePatientFlags.section";
 import { getPatientImageSrc } from "../../../../features/patients/utils/patientImage.utils";
-import { getCaseSerialPrefix } from "../../../../features/patients/utils/patients.utils";
 
 interface SavePatientPatientInfoSectionProps {
   isEdit: boolean;
@@ -152,7 +151,7 @@ function SavePatientPatientInfoSection({
           labelText=":מספר תיק"
           name="caseId"
           isRequired={true}
-          state={isEdit ? getCaseSerialPrefix(formData.caseId) : formData.caseId}
+          state={formData.caseId}
           setState={handleInputChange}
           type="text"
           disabled={isEdit}

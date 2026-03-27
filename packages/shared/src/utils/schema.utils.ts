@@ -15,20 +15,22 @@ export const nullableOptionalDateCoerceSchema = z.preprocess(
   z.null().or(z.coerce.date()).optional(),
 );
 
-export const CASE_SERIAL_ID_REGEX = /^(\d{3,})-(\d{6,})$/;
+export const CASE_SERIAL_ID_REGEX = /^(?=.*\d)[\d-]+$/;
 
 export const getCaseSerialPrefix = (value: string): string | null => {
-  const match = CASE_SERIAL_ID_REGEX.exec(value.trim());
-  if (!match) {
+  const normalized = value.trim();
+  if (normalized.length === 0) {
     return null;
   }
-  return match[1] ?? null;
+
+  const [prefix] = normalized.split("-");
+  return prefix?.trim() || normalized;
 };
 
 export const caseSerialIdSchema = z
   .string()
   .trim()
-  .regex(CASE_SERIAL_ID_REGEX, "פורמט מספר תיק לא תקין");
+  .regex(CASE_SERIAL_ID_REGEX, "מספר תיק יכול להכיל רק ספרות ומקפים");
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(PAGINATION.DEFAULT_PAGE).default(PAGINATION.DEFAULT_PAGE),

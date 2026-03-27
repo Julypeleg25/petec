@@ -55,7 +55,7 @@ const patientSchema = new Schema<IPatient, Model<IPatient>>(
 );
 
 patientSchema.index({ "owner.phone": 1 });
-patientSchema.index({ serialId: 1 }, { unique: true, sparse: true });
+patientSchema.index({ serialId: 1 }, { sparse: true });
 
 export const PatientModel = mongoose.model<IPatient>("Patient", patientSchema, "patients");
 

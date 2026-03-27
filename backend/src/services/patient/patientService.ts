@@ -217,7 +217,9 @@ export class PatientService {
       relatedCases = serialPrefix
         ? await caseRepository.findMany(
           {
-            serialId: new RegExp(`^${serialPrefix}-\\d{6,}$`),
+            serialId: new RegExp(
+              `^${serialPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:-[\\d-]+)?$`,
+            ),
             isDeleted: false,
           },
           { sort: { createdAt: -1 }, populate: "patientId" },

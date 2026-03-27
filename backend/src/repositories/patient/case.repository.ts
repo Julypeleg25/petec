@@ -5,7 +5,7 @@ import type { ICase, CaseDocument, ICaseDetailsRow } from "../../models/case/ind
 import type { Types, UpdateQuery } from "mongoose";
 
 const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>
-  new RegExp(`^${escapeRegex(serialPrefix)}-\\d{6,}$`);
+  new RegExp(`^${escapeRegex(serialPrefix)}(?:-[\\d-]+)?$`);
 
 export class CaseRepository extends BaseRepository<ICase> {
   constructor() {
