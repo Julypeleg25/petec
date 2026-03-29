@@ -1,6 +1,7 @@
 import "./App.css";
 import { Toaster } from "react-hot-toast";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { queryClient } from "./lib/queryClient";
 import { AuthProvider } from "./features/auth/AuthProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
@@ -19,6 +20,7 @@ export default function App() {
             }}
           />
           <AppRouter />
+          <SpeedInsights />
         </ErrorBoundary>
       </AuthProvider>
     </QueryClientProvider>
