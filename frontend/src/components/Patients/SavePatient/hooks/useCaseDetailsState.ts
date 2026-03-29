@@ -15,6 +15,10 @@ import { toLocalDateFromInputValue } from "../utils/savePatientCaseDetails.utils
 import type { PatientFormState } from "./usePatientFormState";
 
 type ShouldApplyState = () => boolean;
+type CaseDetailsDay = NonNullable<ReturnType<typeof mapCaseDetailsApiGridToUi>>[number];
+
+const hasCaseDetailsDate = (caseDetails: CaseDetailsDay): boolean =>
+    Boolean(getCaseDayPrimaryDataRow(caseDetails)?.date?.trim());
 
 export function useCaseDetailsState(
     state: PatientFormState,
@@ -146,18 +150,21 @@ export function useCaseDetailsState(
             if (grid === null) {
                 setDisableAddCaseDetailsTable(false);
                 setCaseDetailsList([defaultCaseDailyDataTemplate]);
-                setShowCaseDetailsDaysOptions(true);
+                setShowCaseDetailsDaysOptions(false);
                 setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
                 setSelectedStartHour(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
                 setChildCases(toChildCases(response.masterCaseDetails));
                 return;
             }
 
-            setShowCaseDetailsDaysOptions(true);
             const ordered = grid;
             const currentDay = ordered[0] ?? [];
             const firstDataRow = getCaseDayPrimaryDataRow(currentDay);
+            const hasExistingDates = ordered.some((caseDetails) =>
+                hasCaseDetailsDate(caseDetails),
+            );
             setCaseDetailsList(ordered);
+            setShowCaseDetailsDaysOptions(hasExistingDates);
             setSelectedCaseDate(
                 firstDataRow?.date ?? SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK,
             );

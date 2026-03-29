@@ -91,7 +91,6 @@ function SavePatient() {
     selectedCaseDate,
     setSelectedCaseDate,
     selectedStartHour,
-    showCaseDetailsDaysOptions,
     caseDetailsList,
     setCaseDetailsList,
     caseDetailsDataIndex,
@@ -274,7 +273,6 @@ function SavePatient() {
                 animalTypes={animalTypes}
                 selectedAnimalType={selectedAnimalType}
                 caseDetailsList={caseDetailsList}
-                showCaseDetailsDaysOptions={showCaseDetailsDaysOptions}
                 selectedCaseDate={selectedCaseDate}
                 setSelectedCaseDate={setSelectedCaseDate}
                 onCaseDateChange={handleCaseDateChange}

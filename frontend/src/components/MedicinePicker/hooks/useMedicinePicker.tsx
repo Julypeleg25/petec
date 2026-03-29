@@ -164,18 +164,6 @@ export function useMedicinePicker({
       return;
     }
 
-    const isDoseOutOfRecommendedRange = isDoseAmountOutOfRecommendedRange({
-      rangeMax: selectedMedicineFromList.rangeMax,
-      rangeMin: selectedMedicineFromList.rangeMin,
-      totalDose: selectedMedicineFromList.totalDose,
-      doseAmount: parsedDoseAmount,
-      animalWeight,
-    });
-    if (isDoseOutOfRecommendedRange) {
-      toast.error("הכמות שהוזנה אינה בטווח המומלץ");
-      return;
-    }
-
     const nextMedicine: MedicineSelectOptionObj = {
       value: selectedMedicineId,
       text: selectedMedicineFromList.text,
@@ -347,18 +335,8 @@ export function useMedicinePicker({
     }
 
     const parsedDoseAmount = Number.parseFloat(doseAmountInput);
-    if (!Number.isFinite(parsedDoseAmount) || parsedDoseAmount < 0) {
-      return true;
-    }
-
-    return isDoseAmountOutOfRecommendedRange({
-      rangeMax: selectedMedicine?.rangeMax,
-      rangeMin: selectedMedicine?.rangeMin,
-      totalDose: selectedMedicine?.totalDose,
-      doseAmount: parsedDoseAmount,
-      animalWeight,
-    });
-  }, [animalWeight, doseAmountInput, selectedMedicine]);
+    return !Number.isFinite(parsedDoseAmount) || parsedDoseAmount < 0;
+  }, [doseAmountInput]);
 
   const isEditingSelectionChanged = useMemo(() => hasMedicinePickerDraftChanged(
     editingMedicine,

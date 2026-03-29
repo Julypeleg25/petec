@@ -16,7 +16,6 @@ interface SavePatientDailyDetailsSectionProps {
   animalTypes: SelectOptionObj[];
   selectedAnimalType: string;
   caseDetailsList: CaseDetailsData[][];
-  showCaseDetailsDaysOptions: boolean;
   selectedCaseDate: string;
   setSelectedCaseDate: React.Dispatch<React.SetStateAction<string>>;
   onCaseDateChange: (value: string) => void;
@@ -37,7 +36,6 @@ function SavePatientDailyDetailsSection({
   animalTypes,
   selectedAnimalType,
   caseDetailsList,
-  showCaseDetailsDaysOptions,
   selectedCaseDate,
   setSelectedCaseDate,
   onCaseDateChange,
@@ -52,6 +50,11 @@ function SavePatientDailyDetailsSection({
   handleSetEditableFieldsButtonClick,
   addNewCaseDailyDetails,
 }: SavePatientDailyDetailsSectionProps) {
+  const caseDateOptions = buildCaseDetailsDateOptions(caseDetailsList);
+  const shouldShowCaseDatePicker = caseDateOptions.some((option) =>
+    option.text.trim().length > 0,
+  );
+
   return (
     <div className="above-daily-details-table-section">
       <div className="daily-details-table-fields-info">
@@ -100,10 +103,10 @@ function SavePatientDailyDetailsSection({
         maxLength={2000}
       />
       <div className="daily-details-btns-container">
-        {showCaseDetailsDaysOptions && (
+        {shouldShowCaseDatePicker && (
           <div className="case-daily-details-date-picker">
             <FormSelect
-              elements={buildCaseDetailsDateOptions(caseDetailsList)}
+              elements={caseDateOptions}
               selectId="select-daily-case-details-date-picker"
               optionState={selectedCaseDate}
               setOptionState={setSelectedCaseDate}
