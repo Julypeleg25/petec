@@ -38,7 +38,6 @@ function MedicinePicker({
     reloadRangeSlider,
     editingMedicineIndex,
     isEditingSelectionChanged,
-    isCurrentDoseAmountInvalid,
     medicineSelectOptions,
     addMedicine,
     deleteMedicine,
@@ -75,12 +74,10 @@ function MedicinePicker({
 
     return (
       isDraftIncomplete ||
-      isCurrentDoseAmountInvalid ||
       (editingMedicineIndex !== null && !isEditingSelectionChanged)
     );
   }, [
     doseAmountInput,
-    isCurrentDoseAmountInvalid,
     editingMedicineIndex,
     isEditingSelectionChanged,
     selectedFrequencyId,
