@@ -45,6 +45,7 @@ import type { ReadStream } from "node:fs";
 
 import { toObjectId } from "../../utils/objectId.utils.js";
 import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
+import { toCanonicalJerusalemDate } from "../../mappers/common/common.mappers.utils.js";
 import {
   mapNewPatientDtoToPatientData,
   mapEditDtoToPatientUpdate,
@@ -246,8 +247,14 @@ export class PatientService {
     const existingCase = await getCaseBySerialIdOrThrow(dto.caseId);
     const dateUpdates: ICase["dates"] = {
       ...existingCase.dates,
-      stitchesRemovalDate: dto.stitchesRemovalDate ?? undefined,
-      nextInspectionDate: dto.nextInspectionDate ?? undefined,
+      stitchesRemovalDate:
+        dto.stitchesRemovalDate === null
+          ? undefined
+          : toCanonicalJerusalemDate(dto.stitchesRemovalDate),
+      nextInspectionDate:
+        dto.nextInspectionDate === null
+          ? undefined
+          : toCanonicalJerusalemDate(dto.nextInspectionDate),
     };
 
     await caseRepository.release(existingCase._id, userId, {

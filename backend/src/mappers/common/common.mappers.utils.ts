@@ -12,11 +12,35 @@ export type MapperNamedRef = {
 export const DATE_PART_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
 export const DATE_TIME_PREFIX_REGEX = /^(\d{4})-(\d{2})-(\d{2})T/;
 export const TIME_REGEX = /^([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
+const JERUSALEM_DATE_FORMATTER = new Intl.DateTimeFormat("en-CA", {
+    timeZone: JERUSALEM_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+});
 
 export const toTwoDigits = (value: number): string => String(value).padStart(2, "0");
 
 export const toLocalDateKey = (date: Date): string =>
     `${date.getFullYear()}-${toTwoDigits(date.getMonth() + 1)}-${toTwoDigits(date.getDate())}`;
+
+const toJerusalemDateKeyFromDate = (date: Date): string | undefined => {
+    if (Number.isNaN(date.getTime())) {
+        return undefined;
+    }
+
+    const parts = JERUSALEM_DATE_FORMATTER.formatToParts(date);
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+
+    if (!year || !month || !day) {
+        return undefined;
+    }
+
+    return `${year}-${month}-${day}`;
+};
 
 export const toTimeKey = (date: Date): string =>
     `${toTwoDigits(date.getHours())}:${toTwoDigits(date.getMinutes())}`;
@@ -63,19 +87,25 @@ export const toDateInputString = (value?: Date | string | null): string | undefi
         if (dateMatch) {
             return `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}`;
         }
-
-        const dateTimePrefixMatch = DATE_TIME_PREFIX_REGEX.exec(trimmedValue);
-        if (dateTimePrefixMatch) {
-            return `${dateTimePrefixMatch[1]}-${dateTimePrefixMatch[2]}-${dateTimePrefixMatch[3]}`;
-        }
-
         const parsedString = new Date(trimmedValue);
         if (Number.isNaN(parsedString.getTime())) {
             return undefined;
         }
-        return toLocalDateKey(parsedString);
+        return toJerusalemDateKeyFromDate(parsedString);
     }
-    return toLocalDateKey(value);
+    return toJerusalemDateKeyFromDate(value);
+};
+
+export const toCanonicalJerusalemDate = (
+    value?: Date | string | null,
+): Date | undefined => {
+    const dateKey = toDateInputString(value);
+    if (!dateKey) {
+        return undefined;
+    }
+
+    const [year, month, day] = dateKey.split("-").map(Number);
+    return new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0));
 };
 
 export const toMapperNamedReference = (ref: MapperReferenceId | MapperNamedRef): { id: string; name: string } => {

@@ -12,6 +12,7 @@ import type {
     CaseUpdateData,
     CaseUpdateSource,
 } from "./patient.mappers.types.js";
+import { toCanonicalJerusalemDate } from "../common/common.mappers.utils.js";
 
 type CreateCaseDatesInput = NonNullable<NewPatientDTO["dates"]>;
 type UpdateCaseDatesInput = NonNullable<EditPatientDTO["dates"]>;
@@ -39,8 +40,9 @@ const assignCaseDateValue = (
         return;
     }
 
-    if (value instanceof Date && Number.isFinite(value.getTime())) {
-        target[key] = value;
+    const normalizedValue = toCanonicalJerusalemDate(value);
+    if (normalizedValue) {
+        target[key] = normalizedValue;
     }
 };
 
