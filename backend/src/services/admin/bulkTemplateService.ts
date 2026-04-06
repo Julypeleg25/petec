@@ -22,6 +22,7 @@ export class BulkTemplateService {
 
     logger.info("Bulk template downloaded", {
       module: MODULE,
+      event: "admin_bulk_template_downloaded",
       type_name: typeName,
       row_count: docs.length,
     });
@@ -72,6 +73,7 @@ export class BulkTemplateService {
 
     logger.info("Bulk template uploaded", {
       module: MODULE,
+      event: "admin_bulk_template_uploaded",
       type_name: typeName,
       total_rows: parsed.length,
       created,

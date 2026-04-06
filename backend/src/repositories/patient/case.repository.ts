@@ -1,3 +1,4 @@
+import { toDateInputString } from "../../mappers/common/common.mappers.utils.js";
 import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
 import { BaseRepository } from "../base.repository.js";
 import { CaseModel } from "../../models/case/index.js";
@@ -6,6 +7,7 @@ import type { Types, UpdateQuery } from "mongoose";
 
 const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>
   new RegExp(`^${escapeRegex(serialPrefix)}(?:-[\\d-]+)?$`);
+const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
 
 export class CaseRepository extends BaseRepository<ICase> {
   constructor() {
@@ -135,18 +137,30 @@ export class CaseRepository extends BaseRepository<ICase> {
     return this.updateById(caseId, { $set: { isArchived } });
   }
 
-  async unarchiveByProcedureDateRange(
-    startInclusive: Date,
-    endExclusive: Date,
-  ): Promise<number> {
+  async unarchiveProceduresScheduledForDate(targetDate: Date): Promise<number> {
+    const targetDateKey = toDateInputString(targetDate);
+    if (!targetDateKey) {
+      return 0;
+    }
+
     const result = await this.model
       .updateMany(
         {
           isArchived: true,
           isDeleted: false,
-          "dates.procedureDate": {
-            $gte: startInclusive,
-            $lt: endExclusive,
+          "flags.isProcedure": true,
+          "dates.procedureDate": { $type: "date" },
+          $expr: {
+            $eq: [
+              {
+                $dateToString: {
+                  date: "$dates.procedureDate",
+                  format: "%Y-%m-%d",
+                  timezone: JERUSALEM_TIME_ZONE,
+                },
+              },
+              targetDateKey,
+            ],
           },
         },
         { $set: { isArchived: false } },

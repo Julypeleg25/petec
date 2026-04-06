@@ -136,6 +136,8 @@ export class PatientService {
 
     logger.info("Patient and case created", {
       module: MODULE,
+      event: "patient_case_created",
+      user_id: userId,
       patient_id: patientIdForCase.toString(),
       case_id: newCase._id.toString(),
       case_serial_id: dto.caseId,
@@ -189,7 +191,10 @@ export class PatientService {
 
     logger.info("Patient and case edited", {
       module: MODULE,
+      event: "patient_case_edited",
+      user_id: userId,
       patient_id: patient._id.toString(),
+      case_id: existingCase._id.toString(),
       case_serial_id: dto.caseId,
     });
   }
@@ -282,7 +287,11 @@ export class PatientService {
 
     logger.info("Case released", {
       module: MODULE,
+      event: "patient_case_released",
+      user_id: userId,
       case_id: existingCase._id.toString(),
+      patient_id: existingCase.patientId.toString(),
+      medicine_count: dto.medicines.length,
     });
   }
 
@@ -304,6 +313,10 @@ export class PatientService {
 
     logger.info("Case archive status updated", {
       module: MODULE,
+      event: shouldArchive
+        ? "patient_case_archived"
+        : "patient_case_restored",
+      user_id: userId,
       case_id: existingCase._id.toString(),
       is_archived: shouldArchive,
     });
@@ -331,6 +344,8 @@ export class PatientService {
 
     logger.info("Case deleted", {
       module: MODULE,
+      event: "patient_case_deleted",
+      user_id: userId,
       case_id: existingCase._id.toString(),
     });
   }
@@ -381,6 +396,8 @@ export class PatientService {
     } catch (auditError) {
       logger.warn("Document upload audit log failed", {
         module: MODULE,
+        event: "patient_document_upload_audit_failed",
+        user_id: userId,
         patient_id: dto.patientId,
         error: auditError,
       });
@@ -388,7 +405,10 @@ export class PatientService {
 
     logger.info("Document uploaded", {
       module: MODULE,
+      event: "patient_document_uploaded",
+      user_id: userId,
       doc_id: doc._id.toString(),
+      case_id: dto.caseId,
       patient_id: dto.patientId,
     });
 
@@ -428,6 +448,7 @@ export class PatientService {
       ).catch((deleteError: unknown) => {
         logger.warn("Previous patient photo delete from Cloudinary failed", {
           module: MODULE,
+          event: "patient_photo_previous_delete_failed",
           patient_id: patient._id.toString(),
           previous_photo_url: previousPhotoUrl,
           error: deleteError,
@@ -446,6 +467,8 @@ export class PatientService {
     } catch (auditError) {
       logger.warn("Patient photo audit log failed", {
         module: MODULE,
+        event: "patient_photo_audit_failed",
+        user_id: userId,
         patient_id: patient._id.toString(),
         error: auditError,
       });
@@ -453,6 +476,8 @@ export class PatientService {
 
     logger.info("Patient photo updated", {
       module: MODULE,
+      event: "patient_photo_updated",
+      user_id: userId,
       patient_id: patient._id.toString(),
     });
 
@@ -515,7 +540,13 @@ export class PatientService {
       userId,
     );
 
-    logger.info("Document deleted", { module: MODULE, doc_id: documentId });
+    logger.info("Document deleted", {
+      module: MODULE,
+      event: "patient_document_deleted",
+      user_id: userId,
+      doc_id: documentId,
+      patient_id: doc.patientId.toString(),
+    });
   }
 
   async getAnesthesiaForm(
@@ -554,6 +585,8 @@ export class PatientService {
 
     logger.info("Anesthesia form upserted", {
       module: MODULE,
+      event: "patient_anesthesia_form_upserted",
+      user_id: userId,
       case_id: caseId,
     });
 

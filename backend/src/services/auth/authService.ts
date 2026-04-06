@@ -112,7 +112,12 @@ export class AuthService {
       user._id,
     );
 
-    logger.info("Login success", { module: MODULE, user_id: user._id.toString() });
+    logger.info("Login success", {
+      module: MODULE,
+      event: "auth_login_success",
+      user_id: user._id.toString(),
+      username: user.username,
+    });
 
     return {
       accessToken,
@@ -176,6 +181,12 @@ export class AuthService {
     await userRepository.addRefreshToken(user._id, newRefreshTokenDoc);
     setRefreshCookie(res, newRefreshToken);
 
+    logger.info("Token refresh success", {
+      module: MODULE,
+      event: "auth_refresh_success",
+      user_id: user._id.toString(),
+    });
+
     return { accessToken: newAccessToken };
   }
 
@@ -214,6 +225,12 @@ export class AuthService {
         resolvedUserId,
         resolvedUserId,
       );
+
+      logger.info("Logout success", {
+        module: MODULE,
+        event: "auth_logout_success",
+        user_id: resolvedUserId,
+      });
     }
   }
 
@@ -244,7 +261,11 @@ export class AuthService {
       `,
     });
 
-    logger.info("Password reset requested", { module: MODULE, user_id: user._id.toString() });
+    logger.info("Password reset requested", {
+      module: MODULE,
+      event: "auth_password_reset_requested",
+      user_id: user._id.toString(),
+    });
   }
 
   async resetPassword(dto: ResetPasswordDTO): Promise<void> {
@@ -272,7 +293,11 @@ export class AuthService {
       user._id,
     );
 
-    logger.info("Password reset completed", { module: MODULE, user_id: user._id.toString() });
+    logger.info("Password reset completed", {
+      module: MODULE,
+      event: "auth_password_reset_completed",
+      user_id: user._id.toString(),
+    });
   }
 }
 

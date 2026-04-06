@@ -44,8 +44,9 @@ export class SystemTypesService {
     const doc = await systemTypesRepository.create(typeName, payload);
     logger.info("System type created", {
       module: ADMIN_MODULE,
+      event: "admin_system_type_created",
       type_name: typeName,
-      id: doc._id.toString(),
+      entity_id: doc._id.toString(),
     });
     return doc.toObject();
   }
@@ -67,8 +68,9 @@ export class SystemTypesService {
     }
     logger.info("System type updated", {
       module: ADMIN_MODULE,
+      event: "admin_system_type_updated",
       type_name: typeName,
-      id,
+      entity_id: id,
     });
     return doc.toObject();
   }
@@ -80,8 +82,9 @@ export class SystemTypesService {
     }
     logger.info("System type deleted", {
       module: ADMIN_MODULE,
+      event: "admin_system_type_deleted",
       type_name: typeName,
-      id,
+      entity_id: id,
     });
   }
 

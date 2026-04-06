@@ -7,6 +7,10 @@ const SENSITIVE_KEYS = [
   "cookie",
   "accessToken",
   "refreshToken",
+  "secret",
+  "apiKey",
+  "phone",
+  "email",
 ];
 const MASK_VALUE = "***MASKED***";
 

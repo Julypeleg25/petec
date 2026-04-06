@@ -38,7 +38,10 @@ export const requestLoggerMiddleware = (req: Request, res: Response, next: NextF
         const message = `${routeLabel} request completed`;
         const meta = {
             module: "http",
+            event: "http_request_completed",
             request_id: requestId,
+            method,
+            route,
             status_code: statusCode,
             duration_ms: durationMs,
             ...(req.ctx?.user ? { user_id: req.ctx.user.userId } : {}),
