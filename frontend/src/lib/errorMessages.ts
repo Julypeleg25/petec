@@ -1,7 +1,7 @@
 import { isAxiosError, type AxiosError } from "axios";
 import {
   HttpStatus,
-  type ApiErrorDetails,
+  type ApiErrorDetail,
   type ApiErrorPayload,
 } from "@petec/shared";
 
@@ -81,18 +81,17 @@ const translateKnownErrorMessage = (message: string): string | null => {
   return EXACT_ERROR_MESSAGE_TRANSLATIONS[normalizedMessage] ?? null;
 };
 
-const flattenErrorDetails = (details?: ApiErrorDetails): string[] => {
+const flattenErrorDetails = (details?: ApiErrorDetail[]): string[] => {
   if (!details) {
     return [];
   }
 
-  return Object.values(details)
-    .flat()
-    .map((message) => toTrimmedText(message))
+  return details
+    .map((detail) => toTrimmedText(detail.message))
     .filter((message) => message.length > 0);
 };
 
-const getHebrewDetailMessage = (details?: ApiErrorDetails): string | null => {
+const getHebrewDetailMessage = (details?: ApiErrorDetail[]): string | null => {
   const uniqueMessages = Array.from(new Set(flattenErrorDetails(details)));
   const translatedMessages = uniqueMessages
     .map((message) => translateKnownErrorMessage(message))
@@ -105,13 +104,52 @@ const getHebrewDetailMessage = (details?: ApiErrorDetails): string | null => {
   return translatedMessages.join(", ");
 };
 
-const getPayloadMessage = (payload?: ApiErrorPayload): string | null => {
-  const errorPayload = payload?.error;
+type NormalizedApiErrorPayload = Readonly<{
+  message?: string;
+  details?: ApiErrorDetail[];
+}>;
 
-  if (typeof errorPayload === "string") {
-    return translateKnownErrorMessage(errorPayload);
+const getNormalizedErrorPayload = (
+  payload?: ApiErrorPayload,
+): NormalizedApiErrorPayload | null => {
+  if (!payload || typeof payload !== "object") {
+    return null;
   }
 
+  if ("message" in payload && typeof payload.message === "string") {
+    return {
+      message: payload.message,
+      details: Array.isArray(payload.details) ? payload.details : undefined,
+    };
+  }
+
+  if (!("error" in payload)) {
+    return null;
+  }
+
+  const nestedError = payload.error;
+  if (typeof nestedError === "string") {
+    return { message: nestedError };
+  }
+
+  if (!nestedError || typeof nestedError !== "object") {
+    return null;
+  }
+
+  return {
+    message:
+      "message" in nestedError && typeof nestedError.message === "string"
+        ? nestedError.message
+        : undefined,
+    details:
+      "details" in nestedError && Array.isArray(nestedError.details)
+        ? nestedError.details
+        : undefined,
+  };
+};
+
+const getPayloadMessage = (payload?: ApiErrorPayload): string | null => {
+  const errorPayload = getNormalizedErrorPayload(payload);
   if (!errorPayload) {
     return null;
   }

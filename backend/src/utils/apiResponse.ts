@@ -1,14 +1,14 @@
 import type { Response } from "express";
 import { z } from "zod";
 import { HttpStatus, InternalServerError } from "@petec/shared";
-import type { ApiErrorDetails } from "@petec/shared";
+import type { ApiErrorDetail, ApiErrorDetails } from "@petec/shared";
 import { logger } from "../config/logger.js";
 import { formatZodIssuesForLog } from "./zodError.utils.js";
 
 export type ApiError = Readonly<{
   code: string;
   message: string;
-  details?: ApiErrorDetails;
+  details?: ApiErrorDetail[];
   requestId?: string;
 }>;
 
@@ -18,8 +18,10 @@ export type ApiSuccess<T> = Readonly<{
 }>;
 
 export type ApiFailure = Readonly<{
-  success: false;
-  error: ApiError;
+  code: string;
+  message: string;
+  details?: ApiErrorDetail[];
+  requestId?: string;
 }>;
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
@@ -107,6 +109,29 @@ const validateResponse = <TSchema extends z.ZodType, TData>(
   return parsed.data;
 };
 
+const toApiErrorDetailList = (
+  details?: ApiErrorDetails,
+): ApiErrorDetail[] | undefined => {
+  if (!details) {
+    return undefined;
+  }
+
+  const entries = Object.entries(details)
+    .flatMap(([field, messages]) =>
+      messages.map((message) => ({
+        field,
+        message,
+      }))
+    )
+    .sort((left, right) => {
+      const fieldComparison = left.field.localeCompare(right.field);
+      if (fieldComparison !== 0) return fieldComparison;
+      return left.message.localeCompare(right.message);
+    });
+
+  return entries.length > 0 ? entries : undefined;
+};
+
 export const sendSuccess = <TSchema extends z.ZodType, TData>(
   res: Response,
   data: TData,
@@ -146,16 +171,14 @@ export const sendError = (
     "error",
   );
 
+  const detailList = toApiErrorDetailList(details);
   const errorPayload: ApiError = {
     code,
     message,
-    ...(details !== undefined ? { details } : {}),
+    ...(detailList !== undefined ? { details: detailList } : {}),
     ...(requestId !== undefined ? { requestId } : {}),
   };
-  res.status(statusCode).json({
-    success: false,
-    error: errorPayload,
-  } satisfies ApiFailure);
+  res.status(statusCode).json(errorPayload satisfies ApiFailure);
 };
 
 export const sendInternalServerError = (res: Response, requestId?: string): void => {

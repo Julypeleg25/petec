@@ -13,7 +13,7 @@ import {
   ApiResponse,
   RefreshResponseDTO,
   RefreshResponseSchema,
-  type ApiErrorResponse,
+  type ApiErrorPayload,
 } from "@petec/shared";
 import { API_ROUTES } from "../config/apiRoutes";
 import { AppRoutes } from "../config/appRoutes";
@@ -59,6 +59,17 @@ const AUTH_REFRESH_EXCLUDED_PATHS = [
 const shouldAttemptRefresh = (requestUrl: string): boolean =>
   !AUTH_REFRESH_EXCLUDED_PATHS.some((path) => requestUrl.includes(path));
 
+const isApiSuccessResponse = <TResponse>(
+  payload: ApiResponse<TResponse> | unknown,
+): payload is { success: true; data: TResponse } =>
+  Boolean(
+    payload &&
+      typeof payload === "object" &&
+      "success" in payload &&
+      payload.success === true &&
+      "data" in payload,
+  );
+
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getAccessToken();
@@ -73,18 +84,13 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => {
-    if (
-      response.data &&
-      typeof response.data === "object" &&
-      response.data.success === true &&
-      "data" in response.data
-    ) {
+    if (isApiSuccessResponse(response.data)) {
       response.data = response.data.data;
     }
     logger.info(`API Response Success: [${response.config.method?.toUpperCase()}] ${response.config.url}`);
     return response;
   },
-  async (error: AxiosError<ApiErrorResponse>) => {
+  async (error: AxiosError<ApiErrorPayload>) => {
     const originalRequest = error.config as RetryableConfig | undefined;
     const requestUrl =
       typeof originalRequest?.url === "string" ? originalRequest.url : "";
@@ -111,7 +117,7 @@ apiClient.interceptors.response.use(
               { withCredentials: true },
             )
             .then((refreshResponse) => {
-              const parsed = refreshResponse.data?.success
+              const parsed = isApiSuccessResponse(refreshResponse.data)
                 ? RefreshResponseSchema.safeParse(refreshResponse.data.data)
                 : null;
               const token = parsed?.success ? parsed.data.accessToken : undefined;
@@ -142,7 +148,7 @@ apiClient.interceptors.response.use(
 
 export { clearAuth, setAccessToken, getAccessToken };
 
-const extractErrorMsg = (err: AxiosError<ApiErrorResponse>): string =>
+const extractErrorMsg = (err: AxiosError<ApiErrorPayload>): string =>
   toHebrewErrorMessage(err);
 
 export const makeRequest = async <TBody = Record<string, never>>(
@@ -151,7 +157,7 @@ export const makeRequest = async <TBody = Record<string, never>>(
   body?: TBody,
   isLoading?: boolean,
   afterSuccess?: (res: AxiosResponse) => void,
-  afterError?: (err: AxiosError<ApiErrorResponse>) => void,
+  afterError?: (err: AxiosError<ApiErrorPayload>) => void,
   requestOptions?: AxiosRequestConfig,
   loadingMessage?: string,
   successMessage?: string,
@@ -172,7 +178,7 @@ export const makeRequest = async <TBody = Record<string, never>>(
           if (afterSuccess) afterSuccess(res);
           return successMessage ?? "הפעולה בוצעה בהצלחה";
         },
-        error: (err: AxiosError<ApiErrorResponse>) => {
+        error: (err: AxiosError<ApiErrorPayload>) => {
           if (afterError) afterError(err);
           return errorMessage ?? extractErrorMsg(err);
         },
@@ -186,7 +192,7 @@ export const makeRequest = async <TBody = Record<string, never>>(
       if (afterSuccess) afterSuccess(res);
       return res;
     })
-    .catch((err: AxiosError<ApiErrorResponse>) => {
+    .catch((err: AxiosError<ApiErrorPayload>) => {
       if (afterError) afterError(err);
     });
 };

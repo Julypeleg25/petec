@@ -17,6 +17,13 @@ type PayloadTooLargeLikeError = Error & {
     type?: string;
 };
 
+type BodyParserLikeError = SyntaxError & {
+    status?: number;
+    statusCode?: number;
+    type?: string;
+    body?: string;
+};
+
 type MulterLikeError = Error & {
     code?: string;
     field?: string;
@@ -30,6 +37,16 @@ const isPayloadTooLargeError = (value: Error): value is PayloadTooLargeLikeError
         || candidate.statusCode === HttpStatus.PAYLOAD_TOO_LARGE;
 };
 
+const isInvalidJsonBodyError = (value: Error): value is BodyParserLikeError => {
+    const candidate = value as BodyParserLikeError;
+    return candidate.name === "SyntaxError"
+        && (
+            candidate.type === "entity.parse.failed"
+            || candidate.status === HttpStatus.BAD_REQUEST
+            || candidate.statusCode === HttpStatus.BAD_REQUEST
+        );
+};
+
 const isMulterError = (value: Error): value is MulterLikeError =>
     value.name === "MulterError";
 
@@ -39,9 +56,34 @@ const isMulterFileSizeError = (value: Error): value is MulterLikeError =>
 const isMulterUnexpectedFileError = (value: Error): value is MulterLikeError =>
     isMulterError(value) && (value as MulterLikeError).code === "LIMIT_UNEXPECTED_FILE";
 
+const toAppErrorCode = (error: AppError): string => {
+    switch (error.name) {
+        case "ValidationError":
+            return "VALIDATION_ERROR";
+        case "BadRequestError":
+            return "BAD_REQUEST";
+        case "AuthError":
+            return "UNAUTHORIZED";
+        case "ForbiddenError":
+            return "FORBIDDEN";
+        case "NotFoundError":
+            return "NOT_FOUND";
+        case "ConflictError":
+            return "CONFLICT";
+        case "InternalServerError":
+            return "INTERNAL_ERROR";
+        default:
+            return error.name
+                .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+                .replace(/[^A-Za-z0-9]+/g, "_")
+                .toUpperCase();
+    }
+};
+
 export const errorHandler: ErrorRequestHandler = (error, req, res, next): void => {
     void next;
     const payloadTooLarge = !isAppError(error) && isPayloadTooLargeError(error);
+    const invalidJsonBody = !isAppError(error) && isInvalidJsonBodyError(error);
     const multerFileSizeError = !isAppError(error) && isMulterFileSizeError(error);
     const multerUnexpectedFileError = !isAppError(error) && isMulterUnexpectedFileError(error);
     const requestId = req.requestId;
@@ -50,6 +92,8 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
     const route = `${method} ${path}`;
     const statusCode = isAppError(error)
         ? error.statusCode
+        : invalidJsonBody
+            ? HttpStatus.BAD_REQUEST
         : multerFileSizeError || payloadTooLarge
             ? HttpStatus.PAYLOAD_TOO_LARGE
             : multerUnexpectedFileError
@@ -57,6 +101,8 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
                 : HttpStatus.INTERNAL_SERVER_ERROR;
     const message = isAppError(error)
         ? error.message
+        : invalidJsonBody
+            ? "Invalid JSON body"
         : multerFileSizeError
             ? "File is too large"
             : multerUnexpectedFileError
@@ -65,7 +111,9 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
                     ? "Payload too large"
                     : "Internal Server Error";
     const errorCode = isAppError(error)
-        ? error.name
+        ? toAppErrorCode(error)
+        : invalidJsonBody
+            ? "INVALID_JSON_BODY"
         : multerFileSizeError
             ? "FILE_TOO_LARGE"
             : multerUnexpectedFileError
@@ -73,7 +121,11 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
                 : payloadTooLarge
                     ? "PAYLOAD_TOO_LARGE"
                     : "UNKNOWN_ERROR";
-    const details = error instanceof ValidationError ? error.details : undefined;
+    const details = error instanceof ValidationError
+        ? error.details
+        : invalidJsonBody
+            ? { body: ["Request body contains invalid JSON"] }
+            : undefined;
 
     const validationIssues = details
         ? Object.entries(details).flatMap(([fieldPath, messages]) =>
@@ -96,6 +148,9 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
         error_code: errorCode,
         http_status: statusCode,
         route,
+        ...(typeof req.headers["content-type"] === "string"
+            ? { content_type: req.headers["content-type"] }
+            : {}),
         ...(req.ctx?.user ? { user_id: req.ctx.user.userId } : {}),
         ...(validationIssues ? { validation_issue_count: validationIssues.length } : {}),
         ...(validationIssuePaths ? { validation_issue_paths: validationIssuePaths } : {}),
