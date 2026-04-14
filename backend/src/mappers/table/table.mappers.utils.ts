@@ -13,6 +13,7 @@ import { systemTypesRepository } from "../../repositories/admin/index.js";
 import { userRepository } from "../../repositories/user/index.js";
 import {
   toBooleanWithDefault,
+  toDateInputString,
   toMapperIdString,
   toNullableFiniteNumber,
   toNullableIsoDateString,
@@ -570,6 +571,11 @@ export const buildCasesFilter = async (
   filter: MongoFilter,
   options: BuildCasesFilterOptions = {},
 ): Promise<MongoFilter> => {
+  const procedureDateIsToday =
+    options.isProcedure === true &&
+    toBooleanFilterValue(
+      filter[TABLE_SEARCH_FILTER_KEYS.PROCEDURE_DATE_IS_TODAY],
+    ) === true;
   const searchTerm = toSearchTerm(filter);
   const serialColumnSearch = toStringFilterValue(
     filter[CASE_TEXT_FILTER_KEYS.SERIAL_ID],
@@ -584,6 +590,7 @@ export const buildCasesFilter = async (
     TABLE_SEARCH_FILTER_KEYS.SEARCH,
     TABLE_SEARCH_FILTER_KEYS.MASTER_CASE_ID,
     TABLE_SEARCH_FILTER_KEYS.HAS_ALERTS,
+    TABLE_SEARCH_FILTER_KEYS.PROCEDURE_DATE_IS_TODAY,
     CASE_TEXT_FILTER_KEYS.SERIAL_ID,
     CASE_TEXT_FILTER_KEYS.PATIENT_NAME,
     CASE_TEXT_FILTER_KEYS.OWNER_PHONE,
@@ -600,6 +607,17 @@ export const buildCasesFilter = async (
     baseFilter["flags.isProcedure"] = options.isProcedure
       ? true
       : { $ne: true };
+  }
+
+  if (procedureDateIsToday) {
+    const todayJerusalemDate = toDateInputString(new Date());
+    const todayDateFilter = todayJerusalemDate
+      ? toDateRangeFilter(todayJerusalemDate)
+      : null;
+
+    if (todayDateFilter) {
+      baseFilter["dates.procedureDate"] = todayDateFilter;
+    }
   }
 
   if (serialColumnSearch) {

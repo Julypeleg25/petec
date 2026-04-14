@@ -14,6 +14,7 @@ import { usePatients } from "./hooks/usePatients";
 import "./Patients.css";
 import {
   buildCaseSearchFilters,
+  buildProcedureSearchFilters,
   getButtonClassName,
 } from "../../features/patients/utils/patients.utils";
 import { PATIENTS_NAV_TYPES } from "../../features/patients/constants/patients.constants";
@@ -147,7 +148,7 @@ function Patients({ patientsNavType }: PatientsProps) {
                     setState={setProceduresSearch}
                     onEnter={(e) => {
                       setProceduresFilters(
-                        buildCaseSearchFilters(
+                        buildProcedureSearchFilters(
                           e.currentTarget.value,
                           isArchive,
                           showOnlyProceduresWithAlerts,
@@ -162,7 +163,7 @@ function Patients({ patientsNavType }: PatientsProps) {
                     labelText="הצג רק מטופלים עם התראות"
                     afterChange={(isChecked) => {
                       setProceduresFilters(
-                        buildCaseSearchFilters(
+                        buildProcedureSearchFilters(
                           proceduresSearch,
                           isArchive,
                           isChecked,

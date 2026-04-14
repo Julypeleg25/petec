@@ -35,6 +35,7 @@ export const TABLE_SEARCH_FILTER_KEYS = {
   SEARCH: "search",
   MASTER_CASE_ID: "masterCaseId",
   HAS_ALERTS: "hasAlerts",
+  PROCEDURE_DATE_IS_TODAY: "procedureDateIsToday",
 } as const;
 
 export const TABLE_QUERY_KEYS = {

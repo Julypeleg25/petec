@@ -21,6 +21,20 @@ export const buildCaseSearchFilters = (
   return filters;
 };
 
+export const buildProcedureSearchFilters = (
+  rawValue: string,
+  isArchive: boolean,
+  hasAlerts = false,
+): PatientCardsFilter => {
+  const filters = buildCaseSearchFilters(rawValue, isArchive, hasAlerts);
+
+  if (!isArchive) {
+    filters[TABLE_SEARCH_FILTER_KEYS.PROCEDURE_DATE_IS_TODAY] = true;
+  }
+
+  return filters;
+};
+
 export const formatOwnerPhone = (phone?: string): string => {
   if (!phone || phone.length <= 3) {
     return "";

@@ -10,6 +10,7 @@ import {
 import {
   type PatientCardsFilter,
   buildCaseSearchFilters,
+  buildProcedureSearchFilters,
   formatOwnerPhone,
   getInitialViewportWidth,
 } from "../../../features/patients";
@@ -59,7 +60,7 @@ export function usePatients(patientsNavType?: string) {
   const [proceduresSearch, setProceduresSearch] = useState("");
   const [proceduresFilters, setProceduresFilters] =
     useState<PatientCardsFilter>(() =>
-      buildCaseSearchFilters("", isArchive, false),
+      buildProcedureSearchFilters("", isArchive, false),
     );
   const [patientsFilters, setPatientsFilters] = useState<PatientCardsFilter>(
     () => buildCaseSearchFilters("", isArchive, false),
@@ -79,7 +80,7 @@ export function usePatients(patientsNavType?: string) {
   const resetPatientCards = useCallback((isArchived: boolean) => {
     setReloadProceduresCards((prev) => !prev);
     setReloadPatientsCards((prev) => !prev);
-    setProceduresFilters(buildCaseSearchFilters("", isArchived, false));
+    setProceduresFilters(buildProcedureSearchFilters("", isArchived, false));
     setPatientsFilters(buildCaseSearchFilters("", isArchived, false));
     setShowOnlyProceduresWithAlerts(false);
     setShowOnlyPatientsWithAlerts(false);
