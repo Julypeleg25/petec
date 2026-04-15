@@ -337,7 +337,6 @@ export function useSavePatient(
 
     photoName: state.photoName,
     patientId: state.patientId,
-    disableAddCaseDetailsTable: state.disableAddCaseDetailsTable,
     childCases: state.childCases,
     setReloadCase: state.setReloadCase,
 

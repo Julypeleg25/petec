@@ -363,7 +363,6 @@ export function useSavePatientActions(
             state.setCaseDetailsList(nextList);
             state.setCaseDetailsDataIndex(0);
             state.setShowCaseDetailsDaysOptions(true);
-            state.setDisableAddCaseDetailsTable(true);
 
             const previousStartHour = resolveCaseDayStartHour(state.caseDetailsList[0] ?? []);
             state.setTimeSelectionValue(

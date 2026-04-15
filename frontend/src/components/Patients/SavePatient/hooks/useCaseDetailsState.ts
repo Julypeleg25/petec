@@ -30,7 +30,6 @@ export function useCaseDetailsState(
         resetPatientForm,
         setCaseDetailsList,
         setChildCases,
-        setDisableAddCaseDetailsTable,
         setFormData,
         setIsAggressive,
         setIsAllergic,
@@ -148,7 +147,6 @@ export function useCaseDetailsState(
             const grid = mapCaseDetailsApiGridToUi(response.caseDailyDetails);
 
             if (grid === null) {
-                setDisableAddCaseDetailsTable(false);
                 setCaseDetailsList([defaultCaseDailyDataTemplate]);
                 setShowCaseDetailsDaysOptions(false);
                 setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
@@ -172,8 +170,6 @@ export function useCaseDetailsState(
                 String(Number((firstDataRow?.time ?? "").split(":")[0] || "")) ||
                 SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
             );
-
-            setDisableAddCaseDetailsTable(firstDataRow?.date === toTodayDate());
             setChildCases(toChildCases(response.masterCaseDetails));
         },
         [
@@ -181,7 +177,6 @@ export function useCaseDetailsState(
             resetPatientForm,
             setCaseDetailsList,
             setChildCases,
-            setDisableAddCaseDetailsTable,
             setFormData,
             setIsAggressive,
             setIsAllergic,

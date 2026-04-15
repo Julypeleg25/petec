@@ -86,8 +86,6 @@ export function usePatientFormState() {
         defaultCaseDailyDataTemplate,
     ]);
     const [caseDetailsDataIndex, setCaseDetailsDataIndex] = useState(0);
-    const [disableAddCaseDetailsTable, setDisableAddCaseDetailsTable] =
-        useState(false);
 
     const [showReleasePatientModal, setShowReleasePatientModal] = useState(false);
     const [showPatientDocumentsModal, setShowPatientDocumentsModal] =
@@ -258,8 +256,6 @@ export function usePatientFormState() {
         setCaseDetailsList,
         caseDetailsDataIndex,
         setCaseDetailsDataIndex,
-        disableAddCaseDetailsTable,
-        setDisableAddCaseDetailsTable,
 
         showReleasePatientModal,
         setShowReleasePatientModal,

@@ -111,7 +111,6 @@ function SavePatient() {
     editableFieldsMode,
     photoName,
     patientId,
-    disableAddCaseDetailsTable,
     childCases,
     savePatient,
     savePatientChanges,
@@ -282,7 +281,6 @@ function SavePatient() {
                 isArchived={isArchived}
                 paintingMode={paintingMode}
                 editableFieldsMode={editableFieldsMode}
-                disableAddCaseDetailsTable={disableAddCaseDetailsTable}
                 handlePaintingModeButtonClick={handlePaintingModeButtonClick}
                 handleSetEditableFieldsButtonClick={
                   handleSetEditableFieldsButtonClick

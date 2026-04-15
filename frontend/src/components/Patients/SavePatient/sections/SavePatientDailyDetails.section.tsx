@@ -25,7 +25,7 @@ interface SavePatientDailyDetailsSectionProps {
   isArchived: boolean;
   paintingMode: boolean;
   editableFieldsMode: boolean;
-  disableAddCaseDetailsTable: boolean;
+
   handlePaintingModeButtonClick: (e: SavePatientActionEvent) => void;
   handleSetEditableFieldsButtonClick: (e: SavePatientActionEvent) => void;
   addNewCaseDailyDetails: (e: SavePatientActionEvent) => void;
@@ -45,7 +45,7 @@ function SavePatientDailyDetailsSection({
   isArchived,
   paintingMode,
   editableFieldsMode,
-  disableAddCaseDetailsTable,
+
   handlePaintingModeButtonClick,
   handleSetEditableFieldsButtonClick,
   addNewCaseDailyDetails,
@@ -143,7 +143,6 @@ function SavePatientDailyDetailsSection({
           <button
             onClick={addNewCaseDailyDetails}
             className="btn btn-small add-new-case-daily-details-btn"
-            disabled={disableAddCaseDetailsTable}
           >
             <FaPlus />
           </button>
