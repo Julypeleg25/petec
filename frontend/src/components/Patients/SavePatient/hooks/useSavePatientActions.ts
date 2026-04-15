@@ -292,7 +292,6 @@ export function useSavePatientActions(
                     return false;
                 } finally {
                     state.disableSaveBtns(false);
-                    state.setDisableAddCaseDetailsTable(false);
                 }
             }
 
