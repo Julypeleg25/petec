@@ -116,6 +116,7 @@ function SavePatient() {
     savePatientChanges,
     getRaceTypes,
     addNewCaseDailyDetails,
+    deleteSelectedCaseDailyDetails,
     exportCaseDetails,
     handleCellClick,
     handlePaintingModeButtonClick,
@@ -286,6 +287,7 @@ function SavePatient() {
                   handleSetEditableFieldsButtonClick
                 }
                 addNewCaseDailyDetails={addNewCaseDailyDetails}
+                deleteSelectedCaseDailyDetails={deleteSelectedCaseDailyDetails}
               />
             )}
             {isEdit && (

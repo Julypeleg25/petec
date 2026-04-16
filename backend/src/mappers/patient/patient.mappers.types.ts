@@ -15,6 +15,8 @@ export interface CaseCreateData {
     masterCaseId: Types.ObjectId;
     serialId: string;
     createdByUserId: Types.ObjectId;
+    isArchived?: boolean;
+    isManuallyUnarchived?: boolean;
     doctorUserId?: Types.ObjectId;
     nurseUserId?: Types.ObjectId;
     admission?: ICase["admission"];
@@ -40,6 +42,8 @@ export interface PatientCreateData {
 }
 
 export interface CaseUpdateData {
+    isArchived?: boolean;
+    isManuallyUnarchived?: boolean;
     admission?: ICase["admission"];
     patientSnapshot?: ICase["patientSnapshot"];
     flags?: ICase["flags"];

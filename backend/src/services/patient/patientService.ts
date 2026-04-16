@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { patientRepository } from "../../repositories/patient/index.js";
 import { caseRepository } from "../../repositories/patient/index.js";
 import { masterCaseRepository } from "../../repositories/patient/index.js";
@@ -45,7 +46,10 @@ import type { ReadStream } from "node:fs";
 
 import { toObjectId } from "../../utils/objectId.utils.js";
 import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
-import { toCanonicalJerusalemDate } from "../../mappers/common/common.mappers.utils.js";
+import {
+  toCanonicalJerusalemDate,
+  toDateInputString,
+} from "../../mappers/common/common.mappers.utils.js";
 import {
   mapNewPatientDtoToPatientData,
   mapEditDtoToPatientUpdate,
@@ -77,126 +81,166 @@ const ENTITY_TYPE_PATIENT = "Patient";
 const ENTITY_TYPE_CASE = "Case";
 const AUDIT_SUBJECT_PATIENT = "Patient Management";
 
+const shouldPersistManualProcedureUnarchive = (
+  flags?: ICase["flags"],
+  dates?: ICase["dates"],
+): boolean => {
+  if (flags?.isProcedure !== true) {
+    return false;
+  }
+
+  const procedureDateKey = toDateInputString(dates?.procedureDate);
+  if (!procedureDateKey) {
+    return false;
+  }
+
+  const todayKey = toDateInputString(new Date());
+  return procedureDateKey !== todayKey;
+};
+
 export class PatientService {
   async createPatientAndCase(
     dto: NewPatientDTO,
     userId: string,
   ): Promise<CreatePatientResponseDTO> {
-    const existingCaseBySerial = await caseRepository.findBySerialId(dto.caseId);
-    if (existingCaseBySerial) {
-      throw new BadRequestError("Case with this serial id already exists");
-    }
+    const session = await mongoose.startSession();
+    try {
+      return await session.withTransaction(async () => {
+        const existingCaseBySerial = await caseRepository.findBySerialId(dto.caseId, { session });
+        if (existingCaseBySerial) {
+          throw new BadRequestError("Case with this serial id already exists");
+        }
 
-    let patientIdForCase: ICase["patientId"];
-    let masterCaseIdForCase: NonNullable<ICase["masterCaseId"]>;
+        let patientIdForCase: ICase["patientId"];
+        let masterCaseIdForCase: NonNullable<ICase["masterCaseId"]>;
 
-    const existingMasterCaseId = await resolveMasterCaseBySerialPrefix(
-      dto.caseId,
-    );
-    if (existingMasterCaseId) {
-      const patientData = mapNewPatientDtoToPatientData(dto);
-      const patient = await patientRepository.create(patientData);
+        const existingMasterCaseId = await resolveMasterCaseBySerialPrefix(
+          dto.caseId,
+          session,
+        );
 
-      patientIdForCase = patient._id;
-      masterCaseIdForCase = existingMasterCaseId;
-    } else {
-      const patientData = mapNewPatientDtoToPatientData(dto);
-      const patient = await patientRepository.create(patientData);
+        if (existingMasterCaseId) {
+          const patientData = mapNewPatientDtoToPatientData(dto);
+          const patient = await patientRepository.create(patientData, { session });
 
-      const masterCase = await masterCaseRepository.create({
-        caseIds: [],
+          patientIdForCase = patient._id;
+          masterCaseIdForCase = existingMasterCaseId as NonNullable<ICase["masterCaseId"]>;
+        } else {
+          const patientData = mapNewPatientDtoToPatientData(dto);
+          const patient = await patientRepository.create(patientData, { session });
+
+          const masterCase = await masterCaseRepository.create(
+            { caseIds: [] },
+            { session },
+          );
+
+          patientIdForCase = patient._id;
+          masterCaseIdForCase = masterCase._id;
+        }
+
+        const caseData = mapNewPatientDtoToCaseData(
+          dto,
+          patientIdForCase,
+          masterCaseIdForCase,
+          userId,
+        );
+        const newCase = await caseRepository.create(caseData, { session });
+
+        if (existingMasterCaseId) {
+          await masterCaseRepository.addCaseId(masterCaseIdForCase, newCase._id, { session });
+        } else {
+          await masterCaseRepository.updateById(
+            masterCaseIdForCase,
+            { $set: { caseIds: [newCase._id] } },
+            { session },
+          );
+        }
+
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          `Patient case created: ${dto.name}`,
+          ENTITY_TYPE_PATIENT,
+          patientIdForCase.toString(),
+          userId,
+          session,
+        );
+
+        logger.info("Patient and case created", {
+          module: MODULE,
+          event: "patient_case_created",
+          user_id: userId,
+          patient_id: patientIdForCase.toString(),
+          case_id: newCase._id.toString(),
+          case_serial_id: dto.caseId,
+          master_case_id: masterCaseIdForCase.toString(),
+        });
+
+        return {
+          patientId: patientIdForCase.toString(),
+          caseId: newCase._id.toString(),
+          masterCaseId: masterCaseIdForCase.toString(),
+        };
       });
-
-      patientIdForCase = patient._id;
-      masterCaseIdForCase = masterCase._id;
+    } finally {
+      await session.endSession();
     }
-
-    const caseData = mapNewPatientDtoToCaseData(
-      dto,
-      patientIdForCase,
-      masterCaseIdForCase,
-      userId,
-    );
-    const newCase = await caseRepository.create(caseData);
-    if (existingMasterCaseId) {
-      await masterCaseRepository.addCaseId(masterCaseIdForCase, newCase._id);
-    } else {
-      await masterCaseRepository.updateById(masterCaseIdForCase, {
-        $set: { caseIds: [newCase._id] },
-      });
-    }
-
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      `Patient case created: ${dto.name}`,
-      ENTITY_TYPE_PATIENT,
-      patientIdForCase.toString(),
-      userId,
-    );
-
-    logger.info("Patient and case created", {
-      module: MODULE,
-      event: "patient_case_created",
-      user_id: userId,
-      patient_id: patientIdForCase.toString(),
-      case_id: newCase._id.toString(),
-      case_serial_id: dto.caseId,
-      master_case_id: masterCaseIdForCase.toString(),
-    });
-
-    return {
-      patientId: patientIdForCase.toString(),
-      caseId: newCase._id.toString(),
-      masterCaseId: masterCaseIdForCase.toString(),
-    };
   }
 
   async editPatientAndCase(dto: EditPatientDTO, userId: string): Promise<void> {
-    const existingCase = await getCaseBySerialIdOrThrow(dto.caseId);
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const existingCase = await getCaseBySerialIdOrThrow(dto.caseId, session);
 
-    if (existingCase.isArchived) {
-      throw new BadRequestError("Cannot edit an archived case");
+        if (existingCase.isArchived) {
+          throw new BadRequestError("Cannot edit an archived case");
+        }
+
+        const patientIdForCase = await ensureDedicatedPatientForCase(
+          existingCase,
+          session,
+        );
+        const patient = await patientRepository.findById(patientIdForCase, { session });
+        if (!patient) {
+          throw new NotFoundError("Patient not found");
+        }
+
+        const patientUpdate = mapEditDtoToPatientUpdate(dto);
+        if (Object.keys(patientUpdate).length > 0) {
+          await patientRepository.updateById(patient._id, { $set: patientUpdate }, { session });
+        }
+
+        if (dto.caseDetails) {
+          const gridRows = mapGridDtoToRows(dto.caseDetails);
+          await caseGridService.saveGrid(existingCase.serialId, gridRows, session);
+        }
+
+        const caseUpdate = mapEditDtoToCaseUpdate(dto, existingCase);
+        if (Object.keys(caseUpdate).length > 0) {
+          await caseRepository.updateById(existingCase._id, { $set: caseUpdate }, { session });
+        }
+
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          `Patient/case edited: ${patient.name}`,
+          ENTITY_TYPE_CASE,
+          existingCase._id.toString(),
+          userId,
+          session,
+        );
+
+        logger.info("Patient and case edited", {
+          module: MODULE,
+          event: "patient_case_edited",
+          user_id: userId,
+          patient_id: patient._id.toString(),
+          case_id: existingCase._id.toString(),
+          case_serial_id: dto.caseId,
+        });
+      });
+    } finally {
+      await session.endSession();
     }
-
-    const patientIdForCase = await ensureDedicatedPatientForCase(
-      existingCase,
-    );
-    const patient = await patientRepository.findById(patientIdForCase);
-    if (!patient) {
-      throw new NotFoundError("Patient not found");
-    }
-
-    const patientUpdate = mapEditDtoToPatientUpdate(dto);
-    if (Object.keys(patientUpdate).length > 0) {
-      await patientRepository.updateById(patient._id, { $set: patientUpdate });
-    }
-
-    if (dto.caseDetails && dto.caseDetails.length > 0) {
-      const gridRows = mapGridDtoToRows(dto.caseDetails);
-      await caseGridService.saveGrid(existingCase.serialId, gridRows);
-    }
-
-    const caseUpdate = mapEditDtoToCaseUpdate(dto, existingCase);
-    if (Object.keys(caseUpdate).length > 0) {
-      await caseRepository.updateById(existingCase._id, { $set: caseUpdate });
-    }
-
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      `Patient/case edited: ${patient.name}`,
-      ENTITY_TYPE_CASE,
-      existingCase._id.toString(),
-      userId,
-    );
-
-    logger.info("Patient and case edited", {
-      module: MODULE,
-      event: "patient_case_edited",
-      user_id: userId,
-      patient_id: patient._id.toString(),
-      case_id: existingCase._id.toString(),
-      case_serial_id: dto.caseId,
-    });
   }
 
   async getCaseDetails(
@@ -249,105 +293,146 @@ export class PatientService {
   }
 
   async releasePatient(dto: ReleasePatientDTO, userId: string): Promise<void> {
-    const existingCase = await getCaseBySerialIdOrThrow(dto.caseId);
-    const dateUpdates: ICase["dates"] = {
-      ...existingCase.dates,
-      stitchesRemovalDate:
-        dto.stitchesRemovalDate === null
-          ? undefined
-          : toCanonicalJerusalemDate(dto.stitchesRemovalDate),
-      nextInspectionDate:
-        dto.nextInspectionDate === null
-          ? undefined
-          : toCanonicalJerusalemDate(dto.nextInspectionDate),
-    };
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const existingCase = await getCaseBySerialIdOrThrow(dto.caseId, session);
+        const dateUpdates: ICase["dates"] = {
+          ...existingCase.dates,
+          stitchesRemovalDate:
+            dto.stitchesRemovalDate === null
+              ? undefined
+              : toCanonicalJerusalemDate(dto.stitchesRemovalDate),
+          nextInspectionDate:
+            dto.nextInspectionDate === null
+              ? undefined
+              : toCanonicalJerusalemDate(dto.nextInspectionDate),
+        };
 
-    await caseRepository.release(existingCase._id, userId, {
-      dates: dateUpdates,
-    });
+        await caseRepository.release(existingCase._id, userId, {
+          dates: dateUpdates,
+        }, session);
 
-    await patientMedicineRepository.deleteMany({ caseId: existingCase._id });
+        await patientMedicineRepository.deleteMany({ caseId: existingCase._id }, { session });
 
-    for (const med of dto.medicines) {
-      const medData = mapReleaseMedicineToData(
-        med,
-        existingCase.patientId,
-        existingCase._id,
-      );
-      await patientMedicineRepository.create(medData);
+        for (const med of dto.medicines) {
+          const medData = mapReleaseMedicineToData(
+            med,
+            existingCase.patientId,
+            existingCase._id,
+          );
+          await patientMedicineRepository.create(medData, { session });
+        }
+
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          "Patient released",
+          ENTITY_TYPE_CASE,
+          existingCase._id.toString(),
+          userId,
+          session,
+        );
+
+        logger.info("Patient released", {
+          module: MODULE,
+          event: "patient_released",
+          user_id: userId,
+          case_id: existingCase._id.toString(),
+          case_serial_id: dto.caseId,
+        });
+      });
+    } finally {
+      await session.endSession();
     }
-
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      "Patient released",
-      ENTITY_TYPE_CASE,
-      existingCase._id.toString(),
-      userId,
-    );
-
-    logger.info("Case released", {
-      module: MODULE,
-      event: "patient_case_released",
-      user_id: userId,
-      case_id: existingCase._id.toString(),
-      patient_id: existingCase.patientId.toString(),
-      medicine_count: dto.medicines.length,
-    });
   }
+
 
   async archivePatientCase(
     caseId: string,
     shouldArchive: boolean,
     userId: string,
   ): Promise<void> {
-    const existingCase = await getCaseBySerialIdOrThrow(caseId);
-    await caseRepository.archive(existingCase._id, shouldArchive);
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const existingCase = await getCaseBySerialIdOrThrow(caseId, session);
+        const isManuallyUnarchived =
+          shouldArchive
+            ? false
+            : shouldPersistManualProcedureUnarchive(
+              existingCase.flags,
+              existingCase.dates,
+            );
+        await caseRepository.updateById(
+          existingCase._id,
+          {
+            $set: {
+              isArchived: shouldArchive,
+              isManuallyUnarchived,
+            },
+          },
+          { session },
+        );
 
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      shouldArchive ? "Case archived" : "Case restored from archive",
-      ENTITY_TYPE_CASE,
-      existingCase._id.toString(),
-      userId,
-    );
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          shouldArchive ? "Case archived" : "Case restored from archive",
+          ENTITY_TYPE_CASE,
+          existingCase._id.toString(),
+          userId,
+          session,
+        );
 
-    logger.info("Case archive status updated", {
-      module: MODULE,
-      event: shouldArchive
-        ? "patient_case_archived"
-        : "patient_case_restored",
-      user_id: userId,
-      case_id: existingCase._id.toString(),
-      is_archived: shouldArchive,
-    });
+        logger.info("Case archive status updated", {
+          module: MODULE,
+          event: shouldArchive
+            ? "patient_case_archived"
+            : "patient_case_restored",
+          user_id: userId,
+          case_id: existingCase._id.toString(),
+          is_archived: shouldArchive,
+        });
+      });
+    } finally {
+      await session.endSession();
+    }
   }
 
   async deletePatientCase(caseId: string, userId: string): Promise<void> {
-    const existingCase = await getCaseBySerialIdOrThrow(caseId);
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const existingCase = await getCaseBySerialIdOrThrow(caseId, session);
 
-    await caseRepository.softDelete(existingCase._id);
+        await caseRepository.softDelete(existingCase._id, { session });
 
-    if (existingCase.masterCaseId) {
-      await masterCaseRepository.removeCaseId(
-        existingCase.masterCaseId,
-        existingCase._id,
-      );
+        if (existingCase.masterCaseId) {
+          await masterCaseRepository.removeCaseId(
+            existingCase.masterCaseId,
+            existingCase._id,
+            { session },
+          );
+        }
+
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          "Case deleted",
+          ENTITY_TYPE_CASE,
+          existingCase._id.toString(),
+          userId,
+          session,
+        );
+
+        logger.info("Case deleted", {
+          module: MODULE,
+          event: "patient_case_deleted",
+          user_id: userId,
+          case_id: existingCase._id.toString(),
+        });
+      });
+    } finally {
+      await session.endSession();
     }
-
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      "Case deleted",
-      ENTITY_TYPE_CASE,
-      existingCase._id.toString(),
-      userId,
-    );
-
-    logger.info("Case deleted", {
-      module: MODULE,
-      event: "patient_case_deleted",
-      user_id: userId,
-      case_id: existingCase._id.toString(),
-    });
   }
 
   async getCaseDocuments(
@@ -564,33 +649,42 @@ export class PatientService {
     data: CreateAnesthesiaProcedureFormDTO,
     userId: string,
   ): Promise<CreateAnesthesiaProcedureFormDTO> {
-    await getCaseByIdOrThrow(caseId);
-    const { caseId: _dtoCaseId, ...formFields } = data;
-    const formData: AnesthesiaFormUpsertData = {
-      ...formFields,
-      updatedByUserId: toObjectId(userId),
-    };
-    const form = await anesthesiaFormRepository.upsertByCaseId(
-      caseId,
-      formData,
-    );
+    const session = await mongoose.startSession();
+    try {
+      return await session.withTransaction(async () => {
+        await getCaseByIdOrThrow(caseId, session);
+        const { caseId: _dtoCaseId, ...formFields } = data;
+        const formData: AnesthesiaFormUpsertData = {
+          ...formFields,
+          updatedByUserId: toObjectId(userId),
+        };
+        const form = await anesthesiaFormRepository.upsertByCaseId(
+          caseId,
+          formData,
+          session,
+        );
 
-    await auditRepository.log(
-      AUDIT_SUBJECT_PATIENT,
-      "Anesthesia form updated",
-      ENTITY_TYPE_CASE,
-      caseId,
-      userId,
-    );
+        await auditRepository.log(
+          AUDIT_SUBJECT_PATIENT,
+          "Anesthesia form updated",
+          ENTITY_TYPE_CASE,
+          caseId,
+          userId,
+          session,
+        );
 
-    logger.info("Anesthesia form upserted", {
-      module: MODULE,
-      event: "patient_anesthesia_form_upserted",
-      user_id: userId,
-      case_id: caseId,
-    });
+        logger.info("Anesthesia form upserted", {
+          module: MODULE,
+          event: "patient_anesthesia_form_upserted",
+          user_id: userId,
+          case_id: caseId,
+        });
 
-    return toAnesthesiaFormDTO(form.toObject());
+        return toAnesthesiaFormDTO(form.toObject());
+      });
+    } finally {
+      await session.endSession();
+    }
   }
 
   async getReleasePatientData(
@@ -642,28 +736,39 @@ export class PatientService {
   }
 
   async updateDailyPlan(payload: UpdateDailyPlanRequestDTO): Promise<void> {
-    const updates = Object.entries(payload);
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const updates = Object.entries(payload);
 
-    await Promise.all(
-      updates.map(async ([caseId, update]) => {
-        const targetCase =
-          /^[a-fA-F0-9]{24}$/.test(caseId)
-            ? await getCaseByIdOrThrow(caseId)
-            : update.caseId
-              ? await getCaseBySerialIdOrThrow(update.caseId)
-              : await getCaseByIdOrThrow(caseId);
+        await Promise.all(
+          updates.map(async ([caseId, update]) => {
+            const targetCase =
+              /^[a-fA-F0-9]{24}$/.test(caseId)
+                ? await getCaseByIdOrThrow(caseId, session)
+                : update.caseId
+                  ? await getCaseBySerialIdOrThrow(update.caseId, session)
+                  : await getCaseByIdOrThrow(caseId, session);
 
-        const comments = update.comment ?? update.comments ?? "";
-        await caseRepository.updateById(targetCase._id, {
-          $set: {
-            dailyPlan: {
-              comments,
-              updatedAt: new Date(),
-            },
-          },
-        });
-      }),
-    );
+            const comments = update.comment ?? update.comments ?? "";
+            await caseRepository.updateById(
+              targetCase._id,
+              {
+                $set: {
+                  dailyPlan: {
+                    comments,
+                    updatedAt: new Date(),
+                  },
+                },
+              },
+              { session },
+            );
+          }),
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
   }
 }
 

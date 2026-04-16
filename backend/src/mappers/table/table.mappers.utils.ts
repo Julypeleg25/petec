@@ -567,6 +567,17 @@ type BuildCasesFilterOptions = {
   isProcedure?: boolean;
 };
 
+const combineCaseFilterClauses = (
+  baseFilter: MongoFilter,
+  clauses: ReadonlyArray<MongoFilter>,
+): MongoFilter => {
+  if (clauses.length === 0) {
+    return baseFilter;
+  }
+
+  return { $and: [baseFilter, ...clauses] };
+};
+
 export const buildCasesFilter = async (
   filter: MongoFilter,
   options: BuildCasesFilterOptions = {},
@@ -609,6 +620,7 @@ export const buildCasesFilter = async (
       : { $ne: true };
   }
 
+  const extraClauses: MongoFilter[] = [];
   if (procedureDateIsToday) {
     const todayJerusalemDate = toDateInputString(new Date());
     const todayDateFilter = todayJerusalemDate
@@ -616,7 +628,12 @@ export const buildCasesFilter = async (
       : null;
 
     if (todayDateFilter) {
-      baseFilter["dates.procedureDate"] = todayDateFilter;
+      extraClauses.push({
+        $or: [
+          { "dates.procedureDate": todayDateFilter },
+          { isManuallyUnarchived: true },
+        ],
+      });
     }
   }
 
@@ -652,7 +669,7 @@ export const buildCasesFilter = async (
   }
 
   if (!searchTerm) {
-    return baseFilter;
+    return combineCaseFilterClauses(baseFilter, extraClauses);
   }
 
   const matchingPatientIds = await patientRepository.searchCasePatientIds(
@@ -671,10 +688,10 @@ export const buildCasesFilter = async (
     searchClauses.push({ patientId: { $in: matchingPatientIds } });
   }
 
-  return {
-    ...baseFilter,
-    $or: searchClauses,
-  };
+  return combineCaseFilterClauses(baseFilter, [
+    ...extraClauses,
+    { $or: searchClauses },
+  ]);
 };
 
 export const createMongoHandler = <TOut, TMapped = TOut>(

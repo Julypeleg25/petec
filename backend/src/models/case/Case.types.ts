@@ -126,6 +126,7 @@ export interface ICase {
     updatedAt: Date;
     releaseDate?: Date;
     isArchived: boolean;
+    isManuallyUnarchived?: boolean;
     isDeleted: boolean;
 
     admission: {

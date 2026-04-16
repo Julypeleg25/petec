@@ -4,6 +4,7 @@ import { caseRepository } from "../../../repositories/patient/index.js";
 import { masterCaseRepository } from "../../../repositories/patient/index.js";
 import { patientRepository } from "../../../repositories/patient/index.js";
 import { getCaseSerialPrefix } from "@petec/shared";
+import type { ClientSession } from "mongoose";
 import type { CaseDocument, ICase } from "../../../models/case/index.js";
 
 const MODULE = "patient";
@@ -17,24 +18,25 @@ const getOrThrow = async <T>(
   return doc;
 };
 
-export const getCaseByIdOrThrow = (caseId: string): Promise<CaseDocument> =>
-  getOrThrow(() => caseRepository.findById(caseId), "Case");
+export const getCaseByIdOrThrow = (caseId: string, session?: ClientSession): Promise<CaseDocument> =>
+  getOrThrow(() => caseRepository.findById(caseId, { session }), "Case");
 
 export const getCaseByIdPopulatedOrThrow = (caseId: string): Promise<CaseDocument> =>
   getOrThrow(() => caseRepository.findByIdPopulated(caseId), "Case");
 
-export const getCaseBySerialIdOrThrow = (caseId: string): Promise<CaseDocument> =>
-  getOrThrow(() => caseRepository.findBySerialId(caseId), "Case");
+export const getCaseBySerialIdOrThrow = (caseId: string, session?: ClientSession): Promise<CaseDocument> =>
+  getOrThrow(() => caseRepository.findBySerialId(caseId, { session }), "Case");
 
 export const ensureDedicatedPatientForCase = async (
   caseDoc: CaseDocument,
+  session?: ClientSession,
 ): Promise<ICase["patientId"]> => {
-  const linkedCases = await caseRepository.findByPatientId(caseDoc.patientId);
+  const linkedCases = await caseRepository.findByPatientId(caseDoc.patientId, { session });
   if (linkedCases.length <= 1) {
     return caseDoc.patientId;
   }
 
-  const sourcePatient = await patientRepository.findById(caseDoc.patientId);
+  const sourcePatient = await patientRepository.findById(caseDoc.patientId, { session });
   if (!sourcePatient) {
     throw new NotFoundError("Patient not found");
   }
@@ -45,11 +47,11 @@ export const ensureDedicatedPatientForCase = async (
     owner: { ...sourcePatient.owner },
     photoName: sourcePatient.photoName,
     refs: sourcePatient.refs,
-  });
+  }, { session });
 
   await caseRepository.updateById(caseDoc._id, {
     $set: { patientId: isolatedPatient._id },
-  });
+  }, { session });
   caseDoc.patientId = isolatedPatient._id;
 
   logger.info("Case patient isolated", {
@@ -64,6 +66,7 @@ export const ensureDedicatedPatientForCase = async (
 
 export const resolveMasterCaseBySerialPrefix = async (
   caseSerialId: string,
+  session?: ClientSession,
 ): Promise<NonNullable<ICase["masterCaseId"]> | null> => {
   const serialPrefix = getCaseSerialPrefix(caseSerialId);
   if (!serialPrefix) {
@@ -72,6 +75,7 @@ export const resolveMasterCaseBySerialPrefix = async (
 
   const casesWithSamePrefix = await caseRepository.findBySerialPrefix(
     serialPrefix,
+    { session },
   );
   if (casesWithSamePrefix.length === 0) {
     return null;
@@ -85,22 +89,25 @@ export const resolveMasterCaseBySerialPrefix = async (
     await caseRepository.assignMasterCaseBySerialPrefix(
       serialPrefix,
       existingMasterCaseId,
+      { session },
     );
     await Promise.all(
       casesWithSamePrefix.map((row) =>
-        masterCaseRepository.addCaseId(existingMasterCaseId, row._id),
+        masterCaseRepository.addCaseId(existingMasterCaseId, row._id, { session }),
       ),
     );
     return existingMasterCaseId;
   }
 
-  const createdMasterCase = await masterCaseRepository.create({
-    caseIds: casesWithSamePrefix.map((row) => row._id),
-  });
+  const createdMasterCase = await masterCaseRepository.create(
+    { caseIds: casesWithSamePrefix.map((row) => row._id) },
+    { session },
+  );
 
   await caseRepository.assignMasterCaseBySerialPrefix(
     serialPrefix,
     createdMasterCase._id,
+    { session },
   );
 
   return createdMasterCase._id;

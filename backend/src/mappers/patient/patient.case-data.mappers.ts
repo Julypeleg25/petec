@@ -12,7 +12,10 @@ import type {
     CaseUpdateData,
     CaseUpdateSource,
 } from "./patient.mappers.types.js";
-import { toCanonicalJerusalemDate } from "../common/common.mappers.utils.js";
+import {
+    toCanonicalJerusalemDate,
+    toDateInputString,
+} from "../common/common.mappers.utils.js";
 
 type CreateCaseDatesInput = NonNullable<NewPatientDTO["dates"]>;
 type UpdateCaseDatesInput = NonNullable<EditPatientDTO["dates"]>;
@@ -77,6 +80,38 @@ const toCaseObject = (caseSource: CaseUpdateSource): ICase =>
     typeof caseSource.toObject === "function"
         ? caseSource.toObject()
         : caseSource;
+
+const isProcedureCaseOutsideToday = (
+    flags?: ICase["flags"],
+    dates?: ICase["dates"],
+): boolean => {
+    if (flags?.isProcedure !== true) {
+        return false;
+    }
+
+    const procedureDateKey = toDateInputString(dates?.procedureDate);
+    if (!procedureDateKey) {
+        return false;
+    }
+
+    const todayKey = toDateInputString(new Date());
+    return procedureDateKey !== todayKey;
+};
+
+const shouldKeepManualUnarchiveOverride = (
+    isManuallyUnarchived?: boolean,
+    flags?: ICase["flags"],
+    dates?: ICase["dates"],
+): boolean =>
+    isManuallyUnarchived === true && isProcedureCaseOutsideToday(flags, dates);
+
+const shouldAutoArchiveProcedureCase = (
+    flags?: ICase["flags"],
+    dates?: ICase["dates"],
+    isManuallyUnarchived?: boolean,
+): boolean =>
+    isProcedureCaseOutsideToday(flags, dates) &&
+    isManuallyUnarchived !== true;
 
 export const mapRefsToObjectIds = (
     refs: NonNullable<NewPatientDTO["refs"]>,
@@ -162,6 +197,11 @@ export const mapNewPatientDtoToCaseData = (
         caseData.refs = mapRefsToObjectIds(dto.refs);
     }
 
+    caseData.isArchived = shouldAutoArchiveProcedureCase(
+        caseData.flags,
+        caseData.dates,
+    );
+
     return caseData;
 };
 
@@ -217,6 +257,20 @@ export const mapEditDtoToCaseUpdate = (
             ...mapRefsToObjectIds(dto.refs),
         };
     }
+
+    const nextFlags = update.flags ?? caseObject.flags;
+    const nextDates = update.dates ?? caseObject.dates;
+    const nextIsManuallyUnarchived = shouldKeepManualUnarchiveOverride(
+        caseObject.isManuallyUnarchived,
+        nextFlags,
+        nextDates,
+    );
+    update.isManuallyUnarchived = nextIsManuallyUnarchived;
+    update.isArchived = shouldAutoArchiveProcedureCase(
+        nextFlags,
+        nextDates,
+        nextIsManuallyUnarchived,
+    );
 
     return update;
 };

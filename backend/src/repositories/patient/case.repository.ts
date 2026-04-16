@@ -3,7 +3,7 @@ import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
 import { BaseRepository } from "../base.repository.js";
 import { CaseModel } from "../../models/case/index.js";
 import type { ICase, CaseDocument, ICaseDetailsRow } from "../../models/case/index.js";
-import type { Types, UpdateQuery } from "mongoose";
+import type { Types, UpdateQuery, ClientSession } from "mongoose";
 
 const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>
   new RegExp(`^${escapeRegex(serialPrefix)}(?:-[\\d-]+)?$`);
@@ -14,8 +14,11 @@ export class CaseRepository extends BaseRepository<ICase> {
     super(CaseModel);
   }
 
-  async findByPatientId(patientId: string | Types.ObjectId): Promise<CaseDocument[]> {
-    return this.model.find({ patientId, isDeleted: false }).sort({ createdAt: -1 }).exec();
+  async findByPatientId(
+    patientId: string | Types.ObjectId,
+    options?: QueryOptions<ICase>,
+  ): Promise<CaseDocument[]> {
+    return this.model.find({ patientId, isDeleted: false }, null, options).sort({ createdAt: -1 }).exec();
   }
 
   async findActiveByPatientId(patientId: string | Types.ObjectId): Promise<CaseDocument | null> {
@@ -55,8 +58,8 @@ export class CaseRepository extends BaseRepository<ICase> {
       .exec();
   }
 
-  async findBySerialId(serialId: string): Promise<CaseDocument | null> {
-    return this.model.findOne({ serialId }).exec();
+  async findBySerialId(serialId: string, options?: QueryOptions<ICase>): Promise<CaseDocument | null> {
+    return this.model.findOne({ serialId }, null, options).exec();
   }
 
   async findBySerialIdPopulated(serialId: string): Promise<CaseDocument | null> {
@@ -96,9 +99,12 @@ export class CaseRepository extends BaseRepository<ICase> {
       .exec();
   }
 
-  async findBySerialPrefix(serialPrefix: string): Promise<CaseDocument[]> {
+  async findBySerialPrefix(
+    serialPrefix: string,
+    options?: QueryOptions<ICase>,
+  ): Promise<CaseDocument[]> {
     return this.model
-      .find({ serialId: buildSerialPrefixRegex(serialPrefix), isDeleted: false })
+      .find({ serialId: buildSerialPrefixRegex(serialPrefix), isDeleted: false }, null, options)
       .sort({ createdAt: -1 })
       .exec();
   }
@@ -106,11 +112,13 @@ export class CaseRepository extends BaseRepository<ICase> {
   async assignMasterCaseBySerialPrefix(
     serialPrefix: string,
     masterCaseId: string | Types.ObjectId,
+    options?: QueryOptions<ICase>,
   ): Promise<void> {
     await this.model
       .updateMany(
         { serialId: buildSerialPrefixRegex(serialPrefix) },
         { $set: { masterCaseId } },
+        options,
       )
       .exec();
   }
@@ -125,16 +133,24 @@ export class CaseRepository extends BaseRepository<ICase> {
   async updateCaseDetailsGridBySerialId(
     serialId: string,
     grid: ICaseDetailsRow[],
+    session?: ClientSession,
   ): Promise<CaseDocument | null> {
-    return this.updateOne({ serialId }, { $set: { caseDetailsGrid: grid } });
+    return this.updateOne({ serialId }, { $set: { caseDetailsGrid: grid } }, { session });
   }
 
-  async softDelete(caseId: string | Types.ObjectId): Promise<CaseDocument | null> {
-    return this.updateById(caseId, { $set: { isDeleted: true } });
+  async softDelete(
+    caseId: string | Types.ObjectId,
+    options?: QueryOptions<ICase>,
+  ): Promise<CaseDocument | null> {
+    return this.updateById(caseId, { $set: { isDeleted: true } }, options);
   }
 
-  async archive(caseId: string | Types.ObjectId, isArchived = true): Promise<CaseDocument | null> {
-    return this.updateById(caseId, { $set: { isArchived } });
+  async archive(
+    caseId: string | Types.ObjectId,
+    isArchived = true,
+    options?: QueryOptions<ICase>,
+  ): Promise<CaseDocument | null> {
+    return this.updateById(caseId, { $set: { isArchived } }, options);
   }
 
   async unarchiveProceduresScheduledForDate(targetDate: Date): Promise<number> {
@@ -163,7 +179,7 @@ export class CaseRepository extends BaseRepository<ICase> {
             ],
           },
         },
-        { $set: { isArchived: false } },
+        { $set: { isArchived: false, isManuallyUnarchived: false } },
       )
       .exec();
 
@@ -174,6 +190,7 @@ export class CaseRepository extends BaseRepository<ICase> {
     caseId: string | Types.ObjectId,
     releasedByUserId: string | Types.ObjectId,
     updates: Partial<Pick<ICase, "dates">>,
+    session?: ClientSession,
   ): Promise<CaseDocument | null> {
     const update: UpdateQuery<ICase> = {
       $set: {
@@ -182,7 +199,7 @@ export class CaseRepository extends BaseRepository<ICase> {
         ...(updates.dates && { dates: updates.dates }),
       },
     };
-    return this.updateById(caseId, update);
+    return this.updateById(caseId, update, { session });
   }
 
   async findByMasterCaseId(masterCaseId: string | Types.ObjectId): Promise<CaseDocument[]> {

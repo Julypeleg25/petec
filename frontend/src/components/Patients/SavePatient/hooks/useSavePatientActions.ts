@@ -17,11 +17,13 @@ import { getCaseDayPrimaryDataRow, resolveCaseDayStartHour } from "../../CaseDet
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
 import { mapCaseDetailsGridToDto } from "../utils/savePatient.utils";
 import {
+    buildEmptyCaseDailyDetailsTemplate,
     buildNewCaseDailyDetailsTemplate,
     normalizeCaseDetailsGridHoursForSave,
     toOptionalNumber,
     validateCaseDetailsGridHours,
 } from "../utils/savePatientCaseDetails.utils";
+import { resolveSelectedCaseDate } from "../sections/utils/savePatientSections.utils";
 import type { PatientFormState } from "./usePatientFormState";
 import { downloadCaseExportPdf } from "../utils/savePatientExport.utils";
 import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
@@ -191,12 +193,6 @@ export function useSavePatientActions(
             let normalizedCaseDetailsList = state.caseDetailsList;
 
             if (isEdit) {
-                const hourValue = state.selectedStartHour;
-                if (hourValue === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-                    toast.error("אנא בחר/י שעה לתחילת הטבלה");
-                    return false;
-                }
-
                 normalizedCaseDetailsList =
                     normalizeCaseDetailsGridHoursForSave(state.caseDetailsList);
 
@@ -367,12 +363,52 @@ export function useSavePatientActions(
             state.setTimeSelectionValue(
                 previousStartHour !== null
                     ? String(previousStartHour)
-                    : SAVE_PATIENT_DEFAULTS.EMPTY_VALUE
+                    : SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
             );
 
             const firstDataRow = getCaseDayPrimaryDataRow(defaultCaseDailyData);
             state.setSelectedCaseDate(
                 firstDataRow?.date ?? SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK,
+            );
+        },
+        [state],
+    );
+
+    const deleteSelectedCaseDailyDetails = useCallback(
+        (e: React.MouseEvent | React.ChangeEvent<HTMLInputElement>) => {
+            e.preventDefault();
+
+            const currentIndex = state.caseDetailsDataIndex;
+            if (!state.caseDetailsList[currentIndex]) {
+                return;
+            }
+
+            if (state.caseDetailsList.length <= 1) {
+                const emptyCaseDay = buildEmptyCaseDailyDetailsTemplate();
+                state.setCaseDetailsList([emptyCaseDay]);
+                state.setCaseDetailsDataIndex(0);
+                state.setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
+                state.setTimeSelectionValue(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+                state.setShowCaseDetailsDaysOptions(false);
+                return;
+            }
+
+            const nextList = state.caseDetailsList.filter(
+                (_caseDay, index) => index !== currentIndex,
+            );
+            const nextIndex = Math.min(currentIndex, nextList.length - 1);
+            const nextStartHour = resolveCaseDayStartHour(nextList[nextIndex] ?? []);
+
+            state.setCaseDetailsList(nextList);
+            state.setCaseDetailsDataIndex(nextIndex);
+            state.setSelectedCaseDate(resolveSelectedCaseDate(nextList, nextIndex));
+            state.setTimeSelectionValue(
+                nextStartHour !== null
+                    ? String(nextStartHour)
+                    : SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
+            );
+            state.setShowCaseDetailsDaysOptions(
+                nextList.some((caseDay) => Boolean(getCaseDayPrimaryDataRow(caseDay)?.date)),
             );
         },
         [state],
@@ -405,6 +441,7 @@ export function useSavePatientActions(
         savePatientChanges,
         exportCaseDetails,
         addNewCaseDailyDetails,
+        deleteSelectedCaseDailyDetails,
         archivePatient,
     };
 }

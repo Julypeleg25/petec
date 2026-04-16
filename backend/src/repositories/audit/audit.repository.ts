@@ -1,7 +1,7 @@
 import { BaseRepository } from "../base.repository.js";
 import { AuditLogModel } from "../../models/auditLog/index.js";
 import type { IAuditLog, AuditLogDocument } from "../../models/auditLog/index.js";
-import type { Types } from "mongoose";
+import type { Types, ClientSession } from "mongoose";
 
 export class AuditRepository extends BaseRepository<IAuditLog> {
     constructor() {
@@ -27,6 +27,7 @@ export class AuditRepository extends BaseRepository<IAuditLog> {
         entityType: string,
         entityId: string,
         performedByUserId?: string | Types.ObjectId,
+        session?: ClientSession,
     ): Promise<AuditLogDocument> {
         const data: Partial<IAuditLog> = { subject, description, entityType, entityId };
         if (performedByUserId !== undefined) {
@@ -34,7 +35,8 @@ export class AuditRepository extends BaseRepository<IAuditLog> {
                 ? new (await import("mongoose")).Types.ObjectId(performedByUserId)
                 : performedByUserId;
         }
-        return this.model.create(data);
+        const [doc] = await this.model.create([data], { session });
+        return doc as AuditLogDocument;
     };
 }
 

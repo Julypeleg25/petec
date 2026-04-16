@@ -60,6 +60,7 @@ const EXACT_ERROR_MESSAGE_TRANSLATIONS: Record<string, string> = {
   "Refresh response contained no access token": "לא התקבל אסימון גישה חדש מהשרת",
   "Email service is not configured": "שירות שליחת המייל אינו מוגדר",
   "Failed to send email": "שליחת המייל נכשלה",
+  "Case with this serial id already exists": "מספר התיק קיים",
 };
 
 const toTrimmedText = (value: string): string => value.trim();

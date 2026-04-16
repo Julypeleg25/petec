@@ -1,3 +1,4 @@
+import type { ClientSession } from "mongoose";
 import { logger } from "../../config/logger.js";
 import { caseRepository } from "../../repositories/patient/index.js";
 import { NotFoundError, ValidationError } from "../../constants/error.constants.js";
@@ -14,6 +15,7 @@ export class CaseGridService {
   async saveGrid(
     caseSerialId: string,
     grid: Partial<ICaseDetailsRow>[][] | Partial<ICaseDetailsRow>[],
+    session?: ClientSession,
   ): Promise<void> {
     const normalizedRows = normalizeCaseDetailsGrid(grid);
     const validationIssues = validateCaseDetailsGrid(normalizedRows);
@@ -33,6 +35,7 @@ export class CaseGridService {
     const updatedCase = await caseRepository.updateCaseDetailsGridBySerialId(
       caseSerialId,
       normalizedRows,
+      session,
     );
     if (!updatedCase) {
       throw new NotFoundError("Case not found");

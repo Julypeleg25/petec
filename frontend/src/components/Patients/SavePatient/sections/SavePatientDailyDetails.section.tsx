@@ -1,4 +1,4 @@
-import { FaInfoCircle, FaPlus } from "react-icons/fa";
+import { FaInfoCircle, FaPlus, FaTrash } from "react-icons/fa";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
@@ -29,6 +29,7 @@ interface SavePatientDailyDetailsSectionProps {
   handlePaintingModeButtonClick: (e: SavePatientActionEvent) => void;
   handleSetEditableFieldsButtonClick: (e: SavePatientActionEvent) => void;
   addNewCaseDailyDetails: (e: SavePatientActionEvent) => void;
+  deleteSelectedCaseDailyDetails: (e: SavePatientActionEvent) => void;
 }
 
 function SavePatientDailyDetailsSection({
@@ -49,11 +50,13 @@ function SavePatientDailyDetailsSection({
   handlePaintingModeButtonClick,
   handleSetEditableFieldsButtonClick,
   addNewCaseDailyDetails,
+  deleteSelectedCaseDailyDetails,
 }: SavePatientDailyDetailsSectionProps) {
   const caseDateOptions = buildCaseDetailsDateOptions(caseDetailsList);
-  const shouldShowCaseDatePicker = caseDateOptions.some((option) =>
-    option.text.trim().length > 0,
-  );
+  const shouldShowCaseDatePicker =
+    caseDateOptions.length > 1 ||
+    caseDateOptions.some((option) => !option.value.startsWith("new-day-"));
+  const canDeleteSelectedCaseDay = caseDetailsList.length > 0;
 
   return (
     <div className="above-daily-details-table-section">
@@ -103,20 +106,40 @@ function SavePatientDailyDetailsSection({
         maxLength={2000}
       />
       <div className="daily-details-btns-container">
-        {shouldShowCaseDatePicker && (
-          <div className="case-daily-details-date-picker">
-            <FormSelect
-              elements={caseDateOptions}
-              selectId="select-daily-case-details-date-picker"
-              optionState={selectedCaseDate}
-              setOptionState={setSelectedCaseDate}
-              labelText=":תאריך"
-              width="220px"
-              afterSelect={onCaseDateChange}
-              isOrdered={false}
-            />
+        <div className="case-daily-details-date-controls">
+          {shouldShowCaseDatePicker && (
+            <div className="case-daily-details-date-picker">
+              <FormSelect
+                elements={caseDateOptions}
+                selectId="select-daily-case-details-date-picker"
+                optionState={selectedCaseDate}
+                setOptionState={setSelectedCaseDate}
+                labelText=":תאריך"
+                width="220px"
+                afterSelect={onCaseDateChange}
+                isOrdered={false}
+              />
+            </div>
+          )}
+          <div className="case-daily-details-date-actions">
+            <button
+              type="button"
+              onClick={deleteSelectedCaseDailyDetails}
+              className="btn btn-small delete-case-daily-details-btn"
+              disabled={isArchived || !canDeleteSelectedCaseDay}
+              title="מחיקת יום אשפוז"
+            >
+              <FaTrash />
+            </button>
+            <button
+              type="button"
+              onClick={addNewCaseDailyDetails}
+              className="btn btn-small add-new-case-daily-details-btn"
+            >
+              <FaPlus />
+            </button>
           </div>
-        )}
+        </div>
         <div className="daily-details-btns">
           <button
             type="submit"
@@ -128,6 +151,7 @@ function SavePatientDailyDetailsSection({
           </button>
           <button
             id="paintButton"
+            type="button"
             onClick={handlePaintingModeButtonClick}
             className="btn btn-small paint-button"
           >
@@ -135,16 +159,11 @@ function SavePatientDailyDetailsSection({
           </button>
           <button
             id="setEditableFieldsButton"
+            type="button"
             onClick={handleSetEditableFieldsButtonClick}
             className="btn btn-small paint-button"
           >
             {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
-          </button>
-          <button
-            onClick={addNewCaseDailyDetails}
-            className="btn btn-small add-new-case-daily-details-btn"
-          >
-            <FaPlus />
           </button>
         </div>
       </div>

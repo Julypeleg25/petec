@@ -3,7 +3,6 @@ import type { CaseDetailsResponseDTO } from "@petec/shared";
 import { patientsApi } from "../../../../features/patients/patients.api";
 import { getCaseDayPrimaryDataRow } from "../../CaseDetailsTable/caseGrid.utils";
 import { toTodayDate } from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
-import { defaultCaseDailyDataTemplate } from "../types/savePatient.types";
 import type { NewPatientData } from "../types/savePatient.types";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
 import {
@@ -11,7 +10,11 @@ import {
     mapCaseDetailsApiGridToUi,
     toChildCases,
 } from "../utils/savePatient.utils";
-import { toLocalDateFromInputValue } from "../utils/savePatientCaseDetails.utils";
+import { resolveSelectedCaseDate } from "../sections/utils/savePatientSections.utils";
+import {
+    buildEmptyCaseDailyDetailsTemplate,
+    toLocalDateFromInputValue,
+} from "../utils/savePatientCaseDetails.utils";
 import type { PatientFormState } from "./usePatientFormState";
 
 type ShouldApplyState = () => boolean;
@@ -147,7 +150,7 @@ export function useCaseDetailsState(
             const grid = mapCaseDetailsApiGridToUi(response.caseDailyDetails);
 
             if (grid === null) {
-                setCaseDetailsList([defaultCaseDailyDataTemplate]);
+                setCaseDetailsList([buildEmptyCaseDailyDetailsTemplate()]);
                 setShowCaseDetailsDaysOptions(false);
                 setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
                 setSelectedStartHour(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
@@ -163,9 +166,7 @@ export function useCaseDetailsState(
             );
             setCaseDetailsList(ordered);
             setShowCaseDetailsDaysOptions(hasExistingDates);
-            setSelectedCaseDate(
-                firstDataRow?.date ?? SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK,
-            );
+            setSelectedCaseDate(resolveSelectedCaseDate(ordered, 0));
             setSelectedStartHour(
                 String(Number((firstDataRow?.time ?? "").split(":")[0] || "")) ||
                 SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,

@@ -1,9 +1,5 @@
 import type { SelectOptionObj } from "../../../../../utils/FormSelect/FormSelect.types";
-import {
-  getDateForInput,
-  getFormattedDate,
-  getFormattedDateFromDBdate,
-} from "../../../../../utils/DateFormattingUtil";
+import { getFormattedDateFromDBdate } from "../../../../../utils/DateFormattingUtil";
 import type { CaseDetailsData } from "../../../CaseDetailsTable/CaseDetailsTable.types";
 import { getCaseDayPrimaryDataRow } from "../../../CaseDetailsTable/caseGrid.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../../constants/savePatient.constants";
@@ -12,6 +8,8 @@ export interface CaseDateSelectionData {
   caseDetailsIndex: number;
   selectedHour: string;
 }
+
+const UNDATED_CASE_LABEL = "ללא תאריך";
 
 const resolveCaseDate = (
   caseDetails: CaseDetailsData[],
@@ -42,7 +40,7 @@ export const buildCaseDetailsDateOptions = (
     const caseDate = resolveCaseDate(caseDetails);
     return {
       value: getCaseDateSelectionKey(caseDetails, index),
-      text: caseDate ? getFormattedDateFromDBdate(caseDate) : "",
+      text: caseDate ? getFormattedDateFromDBdate(caseDate) : UNDATED_CASE_LABEL,
     };
   });
 };
@@ -86,5 +84,5 @@ export const resolveSelectedCaseDate = (
     return resolvedDate;
   }
 
-  return getDateForInput(new Date());
+  return getCaseDateSelectionKey(selectedCase, caseDetailsIndex);
 };

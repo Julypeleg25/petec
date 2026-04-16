@@ -32,6 +32,7 @@ export const caseSchema = new Schema<ICase, Model<ICase>>(
 
         releaseDate: { type: Date },
         isArchived: { type: Boolean, default: false },
+        isManuallyUnarchived: { type: Boolean, default: false },
         isDeleted: { type: Boolean, default: false },
 
         admission: {

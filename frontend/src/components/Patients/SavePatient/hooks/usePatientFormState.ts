@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
 import type { NewPatientData, ChildCaseData } from "../types/savePatient.types";
 import type { CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
-import { defaultCaseDailyDataTemplate } from "../types/savePatient.types";
 import { getDateForInput } from "../../../../utils/DateFormattingUtil";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
+import { buildEmptyCaseDailyDetailsTemplate } from "../utils/savePatientCaseDetails.utils";
 import {
     getEmptyFormData,
     normalizeFormValue,
@@ -82,8 +82,8 @@ export function usePatientFormState() {
     );
     const [showCaseDetailsDaysOptions, setShowCaseDetailsDaysOptions] =
         useState(false);
-    const [caseDetailsList, setCaseDetailsList] = useState<CaseDetailsData[][]>([
-        defaultCaseDailyDataTemplate,
+    const [caseDetailsList, setCaseDetailsList] = useState<CaseDetailsData[][]>(() => [
+        buildEmptyCaseDailyDetailsTemplate(),
     ]);
     const [caseDetailsDataIndex, setCaseDetailsDataIndex] = useState(0);
 

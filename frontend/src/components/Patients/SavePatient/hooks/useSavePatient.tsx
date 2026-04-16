@@ -344,6 +344,7 @@ export function useSavePatient(
     savePatientChanges: actions.savePatientChanges,
     getRaceTypes,
     addNewCaseDailyDetails: actions.addNewCaseDailyDetails,
+    deleteSelectedCaseDailyDetails: actions.deleteSelectedCaseDailyDetails,
     exportCaseDetails: actions.exportCaseDetails,
     handleCellClick,
     handlePaintingModeButtonClick,

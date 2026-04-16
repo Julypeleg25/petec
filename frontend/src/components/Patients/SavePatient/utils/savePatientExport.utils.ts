@@ -18,6 +18,7 @@ import {
   isValueInRange,
 } from "../../CaseDetailsTable/utils/caseDetailsVitals.utils";
 import type { NewPatientData } from "../types/savePatient.types";
+import { getCaseDateSelectionKey } from "../sections/utils/savePatientSections.utils";
 
 const EMPTY_VALUE = "-";
 const EXPORT_CONTAINER_ID = "save-patient-export-container";
@@ -109,9 +110,12 @@ const getCaseDay = (
   caseDetailsList: CaseDetailsData[][],
   selectedCaseDate?: string,
 ): CaseDetailsData[] => {
-  const selectedDay = caseDetailsList.find((caseDay) => {
+  const selectedDay = caseDetailsList.find((caseDay, index) => {
     const primaryRow = getCaseDayPrimaryDataRow(caseDay);
-    return primaryRow?.date === selectedCaseDate;
+    return (
+      primaryRow?.date === selectedCaseDate ||
+      getCaseDateSelectionKey(caseDay, index) === selectedCaseDate
+    );
   });
 
   return selectedDay ?? caseDetailsList[0] ?? [];
@@ -400,7 +404,7 @@ const buildExportHtml = (
   const caseDay = getCaseDay(caseDetailsList, selectedCaseDate);
   const caseDayIndex = caseDetailsList.findIndex((caseDayItem) => caseDayItem === caseDay);
   const exportDate = formatDateValue(
-    selectedCaseDate || getCaseDayPrimaryDataRow(caseDay)?.date,
+    getCaseDayPrimaryDataRow(caseDay)?.date,
   );
   const hourRows = getHourRows(caseDay);
   const vitals = mapAnimalVitals(lookups.vitals);

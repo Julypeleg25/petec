@@ -13,6 +13,7 @@ import {
 } from "../../CaseDetailsTable/caseGrid.utils";
 import { defaultCaseDailyDataTemplate } from "../types/savePatient.types";
 import {
+  hasCaseDayDate,
   normalizeCaseDetailsDate,
   normalizeCaseDetailsTime,
 } from "./savePatientCaseDetails.utils";
@@ -48,7 +49,7 @@ const cloneDefaultCaseDailyRow = (index: number): CaseDetailsData => {
 export const mapCaseDetailsGridToDto = (
   rows: CaseDetailsData[][],
 ): CaseDetailsDataSchema[][] =>
-  rows.map((dailyRows) => {
+  rows.filter(hasCaseDayDate).map((dailyRows) => {
     const orderedRows = sortCaseDayRowsByIndex(dailyRows);
     const rowForFallback = getCaseDayPrimaryDataRow(orderedRows);
     const fallbackDate =

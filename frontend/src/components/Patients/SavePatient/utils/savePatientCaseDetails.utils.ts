@@ -107,6 +107,9 @@ const cloneCaseDailyRow = (
 const createDefaultCaseDayTemplate = (): CaseDetailsData[] =>
     defaultCaseDailyDataTemplate.map(cloneCaseDailyRow);
 
+export const buildEmptyCaseDailyDetailsTemplate = (): CaseDetailsData[] =>
+    createDefaultCaseDayTemplate();
+
 const resetMedicineCells = (
     cells: CaseDetailsData["fluids"],
 ): CaseDetailsData["fluids"] =>
@@ -157,6 +160,10 @@ const resolveCaseDayDate = (caseDay: CaseDetailsData[]): string | null => {
 
     return Array.from(uniqueDates)[0] ?? null;
 };
+
+export const hasCaseDayDate = (
+    caseDay: CaseDetailsData[],
+): boolean => resolveCaseDayDate(caseDay) !== null;
 
 const resolveNewCaseDetailsDate = (
     caseDetailsList: CaseDetailsData[][],
@@ -212,7 +219,7 @@ export const validateCaseDetailsGridHours = (
         const rowsByIndex = buildCaseDayRowsByIndexMap(caseDay);
         const normalizedDate = resolveCaseDayDate(Array.from(rowsByIndex.values()));
         if (!normalizedDate) {
-            return `תאריך יום האשפוז #${dayIndex + 1} חסר או לא תקין`;
+            continue;
         }
 
         const startHour = resolveCaseDayStartHour(caseDay);
