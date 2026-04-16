@@ -1,6 +1,6 @@
 import { toDateInputString } from "../../mappers/common/common.mappers.utils.js";
 import { escapeRegex } from "../../mappers/table/table.mappers.utils.js";
-import { BaseRepository } from "../base.repository.js";
+import { BaseRepository, type RepositorySessionOptions } from "../base.repository.js";
 import { CaseModel } from "../../models/case/index.js";
 import type { ICase, CaseDocument, ICaseDetailsRow } from "../../models/case/index.js";
 import type { Types, UpdateQuery, ClientSession } from "mongoose";
@@ -16,9 +16,13 @@ export class CaseRepository extends BaseRepository<ICase> {
 
   async findByPatientId(
     patientId: string | Types.ObjectId,
-    options?: QueryOptions<ICase>,
+    options?: RepositorySessionOptions,
   ): Promise<CaseDocument[]> {
-    return this.model.find({ patientId, isDeleted: false }, null, options).sort({ createdAt: -1 }).exec();
+    const query = this.model.find({ patientId, isDeleted: false });
+    if (options?.session) {
+      query.session(options.session);
+    }
+    return query.sort({ createdAt: -1 }).exec();
   }
 
   async findActiveByPatientId(patientId: string | Types.ObjectId): Promise<CaseDocument | null> {
@@ -58,8 +62,15 @@ export class CaseRepository extends BaseRepository<ICase> {
       .exec();
   }
 
-  async findBySerialId(serialId: string, options?: QueryOptions<ICase>): Promise<CaseDocument | null> {
-    return this.model.findOne({ serialId }, null, options).exec();
+  async findBySerialId(
+    serialId: string,
+    options?: RepositorySessionOptions,
+  ): Promise<CaseDocument | null> {
+    const query = this.model.findOne({ serialId });
+    if (options?.session) {
+      query.session(options.session);
+    }
+    return query.exec();
   }
 
   async findBySerialIdPopulated(serialId: string): Promise<CaseDocument | null> {
@@ -101,26 +112,31 @@ export class CaseRepository extends BaseRepository<ICase> {
 
   async findBySerialPrefix(
     serialPrefix: string,
-    options?: QueryOptions<ICase>,
+    options?: RepositorySessionOptions,
   ): Promise<CaseDocument[]> {
-    return this.model
-      .find({ serialId: buildSerialPrefixRegex(serialPrefix), isDeleted: false }, null, options)
-      .sort({ createdAt: -1 })
-      .exec();
+    const query = this.model.find({
+      serialId: buildSerialPrefixRegex(serialPrefix),
+      isDeleted: false,
+    });
+    if (options?.session) {
+      query.session(options.session);
+    }
+    return query.sort({ createdAt: -1 }).exec();
   }
 
   async assignMasterCaseBySerialPrefix(
     serialPrefix: string,
     masterCaseId: string | Types.ObjectId,
-    options?: QueryOptions<ICase>,
+    options?: RepositorySessionOptions,
   ): Promise<void> {
-    await this.model
-      .updateMany(
-        { serialId: buildSerialPrefixRegex(serialPrefix) },
-        { $set: { masterCaseId } },
-        options,
-      )
-      .exec();
+    const query = this.model.updateMany(
+      { serialId: buildSerialPrefixRegex(serialPrefix) },
+      { $set: { masterCaseId } },
+    );
+    if (options?.session) {
+      query.session(options.session);
+    }
+    await query.exec();
   }
 
   async updateCaseDetailsGrid(
@@ -140,7 +156,7 @@ export class CaseRepository extends BaseRepository<ICase> {
 
   async softDelete(
     caseId: string | Types.ObjectId,
-    options?: QueryOptions<ICase>,
+    options?: RepositorySessionOptions,
   ): Promise<CaseDocument | null> {
     return this.updateById(caseId, { $set: { isDeleted: true } }, options);
   }
@@ -148,7 +164,7 @@ export class CaseRepository extends BaseRepository<ICase> {
   async archive(
     caseId: string | Types.ObjectId,
     isArchived = true,
-    options?: QueryOptions<ICase>,
+    options?: RepositorySessionOptions,
   ): Promise<CaseDocument | null> {
     return this.updateById(caseId, { $set: { isArchived } }, options);
   }

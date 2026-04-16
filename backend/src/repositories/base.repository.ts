@@ -1,4 +1,8 @@
-import { Model, UpdateQuery, QueryOptions, HydratedDocument, Types, QueryFilter, ClientSession, CreateOptions } from "mongoose";
+import { Model, UpdateQuery, HydratedDocument, Types, QueryFilter, ClientSession } from "mongoose";
+
+export type RepositorySessionOptions = {
+    session?: ClientSession;
+};
 
 export class BaseRepository<T> {
     protected readonly model: Model<T>;
@@ -7,17 +11,35 @@ export class BaseRepository<T> {
         this.model = model;
     }
 
-    async create(data: Partial<T>, options?: any): Promise<HydratedDocument<T>> {
-        const [doc] = await this.model.create([data], options);
+    async create(
+        data: Partial<T>,
+        options?: RepositorySessionOptions,
+    ): Promise<HydratedDocument<T>> {
+        const doc = new this.model(data as T);
+        await doc.save(options?.session ? { session: options.session } : undefined);
         return doc as HydratedDocument<T>;
     }
 
-    async findById(id: string | Types.ObjectId): Promise<HydratedDocument<T> | null> {
-        return this.model.findById(id).exec();
+    async findById(
+        id: string | Types.ObjectId,
+        options?: RepositorySessionOptions,
+    ): Promise<HydratedDocument<T> | null> {
+        const query = this.model.findById(id);
+        if (options?.session) {
+            query.session(options.session);
+        }
+        return query.exec();
     }
 
-    async findOne(filter: QueryFilter<T>): Promise<HydratedDocument<T> | null> {
-        return this.model.findOne(filter).exec();
+    async findOne(
+        filter: QueryFilter<T>,
+        options?: RepositorySessionOptions,
+    ): Promise<HydratedDocument<T> | null> {
+        const query = this.model.findOne(filter);
+        if (options?.session) {
+            query.session(options.session);
+        }
+        return query.exec();
     }
 
     async findMany(
@@ -79,29 +101,51 @@ export class BaseRepository<T> {
     async updateById(
         id: string | Types.ObjectId,
         update: UpdateQuery<T>,
-        options?: QueryOptions<T>,
+        options?: RepositorySessionOptions,
     ): Promise<HydratedDocument<T> | null> {
-        return this.model
-            .findByIdAndUpdate(id, update, { ...options, returnDocument: "after" })
-            .exec();
+        const query = this.model.findByIdAndUpdate(id, update, {
+            returnDocument: "after",
+        });
+        if (options?.session) {
+            query.session(options.session);
+        }
+        return query.exec();
     }
 
     async updateOne(
         filter: QueryFilter<T>,
         update: UpdateQuery<T>,
-        options?: QueryOptions<T>,
+        options?: RepositorySessionOptions,
     ): Promise<HydratedDocument<T> | null> {
-        return this.model
-            .findOneAndUpdate(filter, update, { ...options, returnDocument: "after" })
-            .exec();
+        const query = this.model.findOneAndUpdate(filter, update, {
+            returnDocument: "after",
+        });
+        if (options?.session) {
+            query.session(options.session);
+        }
+        return query.exec();
     }
 
-    async deleteById(id: string | Types.ObjectId, options?: QueryOptions<T>): Promise<HydratedDocument<T> | null> {
-        return this.model.findByIdAndDelete(id, options).exec();
+    async deleteById(
+        id: string | Types.ObjectId,
+        options?: RepositorySessionOptions,
+    ): Promise<HydratedDocument<T> | null> {
+        const query = this.model.findByIdAndDelete(id);
+        if (options?.session) {
+            query.session(options.session);
+        }
+        return query.exec();
     }
 
-    async deleteMany(filter: QueryFilter<T>, options?: QueryOptions<T>): Promise<number> {
-        const result = await this.model.deleteMany(filter, options).exec();
+    async deleteMany(
+        filter: QueryFilter<T>,
+        options?: RepositorySessionOptions,
+    ): Promise<number> {
+        const query = this.model.deleteMany(filter);
+        if (options?.session) {
+            query.session(options.session);
+        }
+        const result = await query.exec();
         return result.deletedCount ?? 0;
     }
 

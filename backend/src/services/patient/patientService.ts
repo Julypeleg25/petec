@@ -41,7 +41,7 @@ import {
   type CaseDetailsResponseDTO,
   type ReleasePatientDataResponseDTO,
 } from "@petec/shared";
-import type { ICase, CaseDocument } from "../../models/case/index.js";
+import type { ICase, ICaseDetailsRow, CaseDocument } from "../../models/case/index.js";
 import type { ReadStream } from "node:fs";
 
 import { toObjectId } from "../../utils/objectId.utils.js";
@@ -75,6 +75,10 @@ import {
   getCaseBySerialIdOrThrow,
   resolveMasterCaseBySerialPrefix,
 } from "./utils/patientService.utils.js";
+import {
+  hasCaseWeightChanged,
+  recalculateCaseGridMedicationDoses,
+} from "./utils/caseWeightDose.utils.js";
 
 const MODULE = "patient";
 const ENTITY_TYPE_PATIENT = "Patient";
@@ -210,9 +214,33 @@ export class PatientService {
           await patientRepository.updateById(patient._id, { $set: patientUpdate }, { session });
         }
 
+        const hasWeightInDto =
+          dto.patientSnapshot !== undefined &&
+          Object.prototype.hasOwnProperty.call(dto.patientSnapshot, "weightKg");
+        const nextWeight = hasWeightInDto
+          ? dto.patientSnapshot?.weightKg
+          : existingCase.patientSnapshot?.weightKg;
+        const shouldRecalculateMedicationDoses = hasCaseWeightChanged(
+          existingCase.patientSnapshot?.weightKg,
+          nextWeight,
+        );
+
+        let gridRows: Partial<ICaseDetailsRow>[] | null = null;
         if (dto.caseDetails) {
-          const gridRows = mapGridDtoToRows(dto.caseDetails);
-          await caseGridService.saveGrid(existingCase.serialId, gridRows, session);
+          gridRows = mapGridDtoToRows(dto.caseDetails);
+        } else if (shouldRecalculateMedicationDoses) {
+          gridRows = existingCase.caseDetailsGrid;
+        }
+
+        if (gridRows) {
+          const nextGridRows = shouldRecalculateMedicationDoses
+            ? await recalculateCaseGridMedicationDoses(
+              gridRows,
+              nextWeight,
+              session,
+            )
+            : gridRows;
+          await caseGridService.saveGrid(existingCase.serialId, nextGridRows, session);
         }
 
         const caseUpdate = mapEditDtoToCaseUpdate(dto, existingCase);
