@@ -117,6 +117,8 @@ export const API_ROUTES = {
             get: PATIENT + "dailyPlan",
             update: PATIENT + "dailyPlan",
         },
+        calendar: (year: number, month: number) =>
+            PATIENT + "calendar/" + year + "/" + month,
     },
     medicine: {
         getAll: MEDICINE + "all",

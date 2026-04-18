@@ -257,12 +257,12 @@ function Patients({ patientsNavType }: PatientsProps) {
         )}
         {patientsNavType === PATIENTS_NAV_TYPES.PATIENT_CASE && (
           <div className="new-patient-section">
-            <SavePatient />
+            <SavePatient beforeNavigation={() => resetPatientCards(false)} />
           </div>
         )}
         {patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT && (
           <div className="new-patient-section">
-            <SavePatient />
+            <SavePatient beforeNavigation={() => resetPatientCards(false)} />
           </div>
         )}
         {patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN && (

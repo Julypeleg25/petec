@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaExclamationTriangle } from "react-icons/fa";
 import { AppRoutes } from "../../../config/appRoutes";
@@ -76,8 +76,10 @@ export function usePatients(patientsNavType?: string) {
     TABLE_QUERY_KEYS.PATIENTS,
   );
   const isShowOneTable = width < 750;
+  const lastAppliedArchiveModeRef = useRef(isArchive);
 
   const resetPatientCards = useCallback((isArchived: boolean) => {
+    lastAppliedArchiveModeRef.current = isArchived;
     setReloadProceduresCards((prev) => !prev);
     setReloadPatientsCards((prev) => !prev);
     setProceduresFilters(buildProcedureSearchFilters("", isArchived, false));
@@ -154,6 +156,18 @@ export function usePatients(patientsNavType?: string) {
       window.removeEventListener("resize", handleResize);
     };
   }, [handleResize]);
+
+  useEffect(() => {
+    const isCardsView =
+      patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
+      patientsNavType === PATIENTS_NAV_TYPES.ARCHIVE;
+
+    if (!isCardsView || lastAppliedArchiveModeRef.current === isArchive) {
+      return;
+    }
+
+    resetPatientCards(isArchive);
+  }, [isArchive, patientsNavType, resetPatientCards]);
 
   return {
     navigate,

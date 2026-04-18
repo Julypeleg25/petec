@@ -496,6 +496,44 @@ export const DailyPlanDetailDTOSchema = z.object({
 
 export const DailyPlanDetailListResponseDTOSchema = z.array(DailyPlanDetailDTOSchema);
 
+export const CalendarPatientBadgeDTOSchema = z.enum([
+    "procedure",
+    "hospitalization",
+]);
+
+export const CalendarPatientFlagsDTOSchema = z.object({
+    isAggressive: z.boolean().default(false),
+    isEscapePotential: z.boolean().default(false),
+    isAllergic: z.boolean().default(false),
+    isRiskAnesthesia: z.boolean().default(false),
+    isHeartMurmur: z.boolean().default(false),
+    isAMB: z.boolean().default(false),
+}).strict();
+
+export const CalendarPatientItemDTOSchema = z.object({
+    caseId: objectIdSchema,
+    masterCaseId: objectIdSchema.nullish(),
+    patientId: objectIdSchema,
+    serialId: existingCaseSerialIdSchema,
+    patientName: z.string(),
+    ownerName: z.string(),
+    ownerPhoneNumber: z.string(),
+    photoName: z.string().nullable(),
+    badges: z.array(CalendarPatientBadgeDTOSchema).min(1),
+    flags: CalendarPatientFlagsDTOSchema,
+}).strict();
+
+export const CalendarDayDTOSchema = z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    patients: z.array(CalendarPatientItemDTOSchema),
+}).strict();
+
+export const CalendarMonthResponseDTOSchema = z.object({
+    year: z.number().int().min(2000).max(2100),
+    month: z.number().int().min(1).max(12),
+    days: z.array(CalendarDayDTOSchema),
+}).strict();
+
 export const PatientCardRowDTOSchema = z.object({
     _id: z.string().or(objectIdSchema),
     serialId: z.string().trim().min(1),

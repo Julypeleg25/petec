@@ -28,6 +28,7 @@ import {
 } from "../../mappers/patient/patient.service.mappers.js";
 import {
   getCaseSerialPrefix,
+  type CalendarMonthResponseDTO,
   type NewPatientDTO,
   type EditPatientDTO,
   type ReleasePatientDTO,
@@ -79,11 +80,16 @@ import {
   hasCaseWeightChanged,
   recalculateCaseGridMedicationDoses,
 } from "./utils/caseWeightDose.utils.js";
+import {
+  buildCalendarMonthResponse,
+  type CalendarCaseSource,
+} from "./utils/patientCalendar.utils.js";
 
 const MODULE = "patient";
 const ENTITY_TYPE_PATIENT = "Patient";
 const ENTITY_TYPE_CASE = "Case";
 const AUDIT_SUBJECT_PATIENT = "Patient Management";
+const CALENDAR_QUERY_BUFFER_DAYS = 1;
 
 const shouldPersistManualProcedureUnarchive = (
   flags?: ICase["flags"],
@@ -100,6 +106,39 @@ const shouldPersistManualProcedureUnarchive = (
 
   const todayKey = toDateInputString(new Date());
   return procedureDateKey !== todayKey;
+};
+
+const getCalendarQueryBounds = (
+  year: number,
+  month: number,
+): { queryStart: Date; queryEnd: Date } => {
+  const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const nextMonthStart = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+  const queryStart = new Date(monthStart);
+  const queryEnd = new Date(nextMonthStart);
+
+  queryStart.setUTCDate(queryStart.getUTCDate() - CALENDAR_QUERY_BUFFER_DAYS);
+  queryEnd.setUTCDate(queryEnd.getUTCDate() + CALENDAR_QUERY_BUFFER_DAYS);
+
+  return { queryStart, queryEnd };
+};
+
+type DeletedCaseDocumentAsset = {
+  _id: string;
+  cloudinaryPublicId?: string;
+  fileName: string;
+  storageKey: string;
+};
+
+const deleteCaseDocumentAsset = async (
+  document: DeletedCaseDocumentAsset,
+): Promise<void> => {
+  if (document.storageKey.startsWith("http")) {
+    await deleteFromCloudinary(document.cloudinaryPublicId ?? document.storageKey);
+    return;
+  }
+
+  await storageService.delete(document.storageKey);
 };
 
 export class PatientService {
@@ -428,11 +467,25 @@ export class PatientService {
 
   async deletePatientCase(caseId: string, userId: string): Promise<void> {
     const session = await mongoose.startSession();
+    let documentAssetsToCleanup: DeletedCaseDocumentAsset[] = [];
     try {
       await session.withTransaction(async () => {
         const existingCase = await getCaseBySerialIdOrThrow(caseId, session);
+        const caseDocuments = await documentRepository.findByCaseId(
+          existingCase._id,
+          { session },
+        );
+        documentAssetsToCleanup = caseDocuments.map((document) => ({
+          _id: document._id.toString(),
+          cloudinaryPublicId: document.cloudinaryPublicId,
+          fileName: document.fileName,
+          storageKey: document.storageKey,
+        }));
 
-        await caseRepository.softDelete(existingCase._id, { session });
+        await documentRepository.deleteMany({ caseId: existingCase._id }, { session });
+        await anesthesiaFormRepository.deleteMany({ caseId: existingCase._id }, { session });
+        await patientMedicineRepository.deleteMany({ caseId: existingCase._id }, { session });
+        await caseRepository.deleteById(existingCase._id, { session });
 
         if (existingCase.masterCaseId) {
           await masterCaseRepository.removeCaseId(
@@ -440,6 +493,14 @@ export class PatientService {
             existingCase._id,
             { session },
           );
+
+          const masterCase = await masterCaseRepository.findById(
+            existingCase.masterCaseId,
+            { session },
+          );
+          if (masterCase && masterCase.caseIds.length === 0) {
+            await masterCaseRepository.deleteById(masterCase._id, { session });
+          }
         }
 
         await auditRepository.log(
@@ -461,6 +522,23 @@ export class PatientService {
     } finally {
       await session.endSession();
     }
+
+    await Promise.all(
+      documentAssetsToCleanup.map(async (document) => {
+        try {
+          await deleteCaseDocumentAsset(document);
+        } catch (cleanupError) {
+          logger.warn("Case document asset cleanup failed after delete", {
+            module: MODULE,
+            event: "patient_case_document_asset_cleanup_failed",
+            case_serial_id: caseId,
+            doc_id: document._id,
+            file_name: document.fileName,
+            error: cleanupError,
+          });
+        }
+      }),
+    );
   }
 
   async getCaseDocuments(
@@ -730,6 +808,33 @@ export class PatientService {
   async getChartsData(caseId: string): Promise<ChartsDataResponseDTO> {
     const caseDoc = await getCaseByIdOrThrow(caseId);
     return mapCaseToChartsDataResponse(caseDoc.toObject());
+  }
+
+  async getCalendarMonth(
+    year: number,
+    month: number,
+  ): Promise<CalendarMonthResponseDTO> {
+    const { queryStart, queryEnd } = getCalendarQueryBounds(year, month);
+    const cases = await caseRepository.findManyLean(
+      {
+        isDeleted: false,
+        $or: [
+          { "dates.procedureDate": { $gte: queryStart, $lt: queryEnd } },
+          { "caseDetailsGrid.dateTime": { $gte: queryStart, $lt: queryEnd } },
+        ],
+      },
+      {
+        sort: {
+          "dates.procedureDate": 1,
+          serialId: 1,
+        },
+        select:
+          "_id serialId masterCaseId flags dates.procedureDate caseDetailsGrid.date caseDetailsGrid.dateTime patientId",
+        populate: ["patientId"],
+      },
+    );
+
+    return buildCalendarMonthResponse(cases as CalendarCaseSource[], year, month);
   }
 
   async getDailyPlan(): Promise<DailyPlanDetailDTO[]> {

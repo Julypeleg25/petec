@@ -1,8 +1,8 @@
 import "./SaveMedicine.css";
 import FormInput from "../../../utils/FormInput/FormInput";
 import FormSelect from "../../../utils/FormSelect/FormSelect";
-import { systemTypesApi } from "../../../features/system-management";
-import { medicineApi } from "../../../features/medicine/medicine.api";
+import { systemTypeKeys, systemTypesApi } from "../../../features/system-management";
+import { medicineApi, medicineKeys } from "../../../features/medicine";
 import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
 import toast from "react-hot-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,19 +46,19 @@ export default function SaveMedicine({
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["medicineCategories"],
+    queryKey: medicineKeys.categories(),
     queryFn: medicineApi.getAllCategoryTypes,
   });
   const { data: units = [] } = useQuery({
-    queryKey: ["measureUnits"],
+    queryKey: medicineKeys.measureUnitTypes(),
     queryFn: medicineApi.getMeasureUnitTypes,
   });
   const { data: routes = [] } = useQuery({
-    queryKey: ["routesOfAdministration"],
+    queryKey: medicineKeys.routesOfAdministration(),
     queryFn: medicineApi.getRoutesOfAdministration,
   });
   const { data: frequencies = [] } = useQuery({
-    queryKey: ["dosageFrequencies"],
+    queryKey: medicineKeys.frequencies(),
     queryFn: medicineApi.getFrequencies,
   });
 
@@ -81,7 +81,7 @@ export default function SaveMedicine({
     },
     onSuccess: () => {
       toast.success(systemTypeObj ? "התרופה עודכנה בהצלחה" : "התרופה נוצרה בהצלחה");
-      queryClient.invalidateQueries({ queryKey: ["systemTypes"] });
+      queryClient.invalidateQueries({ queryKey: systemTypeKeys.all });
       onClose();
     },
     onError: () => {

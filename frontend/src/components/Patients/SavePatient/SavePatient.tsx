@@ -18,7 +18,11 @@ import {
 } from "./sections/utils/savePatientSections.utils";
 import { resolveChildCaseRoute } from "./utils/savePatientNavigation.utils";
 
-function SavePatient() {
+interface SavePatientProps {
+  beforeNavigation?: () => void;
+}
+
+function SavePatient({ beforeNavigation }: SavePatientProps) {
   const location = useLocation();
   const { masterCaseId, caseId } = useParams();
   const isEdit = location.pathname !== AppRoutes.Patients.NewPatient;
@@ -28,6 +32,10 @@ function SavePatient() {
   const allowNextNavigation = useCallback(() => {
     allowNavigationRef.current = true;
   }, []);
+  const handleBeforeNavigation = useCallback(() => {
+    allowNextNavigation();
+    beforeNavigation?.();
+  }, [allowNextNavigation, beforeNavigation]);
 
   const {
     navigate,
@@ -128,7 +136,7 @@ function SavePatient() {
     caseId,
     masterCaseId,
     isEdit,
-    allowNextNavigation,
+    handleBeforeNavigation,
   );
   const handleSaveAndExit = useCallback(
     () =>
@@ -307,6 +315,7 @@ function SavePatient() {
         </div>
       )}
       <SavePatientModals
+        beforeNavigation={handleBeforeNavigation}
         isEdit={isEdit}
         caseIdString={caseIdString}
         caseSerialId={formData.caseId ?? ""}

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MedicineSelectOptionObj } from "../../MedicinePicker/MedicinePicker.types";
 import { patientsApi } from "../../../features/patients/patients.api";
+import { patientKeys } from "../../../features/patients/hooks/patient.keys";
 import { medicineApi } from "../../../features/medicine/medicine.api";
+import { tableKeys } from "../../../features/table/hooks/table.keys";
 import { getDateForInputFromDBTimeStamp } from "../../../utils/DateFormattingUtil";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
@@ -34,6 +37,7 @@ export const useReleasePatient = ({
   setIsReleased,
   setShowReleasePatientModal,
 }: UseReleasePatientProps) => {
+  const queryClient = useQueryClient();
   const [medicineList, setMedicineList] = useState<MedicineSelectOptionObj[]>(
     [],
   );
@@ -137,6 +141,9 @@ export const useReleasePatient = ({
             : undefined,
           medicines: medicines,
         });
+        queryClient.invalidateQueries({ queryKey: patientKeys.all });
+        queryClient.invalidateQueries({ queryKey: patientKeys.calendarAll });
+        queryClient.invalidateQueries({ queryKey: tableKeys.all });
         toast.success("המטופל שוחרר בהצלחה");
         setShowReleasePatientModal(false);
         setIsReleased(true);

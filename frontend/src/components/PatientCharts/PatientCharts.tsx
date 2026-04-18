@@ -2,6 +2,7 @@ import type { LabelProps } from "recharts";
 import AppLineChart from "../AppLineChart/AppLineChart";
 import "./PatientCharts.css";
 import { patientsApi } from "../../features/patients/patients.api";
+import { patientKeys } from "../../features/patients/hooks/patient.keys";
 import MyLoader from "../../utils/MyLoader/MyLoader";
 import { useQuery } from "@tanstack/react-query";
 
@@ -29,7 +30,7 @@ const CustomXAxisLabel = (props: LabelProps) => {
 
 export default function PatientCharts({ caseId }: PatientChartsProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["patientCharts", caseId],
+    queryKey: patientKeys.charts(caseId),
     queryFn: () => patientsApi.getChartsData(caseId),
   });
 

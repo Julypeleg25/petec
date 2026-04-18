@@ -1,4 +1,5 @@
 export const MAIN_PAGE_TYPES = {
+  CALENDAR: "calendar",
   PATIENTS: "patients",
   SYSTEM_MANAGEMENT: "system-management",
 } as const;

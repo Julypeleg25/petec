@@ -2,24 +2,37 @@ import { logger } from "../../config/logger.js";
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "../../services/patient/index.js";
 import { patientUploadService } from "../../services/patient/index.js";
-import { sendSuccess, sendCreated, sendNoContent } from "../../utils/apiResponse.js";
-import { getAuthenticatedUserId, getValidatedBody, getValidatedParams } from "../../utils/request.utils.js";
 import {
-  HttpStatus,
-} from "@petec/shared";
+  sendSuccess,
+  sendCreated,
+  sendNoContent,
+} from "../../utils/apiResponse.js";
+import {
+  getAuthenticatedUserId,
+  getValidatedBody,
+  getValidatedParams,
+} from "../../utils/request.utils.js";
+import { HttpStatus } from "@petec/shared";
 import type {
   NewPatientDTO,
   EditPatientDTO,
   ReleasePatientDTO,
   ArchivePatientDTO,
+  CalendarMonthParamsDTO,
   DeletePatientCaseDTO,
   UploadDocumentDTO,
   UpdateDailyPlanRequestDTO,
   CreateAnesthesiaProcedureFormDTO,
 } from "@petec/shared";
-import type { CaseIdParamsDTO, PatientIdParamsDTO, DocumentIdParamsDTO } from "@petec/shared";
+import type {
+  CaseIdParamsDTO,
+  PatientIdParamsDTO,
+  DocumentIdParamsDTO,
+} from "@petec/shared";
+import type { CalendarMonthResponseDTO } from "@petec/shared";
 import {
   CreatePatientResponseDTOSchema,
+  CalendarMonthResponseDTOSchema,
   CaseDetailsResponseDTOSchema,
   PatientDocumentResponseDTOSchema,
   UploadPatientPhotoResponseDTOSchema,
@@ -31,7 +44,11 @@ import {
 } from "@petec/shared";
 
 export class PatientController {
-  async createPatientAndCase(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async createPatientAndCase(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<NewPatientDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -42,7 +59,11 @@ export class PatientController {
     }
   }
 
-  async editPatientAndCase(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async editPatientAndCase(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<EditPatientDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -53,7 +74,11 @@ export class PatientController {
     }
   }
 
-  async getCaseDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getCaseDetails(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId, masterCaseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const result = await patientService.getCaseDetails(caseId, masterCaseId);
@@ -63,7 +88,11 @@ export class PatientController {
     }
   }
 
-  async releasePatient(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async releasePatient(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<ReleasePatientDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -74,7 +103,11 @@ export class PatientController {
     }
   }
 
-  async archivePatientCase(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async archivePatientCase(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<ArchivePatientDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -89,7 +122,11 @@ export class PatientController {
     }
   }
 
-  async deletePatientCase(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deletePatientCase(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<DeletePatientCaseDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -100,7 +137,11 @@ export class PatientController {
     }
   }
 
-  async getDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getDocuments(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const result = await patientService.getCaseDocuments(caseId);
@@ -110,7 +151,11 @@ export class PatientController {
     }
   }
 
-  async uploadDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async uploadDocument(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const dto = getValidatedBody<UploadDocumentDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -125,7 +170,11 @@ export class PatientController {
     }
   }
 
-  async deleteDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deleteDocument(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { documentId } = getValidatedParams<DocumentIdParamsDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -136,29 +185,49 @@ export class PatientController {
     }
   }
 
-  async getAnesthesiaForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAnesthesiaForm(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const result = await patientService.getAnesthesiaForm(caseId);
-      sendSuccess(res, result, CreateAnesthesiaProcedureFormDTOSchema.nullable());
+      sendSuccess(
+        res,
+        result,
+        CreateAnesthesiaProcedureFormDTOSchema.nullable(),
+      );
     } catch (err) {
       next(err);
     }
   }
 
-  async upsertAnesthesiaForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async upsertAnesthesiaForm(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const data = getValidatedBody<CreateAnesthesiaProcedureFormDTO>(req);
       const userId = getAuthenticatedUserId(req);
-      const result = await patientService.upsertAnesthesiaForm(caseId, data, userId);
+      const result = await patientService.upsertAnesthesiaForm(
+        caseId,
+        data,
+        userId,
+      );
       sendSuccess(res, result, CreateAnesthesiaProcedureFormDTOSchema);
     } catch (err) {
       next(err);
     }
   }
 
-  async getReleasePatientData(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getReleasePatientData(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const result = await patientService.getReleasePatientData(caseId);
@@ -168,7 +237,11 @@ export class PatientController {
     }
   }
 
-  async getChartsData(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getChartsData(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { caseId } = getValidatedParams<CaseIdParamsDTO>(req);
       const result = await patientService.getChartsData(caseId);
@@ -178,7 +251,11 @@ export class PatientController {
     }
   }
 
-  async getDailyPlan(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getDailyPlan(
+    _req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const result = await patientService.getDailyPlan();
       sendSuccess(res, result, DailyPlanDetailListResponseDTOSchema);
@@ -187,7 +264,26 @@ export class PatientController {
     }
   }
 
-  async updateDailyPlan(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getCalendarMonth(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const { year, month } = getValidatedParams<CalendarMonthParamsDTO>(req);
+      const result: CalendarMonthResponseDTO =
+        await patientService.getCalendarMonth(year, month);
+      sendSuccess(res, result, CalendarMonthResponseDTOSchema);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateDailyPlan(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const data = getValidatedBody<UpdateDailyPlanRequestDTO>(req);
       await patientService.updateDailyPlan(data);
@@ -197,7 +293,11 @@ export class PatientController {
     }
   }
 
-  async uploadPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async uploadPatientPhoto(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
       const userId = getAuthenticatedUserId(req);
@@ -206,17 +306,17 @@ export class PatientController {
         userId,
         file: req.file,
       });
-      sendSuccess(
-        res,
-        { photoName },
-        UploadPatientPhotoResponseDTOSchema,
-      );
+      sendSuccess(res, { photoName }, UploadPatientPhotoResponseDTOSchema);
     } catch (err) {
       next(err);
     }
   }
 
-  async getPatientPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getPatientPhoto(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
     try {
       const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
       const result = await patientService.getPatientPhotoStream(patientId);

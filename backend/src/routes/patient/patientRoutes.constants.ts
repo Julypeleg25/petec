@@ -16,4 +16,5 @@ export const PATIENT_ROUTE_PATHS = {
   caseAnesthesia: "/case/anesthesia/:caseId",
   caseCharts: "/case/charts/:caseId",
   dailyPlan: "/dailyPlan",
+  calendar: "/calendar/:year/:month",
 } as const;

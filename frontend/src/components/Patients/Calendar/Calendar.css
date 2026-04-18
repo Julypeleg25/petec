@@ -282,87 +282,7 @@
   box-shadow: none;
 }
 
-.calendar-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
-}
 
-.calendar-summary-card {
-  padding: 0.95rem 1rem;
-  border-radius: 18px;
-  background: #fff;
-  border: 1px solid #e8deee;
-  box-shadow: 0 6px 16px rgba(80, 48, 99, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  min-height: 92px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.calendar-summary-card:hover {
-  border-color: #d8c9e0;
-  box-shadow: 0 8px 18px rgba(80, 48, 99, 0.07);
-}
-
-.calendar-summary-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-  border: 1px solid transparent;
-}
-
-.calendar-summary-card-patients .calendar-summary-icon {
-  color: #6d3f88;
-  background: #f4ecf8;
-  border-color: #eadcf2;
-}
-.calendar-summary-card-procedures .calendar-summary-icon {
-  color: #b95a14;
-  background: #fff3e8;
-  border-color: #f6dfc9;
-}
-.calendar-summary-card-events .calendar-summary-icon {
-  color: #8b6512;
-  background: #fff8df;
-  border-color: #f3e6b8;
-}
-
-.calendar-summary-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.calendar-summary-label {
-  color: #6d627d;
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.calendar-summary-value {
-  font-size: clamp(1.55rem, 2.2vw, 1.95rem);
-  line-height: 1.1;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #463055;
-}
-
-.calendar-summary-card-procedures .calendar-summary-value {
-  color: #a84f0d;
-}
-
-.calendar-summary-card-events .calendar-summary-value {
-  color: #8b6512;
-}
 
 .calendar-content {
   min-height: 0;
@@ -1128,9 +1048,7 @@
 }
 
 @media screen and (max-width: 1200px) {
-  .calendar-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+
 
   .calendar-grid {
     grid-auto-rows: minmax(272px, auto);

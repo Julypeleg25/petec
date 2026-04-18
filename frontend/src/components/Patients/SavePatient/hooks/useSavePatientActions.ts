@@ -306,6 +306,7 @@ export function useSavePatientActions(
                 state.setInitialStateSnapshot(null);
                 state.disableSaveBtns(false);
                 if (navigateOnCreate) {
+                    beforeNavigation?.();
                     navigate(AppRoutes.Patients.List, { replace: true });
                 }
                 return true;

@@ -36,6 +36,9 @@ import {
   UpdateDailyPlanRequestDTOSchema,
   DailyPlanDetailDTO,
   DailyPlanDetailListResponseDTOSchema,
+  CalendarMonthParamsDTOSchema,
+  CalendarMonthResponseDTO,
+  CalendarMonthResponseDTOSchema,
   CaseDetailsResponseDTO,
   CaseDetailsResponseDTOSchema,
   ReleasePatientDataResponseDTO,
@@ -192,6 +195,20 @@ export const patientsApi = {
 
   getDailyPlan: (): Promise<DailyPlanDetailDTO[]> =>
     requestWithSchema({ method: HTTP_METHODS.GET, url: API_ROUTES.patient.dailyPlan.get }, DailyPlanDetailListResponseDTOSchema),
+
+  getCalendarMonth: (
+    year: number,
+    month: number,
+  ): Promise<CalendarMonthResponseDTO> => {
+    const params = CalendarMonthParamsDTOSchema.parse({ year, month });
+    return requestWithSchema(
+      {
+        method: HTTP_METHODS.GET,
+        url: API_ROUTES.patient.calendar(params.year, params.month),
+      },
+      CalendarMonthResponseDTOSchema,
+    );
+  },
 
   updateDailyPlan: (data: UpdateDailyPlanRequestDTO): Promise<void> =>
     requestNoContent({

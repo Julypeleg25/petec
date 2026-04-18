@@ -7,6 +7,7 @@ import PatientCharts from "../../../PatientCharts/PatientCharts";
 import CatheterReplacement from "../../../CatheterReplacement/CatheterReplacement";
 
 interface SavePatientModalsProps {
+  beforeNavigation?: () => void;
   isEdit: boolean;
   caseIdString: string;
   caseSerialId: string;
@@ -32,6 +33,7 @@ interface SavePatientModalsProps {
 }
 
 export function SavePatientModals({
+  beforeNavigation,
   isEdit,
   caseIdString,
   caseSerialId,
@@ -83,6 +85,7 @@ export function SavePatientModals({
           component={
             <DeletePatient
               caseId={caseSerialId}
+              beforeNavigation={beforeNavigation}
               setShowDeletePatientCaseModal={setShowDeletePatientCaseModal}
             />
           }

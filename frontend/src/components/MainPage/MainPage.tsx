@@ -1,4 +1,5 @@
 import Header from "../Header/Header";
+import Calendar from "../Patients/Calendar/Calendar";
 import Patients from "../Patients/Patients";
 import SystemManagement from "../SystemManagement/SystemManagement";
 import type {
@@ -22,6 +23,7 @@ function MainPage({
     <div className="main-page">
       <Header type={type} />
       <main className="main-page-main">
+        {type === "calendar" && <Calendar />}
         {type === "patients" && <Patients patientsNavType={patientsNavType} />}
         {type === "system-management" && (
           <SystemManagement type={systemManagementType} />

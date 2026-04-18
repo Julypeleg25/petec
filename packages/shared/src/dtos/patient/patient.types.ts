@@ -4,7 +4,11 @@ import type {
     CaseDetailsResponseDTOSchema,
     caseDetailsHeaderSchema,
     caseDailyDetailsRowSchema,
+    CalendarDayDTOSchema,
+    CalendarMonthResponseDTOSchema,
+    CalendarPatientBadgeDTOSchema,
     populatedMedicineRefSchema,
+    CalendarPatientItemDTOSchema,
     responseExaminationItemSchema,
     responseMedicineItemSchema,
     responseOptionItemSchema,
@@ -50,4 +54,8 @@ export type ReleaseMedicineDisplayDTO = z.infer<typeof ReleaseMedicineDisplayDTO
 export type ReleasePatientDataResponseDTO = z.infer<typeof ReleasePatientDataResponseDTOSchema>;
 export type DailyPlanDetailDTO = z.infer<typeof DailyPlanDetailDTOSchema>;
 export type DailyPlanDetailListResponseDTO = z.infer<typeof DailyPlanDetailListResponseDTOSchema>;
+export type CalendarPatientBadgeDTO = z.infer<typeof CalendarPatientBadgeDTOSchema>;
+export type CalendarPatientItemDTO = z.infer<typeof CalendarPatientItemDTOSchema>;
+export type CalendarDayDTO = z.infer<typeof CalendarDayDTOSchema>;
+export type CalendarMonthResponseDTO = z.infer<typeof CalendarMonthResponseDTOSchema>;
 export type PatientCardRowDTO = z.infer<typeof PatientCardRowDTOSchema>;

@@ -1,23 +1,33 @@
 import "./DeletePatient.css";
+import { useQueryClient } from "@tanstack/react-query";
 import { patientsApi } from "../../features/patients/patients.api";
+import { patientKeys } from "../../features/patients/hooks/patient.keys";
+import { tableKeys } from "../../features/table/hooks/table.keys";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AppRoutes } from "../../config/appRoutes";
 
 interface DeletePatientProps {
   caseId: string;
+  beforeNavigation?: () => void;
   setShowDeletePatientCaseModal: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function DeletePatient({
   caseId,
+  beforeNavigation,
   setShowDeletePatientCaseModal,
 }: DeletePatientProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const deletePatient = async () => {
     try {
       await patientsApi.deleteCase({ caseId });
+      queryClient.invalidateQueries({ queryKey: patientKeys.all });
+      queryClient.invalidateQueries({ queryKey: patientKeys.calendarAll });
+      queryClient.invalidateQueries({ queryKey: tableKeys.all });
+      beforeNavigation?.();
       toast.success("המטופל נמחק בהצלחה");
       navigate(AppRoutes.Patients.List, { replace: true });
       setShowDeletePatientCaseModal(false);

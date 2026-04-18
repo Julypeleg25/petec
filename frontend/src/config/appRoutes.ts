@@ -19,6 +19,7 @@ export const AppRoutes = {
         Archive: "/patients/archive",
         NewPatient: "/patients/newPatient",
         DailyPlan: "/patients/dailyPlan",
+        Calendar: "/patients/calendar",
     },
 
     SystemManagement: {

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { patientsApi } from "../patients.api";
 import { patientKeys } from "./patient.keys";
+import { tableKeys } from "../../table/hooks/table.keys";
 import type {
     NewPatientDTO,
     EditPatientDTO,
@@ -51,7 +52,8 @@ export const usePatientApi = () => {
     const qc = useQueryClient();
     const invalidatePatientRelatedLists = (): void => {
         qc.invalidateQueries({ queryKey: patientKeys.all });
-        qc.invalidateQueries({ queryKey: ["table"] });
+        qc.invalidateQueries({ queryKey: patientKeys.calendarAll });
+        qc.invalidateQueries({ queryKey: tableKeys.all });
     };
 
     const createPatient = useMutation({

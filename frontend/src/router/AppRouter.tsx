@@ -87,6 +87,10 @@ export function AppRouter() {
         />
 
         <Route element={<ProtectedRoute />}>
+          <Route
+            path={AppRoutes.Patients.Calendar}
+            element={<MainPage type={MAIN_PAGE_TYPES.CALENDAR} />}
+          />
           {PATIENT_ROUTES.map(({ path, patientsNavType }) => (
             <Route
               key={path}

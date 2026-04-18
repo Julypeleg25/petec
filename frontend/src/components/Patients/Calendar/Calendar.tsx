@@ -84,7 +84,6 @@ function Calendar() {
     calendarDays.map((day) => [day.dateKey, day] as const),
   );
 
-
   const navigateToCase = (caseId: string, masterCaseId?: string): void => {
     navigate(AppRoutes.Patients.Details.build(masterCaseId ?? caseId, caseId));
   };
@@ -178,7 +177,6 @@ function Calendar() {
           onYearChange={handleYearChange}
           onJumpToToday={jumpToToday}
         />
-
 
         <section className="calendar-content">
           <div className="calendar-grid-shell">

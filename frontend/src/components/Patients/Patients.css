@@ -8,6 +8,8 @@
   display: -webkit-flex; 
   padding-top: 1em;
   width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5em;
 }
 
 .patients-navbar button {

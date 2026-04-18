@@ -14,6 +14,7 @@ import {
     UploadDocumentDTOSchema,
     UpdateDailyPlanRequestDTOSchema,
     CaseIdParamsDTOSchema,
+    CalendarMonthParamsDTOSchema,
     PatientIdParamsDTOSchema,
     DocumentIdParamsDTOSchema,
 } from "@petec/shared";
@@ -155,6 +156,13 @@ router.get(
     PATIENT_ROUTE_PATHS.dailyPlan,
     requirePermission(Permission.READ_CASE),
     patientController.getDailyPlan,
+);
+
+router.get(
+    PATIENT_ROUTE_PATHS.calendar,
+    requirePermission(Permission.READ_CASE),
+    validateParams(CalendarMonthParamsDTOSchema),
+    patientController.getCalendarMonth,
 );
 
 router.put(
