@@ -288,16 +288,18 @@
 }
 
 .calendar-today-btn-current {
-  background: #f4eef7;
-  border-color: #ddd0e5;
-  color: #887996;
-  box-shadow: none;
+  background: #f8f3fa;
+  border-color: #6d3585;
+  color: #6d3585;
+  box-shadow: 0 0 0 1px #6d3585;
   opacity: 1;
 }
 
 .calendar-today-btn-current:hover {
   background: #f1eaf5;
-  border-color: #d4c4de;
+  border-color: #5a2b6f;
+  color: #5a2b6f;
+  box-shadow: 0 0 0 1px #5a2b6f;
 }
 
 
@@ -318,7 +320,7 @@
   background-color: var(--calendar-surface);
   border: 1px solid var(--calendar-border);
   box-shadow: 0 8px 24px rgba(63, 49, 83, 0.06);
-  overflow: hidden;
+  overflow: visible;
   min-height: clamp(
     760px,
     calc(100vh - var(--header-height) - 11.5rem),
