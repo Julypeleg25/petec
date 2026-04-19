@@ -1,0 +1,155 @@
+import { HttpStatus } from "@petec/shared";
+import { jest } from "@jest/globals";
+
+const warnMock = jest.fn();
+const errorMock = jest.fn();
+const sendErrorMock = jest.fn();
+
+const loadErrorHandler = async (isProduction: boolean) => {
+  jest.resetModules();
+  warnMock.mockReset();
+  errorMock.mockReset();
+  sendErrorMock.mockReset();
+
+  jest.unstable_mockModule("../utils/apiResponse.js", () => ({
+    sendError: sendErrorMock,
+  }));
+
+  jest.unstable_mockModule("../config/logger.js", () => ({
+    logger: {
+      warn: warnMock,
+      error: errorMock,
+    },
+  }));
+
+  jest.unstable_mockModule("../config/config.js", () => ({
+    ENV: {
+      isProduction,
+    },
+  }));
+
+  return import("./error.middleware.js");
+};
+
+const createRequest = () =>
+  ({
+    requestId: "req-1",
+    method: "POST",
+    originalUrl: "/api/v1/patient?tab=all",
+    headers: {
+      "content-type": "application/json",
+    },
+    ctx: {
+      requestId: "req-1",
+      user: {
+        userId: "user-1",
+        role: "ADMIN",
+        permissions: [],
+      },
+    },
+  }) as never;
+
+describe("error middleware", () => {
+  it("handles validation errors as warn-level app errors", async () => {
+    const { errorHandler } = await loadErrorHandler(false);
+    const { ValidationError } = await import("../constants/error.constants.js");
+    const res = {} as never;
+    const details = {
+      body: ["Required"],
+      query: ["Invalid"],
+    };
+
+    errorHandler(
+      new ValidationError("Validation failed", details),
+      createRequest(),
+      res,
+      jest.fn(),
+    );
+
+    expect(warnMock).toHaveBeenCalledWith(
+      "[POST /api/v1/patient] request failed",
+      expect.objectContaining({
+        module: "http",
+        request_id: "req-1",
+        error_name: "ValidationError",
+        error_code: "VALIDATION_ERROR",
+        http_status: HttpStatus.BAD_REQUEST,
+        route: "POST /api/v1/patient",
+        user_id: "user-1",
+      }),
+    );
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.BAD_REQUEST,
+      "Validation failed",
+      "VALIDATION_ERROR",
+      details,
+      "req-1",
+    );
+  });
+
+  it("handles invalid json bodies", async () => {
+    const { errorHandler } = await loadErrorHandler(false);
+    const res = {} as never;
+    const error = Object.assign(new SyntaxError("bad json"), {
+      type: "entity.parse.failed",
+      status: HttpStatus.BAD_REQUEST,
+    });
+
+    errorHandler(error, createRequest(), res, jest.fn());
+
+    expect(warnMock).toHaveBeenCalled();
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.BAD_REQUEST,
+      "Invalid JSON body",
+      "INVALID_JSON_BODY",
+      { body: ["Request body contains invalid JSON"] },
+      "req-1",
+    );
+  });
+
+  it("handles multer file-size errors", async () => {
+    const { errorHandler } = await loadErrorHandler(false);
+    const res = {} as never;
+    const error = Object.assign(new Error("too big"), {
+      name: "MulterError",
+      code: "LIMIT_FILE_SIZE",
+    });
+
+    errorHandler(error, createRequest(), res, jest.fn());
+
+    expect(warnMock).toHaveBeenCalled();
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.PAYLOAD_TOO_LARGE,
+      "File is too large",
+      "FILE_TOO_LARGE",
+      undefined,
+      "req-1",
+    );
+  });
+
+  it("hides internal error messages in production", async () => {
+    const { errorHandler } = await loadErrorHandler(true);
+    const res = {} as never;
+
+    errorHandler(new Error("boom"), createRequest(), res, jest.fn());
+
+    expect(errorMock).toHaveBeenCalledWith(
+      "[POST /api/v1/patient] request failed",
+      expect.objectContaining({
+        error_code: "UNKNOWN_ERROR",
+        http_status: HttpStatus.INTERNAL_SERVER_ERROR,
+      }),
+    );
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      "Internal Server Error",
+      "UNKNOWN_ERROR",
+      undefined,
+      "req-1",
+    );
+  });
+});
