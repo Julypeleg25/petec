@@ -518,6 +518,7 @@ export const CalendarPatientItemDTOSchema = z.object({
     patientName: z.string(),
     ownerName: z.string(),
     ownerPhoneNumber: z.string(),
+    hospitalizationReason: z.string().optional(),
     photoName: z.string().nullable(),
     badges: z.array(CalendarPatientBadgeDTOSchema).min(1),
     flags: CalendarPatientFlagsDTOSchema,

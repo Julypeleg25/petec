@@ -20,6 +20,9 @@ function CalendarPatientCard({
   onOpenDetails,
 }: CalendarPatientCardProps) {
   const primaryBadge = getPrimaryBadge(patient);
+  const hospitalizationReason = patient.hospitalizationReason?.trim();
+  const ownerName = patient.ownerName?.trim() || "-";
+  const ownerPhoneNumber = formatOwnerPhone(patient.ownerPhoneNumber) || "-";
 
   return (
     <button
@@ -29,32 +32,48 @@ function CalendarPatientCard({
       }`}
       onClick={() => onOpenDetails(date, patient)}
     >
-      <div className="calendar-patient-card-header">
-        <img
-          src={getPatientImageSrc(patient.photoName ?? undefined)}
-          onError={handlePatientImageLoadError}
-          alt={patient.patientName}
-          className="calendar-patient-image"
-        />
-        <div className="calendar-patient-text">
-          <strong>{patient.patientName}</strong>
-          <span>תיק {patient.serialId}</span>
+      <div className="calendar-patient-card-top">
+        <div className="calendar-patient-card-header">
+          <img
+            src={getPatientImageSrc(patient.photoName ?? undefined)}
+            onError={handlePatientImageLoadError}
+            alt={patient.patientName}
+            className="calendar-patient-image"
+          />
+          <div className="calendar-patient-text">
+            <strong>{patient.patientName}</strong>
+            <span>תיק {patient.serialId}</span>
+          </div>
+        </div>
+        <div className="calendar-patient-badges">
+          {patient.badges.map((badge) => (
+            <span
+              key={`${badgeKeyPrefix}-${patient.caseId}-${badge}`}
+              className={`calendar-patient-badge calendar-patient-badge-${badge}`}
+            >
+              {BADGE_LABELS[badge]}
+            </span>
+          ))}
         </div>
       </div>
+
       <div className="calendar-patient-meta">
-        <span>{patient.ownerName}</span>
-        <span>{formatOwnerPhone(patient.ownerPhoneNumber)}</span>
+        <div className="calendar-patient-meta-item">
+          <span className="calendar-patient-meta-label">בעלים</span>
+          <strong>{ownerName}</strong>
+        </div>
+        <div className="calendar-patient-meta-item">
+          <span className="calendar-patient-meta-label">טלפון</span>
+          <strong>{ownerPhoneNumber}</strong>
+        </div>
       </div>
-      <div className="calendar-patient-badges">
-        {patient.badges.map((badge) => (
-          <span
-            key={`${badgeKeyPrefix}-${patient.caseId}-${badge}`}
-            className={`calendar-patient-badge calendar-patient-badge-${badge}`}
-          >
-            {BADGE_LABELS[badge]}
-          </span>
-        ))}
-      </div>
+
+      {hospitalizationReason ? (
+        <div className="calendar-patient-reason-card">
+          <span className="calendar-patient-reason-label">סיבת אשפוז</span>
+          <p className="calendar-patient-reason">{hospitalizationReason}</p>
+        </div>
+      ) : null}
     </button>
   );
 }

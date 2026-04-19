@@ -10,6 +10,8 @@ type CalendarAgendaDayProps = {
 function CalendarAgendaDay({ day, onOpenDetails }: CalendarAgendaDayProps) {
   return (
     <article
+      data-calendar-today={day.meta.isToday ? "true" : undefined}
+      data-calendar-date-key={day.dateKey}
       className={`calendar-agenda-day${
         day.meta.isToday ? " calendar-agenda-day-today" : ""
       }`}

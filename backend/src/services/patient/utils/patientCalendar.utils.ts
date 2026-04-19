@@ -24,6 +24,7 @@ export type CalendarCaseSource = Pick<
   | "_id"
   | "serialId"
   | "masterCaseId"
+  | "admission"
   | "flags"
   | "dates"
   | "caseDetailsGrid"
@@ -81,6 +82,8 @@ const toCalendarPatientItem = (
     return null;
   }
 
+  const hospitalizationReason = caseDoc.admission?.hospitalizationReason?.trim();
+
   return {
     caseId,
     masterCaseId: toMapperIdString(caseDoc.masterCaseId) || undefined,
@@ -90,6 +93,10 @@ const toCalendarPatientItem = (
     ownerName: typeof patient?.owner?.name === "string" ? patient.owner.name : "",
     ownerPhoneNumber:
       typeof patient?.owner?.phone === "string" ? patient.owner.phone : "",
+    hospitalizationReason:
+      hospitalizationReason && hospitalizationReason.length > 0
+        ? hospitalizationReason
+        : undefined,
     photoName:
       toPatientPhotoUrl(
         patientId,

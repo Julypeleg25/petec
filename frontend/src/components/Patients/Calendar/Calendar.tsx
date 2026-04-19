@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { CalendarPatientItemDTO } from "@petec/shared";
@@ -26,7 +26,6 @@ import type {
 } from "./types/calendar.types";
 import {
   buildMonthGrid,
-  CALENDAR_WEEKDAY_LABELS,
   createCurrentMonthCursor,
   getDateKey,
   shiftMonthCursor,
@@ -35,6 +34,7 @@ import "./Calendar.css";
 
 function Calendar() {
   const navigate = useNavigate();
+  const calendarRef = useRef<HTMLDivElement | null>(null);
   const [visibleMonth, setVisibleMonth] = useState(createCurrentMonthCursor);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<SelectedCalendarEntry | null>(
@@ -42,8 +42,10 @@ function Calendar() {
   );
   const [isDayListOpen, setIsDayListOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<SelectedCalendarDay | null>(null);
+  const [todayJumpRequest, setTodayJumpRequest] = useState(0);
 
   const currentMonthCursor = createCurrentMonthCursor();
+  const todayDateKey = getDateKey(new Date());
   const isViewingCurrentMonth =
     visibleMonth.year === currentMonthCursor.year &&
     visibleMonth.month === currentMonthCursor.month;
@@ -74,6 +76,32 @@ function Calendar() {
       setSelectedDay(null);
     }
   }, [isDayListOpen]);
+
+  useEffect(() => {
+    if (todayJumpRequest === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        const todayElement = Array.from(
+          calendarRef.current?.querySelectorAll<HTMLElement>(
+            `[data-calendar-date-key="${todayDateKey}"]`,
+          ) ?? [],
+        ).find((element) => element.offsetParent !== null);
+
+        todayElement?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+          inline: "nearest",
+        });
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [todayDateKey, todayJumpRequest, visibleMonth.month, visibleMonth.year]);
 
   const holidayLookup = hebcalItems ? buildHolidayLookup(hebcalItems) : undefined;
   const calendarDataDays = (data?.days ?? []) as CalendarMonthDataDay[];
@@ -107,6 +135,7 @@ function Calendar() {
   };
 
   const jumpToToday = (): void => {
+    setTodayJumpRequest((current) => current + 1);
     startTransition(() => {
       setVisibleMonth(createCurrentMonthCursor());
     });
@@ -166,7 +195,7 @@ function Calendar() {
 
   return (
     <>
-      <div className="Calendar">
+      <div className="Calendar" ref={calendarRef}>
         <CalendarHeader
           visibleMonth={visibleMonth}
           yearOptions={yearOptions}
@@ -180,14 +209,6 @@ function Calendar() {
 
         <section className="calendar-content">
           <div className="calendar-grid-shell">
-            <div className="calendar-weekdays-row">
-              {CALENDAR_WEEKDAY_LABELS.map((weekdayLabel) => (
-                <div key={weekdayLabel} className="calendar-weekday">
-                  {weekdayLabel}
-                </div>
-              ))}
-            </div>
-
             <div className="calendar-grid-scroll">
               <div className="calendar-grid">
                 {monthGrid.map((date, index) => {

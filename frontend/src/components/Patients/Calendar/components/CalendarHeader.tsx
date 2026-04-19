@@ -1,6 +1,6 @@
 import { FaChevronLeft, FaChevronRight, FaSyncAlt } from "react-icons/fa";
 import type { CalendarMonthCursor } from "../utils/calendar.utils";
-import { getMonthLabel } from "../utils/calendar.utils";
+import { CALENDAR_WEEKDAY_LABELS, getMonthLabel } from "../utils/calendar.utils";
 import { BADGE_LABELS, getBadgeIcon } from "../constants/calendar.constants";
 
 type CalendarHeaderProps = {
@@ -71,7 +71,6 @@ function CalendarHeader({
             className={`calendar-today-btn${isViewingCurrentMonth ? " calendar-today-btn-current" : ""}`}
             onClick={onJumpToToday}
             aria-label="היום"
-            disabled={isViewingCurrentMonth}
           >
             היום
           </button>
@@ -111,6 +110,14 @@ function CalendarHeader({
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="calendar-hero-weekdays" aria-label="ימי השבוע">
+        {CALENDAR_WEEKDAY_LABELS.map((weekdayLabel) => (
+          <div key={weekdayLabel} className="calendar-hero-weekday">
+            {weekdayLabel}
+          </div>
+        ))}
       </div>
     </section>
   );

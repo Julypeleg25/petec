@@ -829,7 +829,7 @@ export class PatientService {
           serialId: 1,
         },
         select:
-          "_id serialId masterCaseId flags dates.procedureDate caseDetailsGrid.date caseDetailsGrid.dateTime patientId",
+          "_id serialId masterCaseId admission.hospitalizationReason flags dates.procedureDate caseDetailsGrid.date caseDetailsGrid.dateTime patientId",
         populate: ["patientId"],
       },
     );

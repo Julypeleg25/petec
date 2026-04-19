@@ -20,6 +20,8 @@ function CalendarMonthDay({
 
   return (
     <article
+      data-calendar-today={day.meta.isToday ? "true" : undefined}
+      data-calendar-date-key={day.dateKey}
       className={`calendar-day${day.meta.isToday ? " calendar-day-today" : ""}${
         isPast && !day.meta.isToday ? " calendar-day-past" : ""
       }`}

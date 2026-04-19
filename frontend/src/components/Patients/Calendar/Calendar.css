@@ -4,6 +4,7 @@
   --calendar-surface-soft: #f7f5f8;
   --calendar-ink: #392f42;
   --calendar-muted: #73697b;
+  --calendar-scroll-offset: calc(var(--header-height, 0px) + 1rem);
   --calendar-holiday-bg: #fff1da;
   --calendar-holiday-text: #955900;
   --calendar-special-bg: #e8f2ff;
@@ -37,11 +38,14 @@
 }
 
 .calendar-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
   padding: 0.9rem 1rem;
   border-radius: 20px;
   background: var(--calendar-surface);
   border: 1px solid var(--calendar-border);
-  box-shadow: 0 6px 18px rgba(63, 49, 83, 0.05);
+  box-shadow: 0 4px 14px rgba(63, 49, 83, 0.05);
 }
 
 .calendar-hero-row {
@@ -78,6 +82,24 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.calendar-hero-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding-top: 0.1rem;
+  border-top: 1px solid #eee6f2;
+}
+
+.calendar-hero-weekday {
+  text-align: center;
+  padding: 0.42rem 0.25rem;
+  border-radius: 12px;
+  background: #faf7fb;
+  color: #645975;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .calendar-legend {
@@ -273,13 +295,9 @@
   opacity: 1;
 }
 
-.calendar-today-btn:disabled {
-  cursor: not-allowed;
-}
-
-.calendar-today-btn:disabled:hover {
-  transform: none;
-  box-shadow: none;
+.calendar-today-btn-current:hover {
+  background: #f1eaf5;
+  border-color: #d4c4de;
 }
 
 
@@ -306,20 +324,6 @@
     calc(100vh - var(--header-height) - 11.5rem),
     1800px
   );
-}
-
-.calendar-weekdays-row {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  background: #faf7fb;
-  border-bottom: 1px solid var(--calendar-border);
-}
-
-.calendar-weekday {
-  padding: 0.85rem 0.5rem;
-  text-align: center;
-  font-weight: 700;
-  color: #6e6180;
 }
 
 .calendar-grid-scroll {
@@ -394,6 +398,12 @@
 .calendar-day-today {
   background: #fcf9fe;
   box-shadow: inset 0 0 0 1px rgba(177, 89, 205, 0.12);
+}
+
+.calendar-day[data-calendar-today="true"],
+.calendar-agenda-day[data-calendar-today="true"] {
+  scroll-margin-block-start: var(--calendar-scroll-offset);
+  scroll-margin-block-end: 1.5rem;
 }
 
 .calendar-day-head {
@@ -654,20 +664,25 @@
 .calendar-patient-card {
   width: 100%;
   border: 1px solid #e7dfee;
-  border-radius: 16px;
+  border-radius: 18px;
   background-color: #fff;
-  padding: 0.72rem;
+  padding: 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.6rem;
   text-align: right;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  box-shadow: 0 4px 14px rgba(63, 49, 83, 0.05);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .calendar-patient-card:hover {
   cursor: pointer;
   border-color: #d2c3dc;
   background-color: #fcfafd;
+  box-shadow: 0 10px 24px rgba(63, 49, 83, 0.08);
 }
 
 .calendar-patient-card-status-procedure {
@@ -690,16 +705,24 @@
   background: #eff9f6;
 }
 
+.calendar-patient-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
 .calendar-patient-card-header {
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  min-width: 0;
 }
 
 .calendar-patient-image {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   object-fit: cover;
   background-color: #f4edf7;
   flex-shrink: 0;
@@ -708,7 +731,7 @@
 .calendar-patient-text {
   display: flex;
   flex-direction: column;
-  gap: 0.12rem;
+  gap: 0.16rem;
   min-width: 0;
 }
 
@@ -720,7 +743,6 @@
 }
 
 .calendar-patient-text span,
-.calendar-patient-meta,
 .calendar-patient-reason,
 .calendar-day-empty-note,
 .calendar-extra-patients-note {
@@ -729,14 +751,71 @@
 }
 
 .calendar-patient-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.calendar-patient-meta-item {
   display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #ece4f0;
+}
+
+.calendar-patient-card-status-procedure .calendar-patient-meta-item {
+  border-color: rgba(234, 138, 58, 0.16);
+}
+
+.calendar-patient-card-status-hospitalization .calendar-patient-meta-item {
+  border-color: rgba(45, 155, 143, 0.16);
+}
+
+.calendar-patient-meta-label {
+  color: #7a6f86;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.calendar-patient-meta-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--calendar-ink);
+  font-size: 0.85rem;
+}
+
+.calendar-patient-reason-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  padding: 0.72rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid #ece4f0;
+  background: #faf8fb;
+  border-inline-start: 3px solid rgba(109, 53, 133, 0.24);
+}
+
+.calendar-patient-card-status-hospitalization .calendar-patient-reason-card {
+  border-color: rgba(45, 155, 143, 0.18);
+  border-inline-start-color: rgba(45, 155, 143, 0.42);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.calendar-patient-reason-label {
+  color: #7a6f86;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .calendar-patient-reason {
   margin: 0;
+  color: var(--calendar-ink);
+  font-size: 0.85rem;
   line-height: 1.45;
 }
 
@@ -744,15 +823,16 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  justify-content: flex-end;
 }
 
 .calendar-patient-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.24rem 0.58rem;
+  padding: 0.26rem 0.64rem;
   border-radius: 999px;
-  font-size: 0.74rem;
+  font-size: 0.73rem;
   font-weight: 600;
   border: 1px solid transparent;
 }
@@ -1091,6 +1171,10 @@
     display: none;
   }
 
+  .calendar-hero-weekdays {
+    display: none;
+  }
+
   .calendar-agenda {
     display: flex;
     flex-direction: column;
@@ -1119,7 +1203,16 @@
   }
 
   .calendar-patient-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .calendar-patient-card-top {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-patient-badges {
+    justify-content: flex-start;
   }
 
   .calendar-details-top {
