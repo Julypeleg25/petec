@@ -2,7 +2,7 @@
 module.exports = {
   preset: "ts-jest/presets/default-esm",
   testEnvironment: "node",
-  roots: ["<rootDir>/src"],
+  roots: ["<rootDir>/tests", "<rootDir>/src"],
   testMatch: ["**/*.test.ts"],
   extensionsToTreatAsEsm: [".ts"],
   transform: {
@@ -25,6 +25,5 @@ module.exports = {
   collectCoverageFrom: [
     "src/**/*.ts",
     "!src/**/*.d.ts",
-    "!src/**/*.test.ts",
   ],
 };
