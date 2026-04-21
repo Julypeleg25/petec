@@ -18,17 +18,23 @@ const caseRepositoryMocks = {
   updateById: jest.fn<(...args: any[]) => Promise<any>>(),
   create: jest.fn<(...args: any[]) => Promise<any>>(),
   findBySerialId: jest.fn<(...args: any[]) => Promise<any>>(),
+  release: jest.fn<(...args: any[]) => Promise<any>>(),
+  deleteById: jest.fn<(...args: any[]) => Promise<any>>(),
 };
 
 const masterCaseRepositoryMocks = {
   create: jest.fn<(...args: any[]) => Promise<any>>(),
   addCaseId: jest.fn<(...args: any[]) => Promise<any>>(),
   updateById: jest.fn<(...args: any[]) => Promise<any>>(),
+  removeCaseId: jest.fn<(...args: any[]) => Promise<any>>(),
+  findById: jest.fn<(...args: any[]) => Promise<any>>(),
+  deleteById: jest.fn<(...args: any[]) => Promise<any>>(),
 };
 
 const anesthesiaFormRepositoryMocks = {
   findByCaseId: jest.fn<(...args: any[]) => Promise<any | null>>(),
   upsertByCaseId: jest.fn<(...args: any[]) => Promise<any>>(),
+  deleteMany: jest.fn<(...args: any[]) => Promise<any>>(),
 };
 
 const documentRepositoryMocks = {
@@ -36,10 +42,13 @@ const documentRepositoryMocks = {
   create: jest.fn<(...args: any[]) => Promise<any>>(),
   findById: jest.fn<(...args: any[]) => Promise<any | null>>(),
   deleteById: jest.fn<(...args: any[]) => Promise<void>>(),
+  deleteMany: jest.fn<(...args: any[]) => Promise<any>>(),
 };
 
 const patientMedicineRepositoryMocks = {
   findByCaseId: jest.fn<(...args: any[]) => Promise<any[]>>(),
+  deleteMany: jest.fn<(...args: any[]) => Promise<any>>(),
+  create: jest.fn<(...args: any[]) => Promise<any>>(),
 };
 
 const auditLogMock = jest.fn<(...args: any[]) => Promise<void>>();
@@ -89,6 +98,7 @@ const mapUploadDocumentToDataMock = jest.fn<(...args: any[]) => any>();
 const getCaseByIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
 const getCaseByIdPopulatedOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
 const getCaseBySerialIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
+const ensureDedicatedPatientForCaseMock = jest.fn<(...args: any[]) => Promise<any>>();
 const resolveMasterCaseBySerialPrefixMock = jest.fn<
   (...args: any[]) => Promise<any>
 >();
@@ -211,7 +221,7 @@ jest.unstable_mockModule(
 jest.unstable_mockModule(
   "../../../src/services/patient/utils/patientService.utils.js",
   () => ({
-    ensureDedicatedPatientForCase: jest.fn(),
+    ensureDedicatedPatientForCase: ensureDedicatedPatientForCaseMock,
     getCaseByIdOrThrow: getCaseByIdOrThrowMock,
     getCaseByIdPopulatedOrThrow: getCaseByIdPopulatedOrThrowMock,
     getCaseBySerialIdOrThrow: getCaseBySerialIdOrThrowMock,
@@ -301,10 +311,379 @@ describe("PatientService lower-slice", () => {
     getCaseByIdOrThrowMock.mockReset();
     getCaseByIdPopulatedOrThrowMock.mockReset();
     getCaseBySerialIdOrThrowMock.mockReset();
+    ensureDedicatedPatientForCaseMock.mockReset();
     resolveMasterCaseBySerialPrefixMock.mockReset();
     hasCaseWeightChangedMock.mockReset();
     recalculateCaseGridMedicationDosesMock.mockReset();
     buildCalendarMonthResponseMock.mockReset();
+  });
+
+  it("creates a patient and case under an existing master case", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    caseRepositoryMocks.findBySerialId.mockResolvedValue(null);
+    resolveMasterCaseBySerialPrefixMock.mockResolvedValue("master-1");
+    mapNewPatientDtoToPatientDataMock.mockReturnValue({ patientMapped: true });
+    patientRepositoryMocks.create.mockResolvedValue({ _id: "patient-1" });
+    mapNewPatientDtoToCaseDataMock.mockReturnValue({ caseMapped: true });
+    caseRepositoryMocks.create.mockResolvedValue({ _id: "case-1" });
+    masterCaseRepositoryMocks.addCaseId.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.createPatientAndCase({ caseId: "123-45", name: "Milo" } as never, "user-1"),
+    ).resolves.toEqual({
+      patientId: "patient-1",
+      caseId: "case-1",
+      masterCaseId: "master-1",
+    });
+
+    expect(mapNewPatientDtoToPatientDataMock).toHaveBeenCalledWith({
+      caseId: "123-45",
+      name: "Milo",
+    });
+    expect(mapNewPatientDtoToCaseDataMock).toHaveBeenCalledWith(
+      { caseId: "123-45", name: "Milo" },
+      "patient-1",
+      "master-1",
+      "user-1",
+    );
+    expect(masterCaseRepositoryMocks.addCaseId).toHaveBeenCalledWith(
+      "master-1",
+      "case-1",
+      { session },
+    );
+    expect(masterCaseRepositoryMocks.create).not.toHaveBeenCalled();
+    expect(auditLogMock).toHaveBeenCalledWith(
+      "Patient Management",
+      "Patient case created: Milo",
+      "Patient",
+      "patient-1",
+      "user-1",
+      session,
+    );
+    expect(session.endSession).toHaveBeenCalled();
+  });
+
+  it("creates a new master case when no serial-prefix match exists", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    caseRepositoryMocks.findBySerialId.mockResolvedValue(null);
+    resolveMasterCaseBySerialPrefixMock.mockResolvedValue(null);
+    mapNewPatientDtoToPatientDataMock.mockReturnValue({ patientMapped: true });
+    patientRepositoryMocks.create.mockResolvedValue({ _id: "patient-2" });
+    masterCaseRepositoryMocks.create.mockResolvedValue({ _id: "master-2" });
+    mapNewPatientDtoToCaseDataMock.mockReturnValue({ caseMapped: true });
+    caseRepositoryMocks.create.mockResolvedValue({ _id: "case-2" });
+    masterCaseRepositoryMocks.updateById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.createPatientAndCase({ caseId: "999-1", name: "Luna" } as never, "user-2"),
+    ).resolves.toEqual({
+      patientId: "patient-2",
+      caseId: "case-2",
+      masterCaseId: "master-2",
+    });
+
+    expect(masterCaseRepositoryMocks.create).toHaveBeenCalledWith(
+      { caseIds: [] },
+      { session },
+    );
+    expect(masterCaseRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "master-2",
+      { $set: { caseIds: ["case-2"] } },
+      { session },
+    );
+    expect(masterCaseRepositoryMocks.addCaseId).not.toHaveBeenCalled();
+  });
+
+  it("edits patient and case data, recalculates grid doses, and persists updates", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    const existingCase = {
+      _id: "case-1",
+      serialId: "SER-1",
+      isArchived: false,
+      patientSnapshot: {
+        weightKg: 4.2,
+      },
+      caseDetailsGrid: [{ existing: true }],
+    };
+    getCaseBySerialIdOrThrowMock.mockResolvedValue(existingCase);
+    ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
+    patientRepositoryMocks.findById.mockResolvedValue({
+      _id: "patient-1",
+      name: "Milo",
+    });
+    mapEditDtoToPatientUpdateMock.mockReturnValue({ name: "Updated Milo" });
+    patientRepositoryMocks.updateById.mockResolvedValue(undefined);
+    hasCaseWeightChangedMock.mockReturnValue(true);
+    mapGridDtoToRowsMock.mockReturnValue([{ draft: true }]);
+    recalculateCaseGridMedicationDosesMock.mockResolvedValue([{ final: true }]);
+    caseGridServiceMocks.saveGrid.mockResolvedValue(undefined);
+    mapEditDtoToCaseUpdateMock.mockReturnValue({ comments: "updated" });
+    caseRepositoryMocks.updateById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.editPatientAndCase(
+        {
+          caseId: "SER-1",
+          patientSnapshot: { weightKg: 5.1 },
+          caseDetails: [[{ id: "row-1" }]],
+        } as never,
+        "user-1",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(patientRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "patient-1",
+      { $set: { name: "Updated Milo" } },
+      { session },
+    );
+    expect(recalculateCaseGridMedicationDosesMock).toHaveBeenCalledWith(
+      [{ draft: true }],
+      5.1,
+      session,
+    );
+    expect(caseGridServiceMocks.saveGrid).toHaveBeenCalledWith(
+      "SER-1",
+      [{ final: true }],
+      session,
+    );
+    expect(caseRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "case-1",
+      { $set: { comments: "updated" } },
+      { session },
+    );
+    expect(auditLogMock).toHaveBeenCalledWith(
+      "Patient Management",
+      "Patient/case edited: Milo",
+      "Case",
+      "case-1",
+      "user-1",
+      session,
+    );
+  });
+
+  it("loads case details with related master case details when matches exist", async () => {
+    const isolatedCase = { _id: "case-1" };
+    const populatedCase = {
+      masterCaseId: { toString: () => "master-1" },
+      toObject: jest.fn(() => ({ serialId: "123-45" })),
+    };
+    const relatedDoc = createDoc({ _id: "case-2", serialId: "123-46" });
+    getCaseByIdOrThrowMock.mockResolvedValue(isolatedCase);
+    ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
+    getCaseByIdPopulatedOrThrowMock.mockResolvedValue(populatedCase);
+    toCaseDetailsResponseDTOMock.mockReturnValue({ caseDetails: {}, masterCaseDetails: [] });
+    caseRepositoryMocks.findMany.mockResolvedValue([relatedDoc]);
+    mapRelatedCasesToMasterCaseDetailsMock.mockReturnValue([{ caseId: "case-2" }]);
+    withMasterCaseDetailsMock.mockReturnValue({ merged: true });
+
+    await expect(service.getCaseDetails("case-1")).resolves.toEqual({ merged: true });
+
+    expect(caseRepositoryMocks.findMany).toHaveBeenCalledWith(
+      { masterCaseId: "master-1", isDeleted: false },
+      { sort: { createdAt: -1 }, populate: "patientId" },
+    );
+    expect(mapRelatedCasesToMasterCaseDetailsMock).toHaveBeenCalledWith([
+      relatedDoc.toObject(),
+    ]);
+    expect(withMasterCaseDetailsMock).toHaveBeenCalledWith(
+      { caseDetails: {}, masterCaseDetails: [] },
+      [{ caseId: "case-2" }],
+    );
+  });
+
+  it("returns base case details when no related cases are found via serial prefix fallback", async () => {
+    const baseResponse = { caseDetails: { serial_id: "123-45" }, masterCaseDetails: [] };
+    getCaseByIdOrThrowMock.mockResolvedValue({ _id: "case-1" });
+    ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
+    getCaseByIdPopulatedOrThrowMock.mockResolvedValue({
+      masterCaseId: null,
+      serialId: "123-45",
+      toObject: jest.fn(() => ({ serialId: "123-45" })),
+    });
+    toCaseDetailsResponseDTOMock.mockReturnValue(baseResponse);
+    caseRepositoryMocks.findMany.mockResolvedValue([]);
+
+    await expect(service.getCaseDetails("case-1")).resolves.toBe(baseResponse);
+
+    expect(caseRepositoryMocks.findMany).toHaveBeenCalledWith(
+      {
+        serialId: expect.any(RegExp),
+        isDeleted: false,
+      },
+      { sort: { createdAt: -1 }, populate: "patientId" },
+    );
+    expect(withMasterCaseDetailsMock).not.toHaveBeenCalled();
+  });
+
+  it("releases patients, replaces medicines, and writes release audit logs", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    const existingCase = {
+      _id: "case-1",
+      patientId: "patient-1",
+      dates: {
+        stitchesRemovalDate: "old-stitches",
+        nextInspectionDate: "old-inspection",
+      },
+    };
+    getCaseBySerialIdOrThrowMock.mockResolvedValue(existingCase);
+    toCanonicalJerusalemDateMock.mockReturnValue(
+      new Date("2026-04-30T12:00:00.000Z"),
+    );
+    caseRepositoryMocks.release.mockResolvedValue(undefined);
+    patientMedicineRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    mapReleaseMedicineToDataMock
+      .mockReturnValueOnce({ med: 1 })
+      .mockReturnValueOnce({ med: 2 });
+    patientMedicineRepositoryMocks.create.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.releasePatient(
+        {
+          caseId: "SER-1",
+          stitchesRemovalDate: null,
+          nextInspectionDate: "2026-04-30",
+          medicines: [{ id: "med-1" }, { id: "med-2" }],
+        } as never,
+        "user-1",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(caseRepositoryMocks.release).toHaveBeenCalledWith(
+      "case-1",
+      "user-1",
+      {
+        dates: {
+          stitchesRemovalDate: undefined,
+          nextInspectionDate: new Date("2026-04-30T12:00:00.000Z"),
+        },
+      },
+      session,
+    );
+    expect(patientMedicineRepositoryMocks.deleteMany).toHaveBeenCalledWith(
+      { caseId: "case-1" },
+      { session },
+    );
+    expect(patientMedicineRepositoryMocks.create).toHaveBeenNthCalledWith(
+      1,
+      { med: 1 },
+      { session },
+    );
+    expect(patientMedicineRepositoryMocks.create).toHaveBeenNthCalledWith(
+      2,
+      { med: 2 },
+      { session },
+    );
+  });
+
+  it("restores archived procedure cases with a manual unarchive flag when needed", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      flags: { isProcedure: true },
+      dates: { procedureDate: "2026-04-25" },
+    });
+    toDateInputStringMock.mockImplementation((value: any) =>
+      value instanceof Date ? "2026-04-21" : "2026-04-25",
+    );
+    caseRepositoryMocks.updateById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.archivePatientCase("SER-1", false, "user-1"),
+    ).resolves.toBeUndefined();
+
+    expect(caseRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "case-1",
+      {
+        $set: {
+          isArchived: false,
+          isManuallyUnarchived: true,
+        },
+      },
+      { session },
+    );
+  });
+
+  it("deletes a patient case, removes linked records, and cleans up document assets", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      masterCaseId: "master-1",
+    });
+    documentRepositoryMocks.findByCaseId.mockResolvedValue([
+      {
+        _id: { toString: () => "doc-1" },
+        cloudinaryPublicId: "cloud-1",
+        fileName: "cloud.pdf",
+        storageKey: "http://cdn.example.com/cloud.pdf",
+      },
+      {
+        _id: { toString: () => "doc-2" },
+        fileName: "local.pdf",
+        storageKey: "patients/documents/local.pdf",
+      },
+    ]);
+    documentRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    anesthesiaFormRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    patientMedicineRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    caseRepositoryMocks.deleteById.mockResolvedValue(undefined);
+    masterCaseRepositoryMocks.removeCaseId.mockResolvedValue(undefined);
+    masterCaseRepositoryMocks.findById.mockResolvedValue({
+      _id: "master-1",
+      caseIds: [],
+    });
+    masterCaseRepositoryMocks.deleteById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+    deleteFromCloudinaryMock.mockRejectedValue(new Error("cleanup failed"));
+    storageServiceMocks.delete.mockResolvedValue(undefined);
+
+    await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
+
+    expect(documentRepositoryMocks.deleteMany).toHaveBeenCalledWith(
+      { caseId: "case-1" },
+      { session },
+    );
+    expect(anesthesiaFormRepositoryMocks.deleteMany).toHaveBeenCalledWith(
+      { caseId: "case-1" },
+      { session },
+    );
+    expect(patientMedicineRepositoryMocks.deleteMany).toHaveBeenCalledWith(
+      { caseId: "case-1" },
+      { session },
+    );
+    expect(masterCaseRepositoryMocks.removeCaseId).toHaveBeenCalledWith(
+      "master-1",
+      "case-1",
+      { session },
+    );
+    expect(masterCaseRepositoryMocks.deleteById).toHaveBeenCalledWith(
+      "master-1",
+      { session },
+    );
+    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith("cloud-1");
+    expect(storageServiceMocks.delete).toHaveBeenCalledWith(
+      "patients/documents/local.pdf",
+    );
+    expect(warnMock).toHaveBeenCalledWith(
+      "Case document asset cleanup failed after delete",
+      expect.objectContaining({
+        module: "patient",
+        event: "patient_case_document_asset_cleanup_failed",
+        case_serial_id: "SER-1",
+        doc_id: "doc-1",
+        file_name: "cloud.pdf",
+      }),
+    );
   });
 
   it("returns mapped case documents", async () => {

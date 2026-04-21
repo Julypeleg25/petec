@@ -140,4 +140,47 @@ describe("server.ts", () => {
     });
     expect(processExitSpy).toHaveBeenCalledWith(APP_EXIT_CODE_ERROR);
   });
+
+  it("logs non-error startup failures by stringifying them", async () => {
+    connectToDatabaseMock.mockRejectedValue("db unavailable");
+    processOnSpy.mockImplementation((() => process) as typeof process.on);
+
+    await loadServerModule();
+
+    expect(errorMock).toHaveBeenCalledWith("Failed to start server", {
+      error: "db unavailable",
+    });
+    expect(processExitSpy).toHaveBeenCalledWith(APP_EXIT_CODE_ERROR);
+  });
+
+  it("forces process exit when graceful shutdown times out", async () => {
+    const signalHandlers = new Map<string, () => void>();
+    let timeoutCallback: (() => void) | undefined;
+
+    connectToDatabaseMock.mockResolvedValue(undefined);
+    serverCloseMock.mockImplementation(() => undefined);
+    processOnSpy.mockImplementation(((event: any, handler: any) => {
+      signalHandlers.set(String(event), handler);
+      return process;
+    }) as typeof process.on);
+    setTimeoutSpy.mockImplementation(((
+      callback: TimerHandler,
+    ) => {
+      timeoutCallback = callback as () => void;
+      return 0 as unknown as ReturnType<typeof setTimeout>;
+    }) as unknown as typeof setTimeout);
+
+    await loadServerModule();
+
+    signalHandlers.get("SIGINT")?.();
+    timeoutCallback?.();
+
+    expect(infoMock).toHaveBeenCalledWith("SIGINT received, shutting down gracefully");
+    expect(stopScheduledJobsMock).toHaveBeenCalled();
+    expect(serverCloseMock).toHaveBeenCalledWith(expect.any(Function));
+    expect(errorMock).toHaveBeenCalledWith(
+      "Graceful shutdown timed out, forcing exit",
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(APP_EXIT_CODE_ERROR);
+  });
 });
