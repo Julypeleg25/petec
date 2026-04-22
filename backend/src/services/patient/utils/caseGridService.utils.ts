@@ -75,14 +75,7 @@ const computeDateTime = (date: string, time: string): Date => {
   const hour = Number(hourRaw);
   const minute = Number(minuteRaw);
 
-  const dateTime = new Date(year, month - 1, day, hour, minute, 0, 0);
-  if (Number.isNaN(dateTime.getTime())) {
-    throw new ValidationError("Cannot compute dateTime from date+time", {
-      date: [date],
-      time: [time],
-    });
-  }
-  return dateTime;
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
 };
 
 const ensureId = <T extends { _id?: Types.ObjectId }>(

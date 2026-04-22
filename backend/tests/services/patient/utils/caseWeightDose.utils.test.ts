@@ -1,9 +1,40 @@
 import { jest } from "@jest/globals";
-import { Types } from "mongoose";
+import { Types, type ClientSession } from "mongoose";
+import type { ICaseDetailsRow } from "../../../../src/models/case/index.js";
 
-const findMock = jest.fn() as any;
-const leanMock = jest.fn() as any;
-const execMock = jest.fn() as any;
+type Recommendation = {
+  _id: Types.ObjectId;
+  rangeMin?: number;
+  rangeMax?: number;
+  totalDose?: number;
+};
+
+type LeanQuery = {
+  exec: typeof execMock;
+};
+
+type FindQuery = {
+  lean: typeof leanMock;
+};
+
+type FindArgs = [
+  query: {
+    _id?: { $in: Types.ObjectId[] };
+    isDeleted?: { $ne: boolean };
+  },
+  projection: string,
+  options: { session?: ClientSession },
+];
+
+type CaseGridRowsInput = Array<Partial<ICaseDetailsRow>>;
+
+const asCaseGridRows = (
+  rows: ReadonlyArray<Record<string, unknown>>,
+): CaseGridRowsInput => rows as CaseGridRowsInput;
+
+const execMock = jest.fn<() => Promise<Recommendation[]>>();
+const leanMock = jest.fn<() => LeanQuery>();
+const findMock = jest.fn<(...args: FindArgs) => FindQuery>();
 
 jest.unstable_mockModule("../../../../src/models/lookups/index.js", () => ({
   MedicineModel: {
@@ -37,13 +68,17 @@ describe("caseWeightDose.utils", () => {
   });
 
   it("returns copied rows when there are no valid medicine ids to recalculate", async () => {
-    const rows = [
+    const rows = asCaseGridRows([
       {
         time: "08:00",
         fluids: [{ medicineId: "", doseAmount: 1 }],
         medicines: [{ medicineId: "not-an-object-id", doseAmount: 2 }],
       },
-    ] as any;
+      {
+        time: "09:00",
+        medicines: [{ medicineId: { _id: "plain-string-id" }, doseAmount: 3 }],
+      },
+    ]);
 
     const result = await recalculateCaseGridMedicationDoses(rows, 10);
 
@@ -52,6 +87,8 @@ describe("caseWeightDose.utils", () => {
     expect(result[0]).not.toBe(rows[0]);
     expect(result[0].fluids).toBe(rows[0].fluids);
     expect(result[0].medicines).toBe(rows[0].medicines);
+    expect(result[1]).not.toBe(rows[1]);
+    expect(result[1].medicines).toBe(rows[1].medicines);
   });
 
   it("recalculates fluid and medicine doses from stored recommendations", async () => {
@@ -60,7 +97,7 @@ describe("caseWeightDose.utils", () => {
     const byTotalDoseId = new Types.ObjectId();
     const preserveRecommendationId = new Types.ObjectId();
     const missingRecommendationId = new Types.ObjectId();
-    const session = { id: "session-1" } as any;
+    const session = {} as ClientSession;
 
     execMock.mockResolvedValue([
       {
@@ -83,7 +120,7 @@ describe("caseWeightDose.utils", () => {
     ]);
 
     const result = await recalculateCaseGridMedicationDoses(
-      [
+      asCaseGridRows([
         {
           fluids: [
             { medicineId: byTotalDoseId.toString(), doseAmount: 1 },
@@ -95,14 +132,23 @@ describe("caseWeightDose.utils", () => {
             { medicineId: preserveRecommendationId, doseAmount: 4 },
           ],
         },
-      ] as any,
+      ]),
       10,
       session,
     );
 
     expect(findMock).toHaveBeenCalledTimes(1);
-    const [query, projection, options] = findMock.mock.calls[0];
+    const firstCall = findMock.mock.calls[0];
+    expect(firstCall).toBeDefined();
+    if (!firstCall) {
+      throw new Error("findMock was not called");
+    }
+    const [query, projection, options] = firstCall;
     expect(query.isDeleted).toEqual({ $ne: true });
+    expect(query._id).toBeDefined();
+    if (!query._id) {
+      throw new Error("Expected _id filter to be present");
+    }
     expect(query._id.$in.map((id: Types.ObjectId) => id.toString())).toEqual([
       byTotalDoseId.toString(),
       missingRecommendationId.toString(),

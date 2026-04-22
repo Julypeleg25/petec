@@ -206,4 +206,66 @@ describe("patientCalendar.utils", () => {
       days: [],
     });
   });
+
+  it("sorts same-priority calendar patients by name and then serial id", () => {
+    const response = buildCalendarMonthResponse(
+      [
+        {
+          _id: "case-1",
+          serialId: "101-1",
+          caseDetailsGrid: [{ date: "2026-04-15" }],
+          patientId: {
+            _id: "patient-1",
+            name: "Alpha",
+          },
+        },
+        {
+          _id: "case-2",
+          serialId: "099-1",
+          caseDetailsGrid: [{ date: "2026-04-15" }],
+          patientId: {
+            _id: "patient-2",
+            name: "Alpha",
+          },
+        },
+        {
+          _id: "case-3",
+          serialId: "050-1",
+          caseDetailsGrid: [{ date: "2026-04-15" }],
+          patientId: {
+            _id: "patient-3",
+            name: "Beta",
+          },
+        },
+      ] as never,
+      2026,
+      4,
+    );
+
+    expect(response.days).toEqual([
+      {
+        date: "2026-04-15",
+        patients: [
+          expect.objectContaining({
+            caseId: "case-2",
+            patientName: "Alpha",
+            serialId: "099-1",
+            badges: ["hospitalization"],
+          }),
+          expect.objectContaining({
+            caseId: "case-1",
+            patientName: "Alpha",
+            serialId: "101-1",
+            badges: ["hospitalization"],
+          }),
+          expect.objectContaining({
+            caseId: "case-3",
+            patientName: "Beta",
+            serialId: "050-1",
+            badges: ["hospitalization"],
+          }),
+        ],
+      },
+    ]);
+  });
 });

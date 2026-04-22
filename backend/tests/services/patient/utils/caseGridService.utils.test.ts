@@ -104,12 +104,83 @@ describe("caseGridService.utils", () => {
     ).toThrow(ValidationError);
   });
 
+  it("throws a validation error for invalid date values", () => {
+    expect(() =>
+      normalizeCaseDetailsGrid([
+        {
+          date: "not-a-date",
+          time: "08:00",
+          fluids: [],
+          medicines: [],
+          procedures: [],
+          examinations: [],
+          foodExtras: [],
+        },
+      ] as never),
+    ).toThrow("Invalid date format, expected YYYY-MM-DD");
+  });
+
+  it("parses natural-language dates, preserves existing nested ids, and breaks ties by row id", () => {
+    const lowerRowId = new Types.ObjectId("507f1f77bcf86cd799439011");
+    const higherRowId = new Types.ObjectId("507f1f77bcf86cd799439012");
+    const existingProcedureId = new Types.ObjectId();
+
+    const normalized = normalizeCaseDetailsGrid([
+      {
+        _id: higherRowId,
+        date: "April 21, 2026",
+        time: "09:00",
+        index: 1,
+        procedures: [{ _id: existingProcedureId }],
+        fluids: [],
+        medicines: [],
+        examinations: [],
+        foodExtras: [],
+      },
+      {
+        _id: lowerRowId,
+        date: "April 21, 2026",
+        time: "09:00",
+        index: 1,
+        procedures: [],
+        fluids: [],
+        medicines: [],
+        examinations: [],
+        foodExtras: [],
+      },
+    ] as never);
+
+    expect(normalized.map((row) => row._id?.toString())).toEqual([
+      lowerRowId.toString(),
+      higherRowId.toString(),
+    ]);
+    expect(normalized[0]?.date).toBe("2026-04-21");
+    expect(normalized[1]?.procedures[0]?._id?.toString()).toBe(
+      existingProcedureId.toString(),
+    );
+  });
+
   it("throws a validation error when a row date is missing", () => {
     expect(() =>
       normalizeCaseDetailsGrid([
         {
           time: "08:00",
           dateTime: "not-a-date",
+          fluids: [],
+          medicines: [],
+          procedures: [],
+          examinations: [],
+          foodExtras: [],
+        },
+      ] as never),
+    ).toThrow("Row date is required");
+  });
+
+  it("throws a validation error when a row date is missing and no dateTime fallback exists", () => {
+    expect(() =>
+      normalizeCaseDetailsGrid([
+        {
+          time: "08:00",
           fluids: [],
           medicines: [],
           procedures: [],

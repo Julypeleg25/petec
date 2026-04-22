@@ -198,4 +198,22 @@ describe("caseAlertsService.utils", () => {
 
     expect(getCaseAnimalTypeId({} as never)).toBe("");
   });
+
+  it("ignores catheter reminders when the catheter date cannot be parsed", () => {
+    const summary = buildCaseAlertSummary(
+      {
+        caseDetailsGrid: [],
+        dates: {
+          catheterDate: "not-a-date",
+        },
+      } as never,
+      {} as never,
+      new Date("2026-04-21T09:00:00.000Z"),
+    );
+
+    expect(summary).toEqual({
+      total: 0,
+      alerts: [],
+    });
+  });
 });

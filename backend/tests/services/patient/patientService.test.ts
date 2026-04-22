@@ -398,6 +398,22 @@ describe("PatientService lower-slice", () => {
     expect(masterCaseRepositoryMocks.addCaseId).not.toHaveBeenCalled();
   });
 
+  it("rejects creating a patient case when the serial id already exists", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    caseRepositoryMocks.findBySerialId.mockResolvedValue({ _id: "existing-case" });
+
+    await expect(
+      service.createPatientAndCase(
+        { caseId: "123-45", name: "Milo" } as never,
+        "user-1",
+      ),
+    ).rejects.toThrow(BadRequestError);
+
+    expect(patientRepositoryMocks.create).not.toHaveBeenCalled();
+    expect(session.endSession).toHaveBeenCalled();
+  });
+
   it("edits patient and case data, recalculates grid doses, and persists updates", async () => {
     const session = createSession();
     startSessionMock.mockResolvedValue(session);
@@ -465,6 +481,93 @@ describe("PatientService lower-slice", () => {
       "user-1",
       session,
     );
+  });
+
+  it("rejects editing archived cases", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      serialId: "SER-1",
+      isArchived: true,
+    });
+
+    await expect(
+      service.editPatientAndCase({ caseId: "SER-1" } as never, "user-1"),
+    ).rejects.toThrow(BadRequestError);
+
+    expect(patientRepositoryMocks.findById).not.toHaveBeenCalled();
+    expect(session.endSession).toHaveBeenCalled();
+  });
+
+  it("rejects editing cases when the dedicated patient cannot be found", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      serialId: "SER-1",
+      isArchived: false,
+      patientSnapshot: {
+        weightKg: 4.2,
+      },
+      caseDetailsGrid: [],
+    });
+    ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
+    patientRepositoryMocks.findById.mockResolvedValue(null);
+
+    await expect(
+      service.editPatientAndCase({ caseId: "SER-1" } as never, "user-1"),
+    ).rejects.toThrow(NotFoundError);
+
+    expect(session.endSession).toHaveBeenCalled();
+  });
+
+  it("reuses the stored grid when weights change without incoming case details", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    const existingCase = {
+      _id: "case-1",
+      serialId: "SER-1",
+      isArchived: false,
+      patientSnapshot: {
+        weightKg: 4.2,
+      },
+      caseDetailsGrid: [{ existing: true }],
+    };
+    getCaseBySerialIdOrThrowMock.mockResolvedValue(existingCase);
+    ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
+    patientRepositoryMocks.findById.mockResolvedValue({
+      _id: "patient-1",
+      name: "Milo",
+    });
+    mapEditDtoToPatientUpdateMock.mockReturnValue({});
+    hasCaseWeightChangedMock.mockReturnValue(true);
+    recalculateCaseGridMedicationDosesMock.mockResolvedValue([{ final: true }]);
+    caseGridServiceMocks.saveGrid.mockResolvedValue(undefined);
+    mapEditDtoToCaseUpdateMock.mockReturnValue({});
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.editPatientAndCase(
+        {
+          caseId: "SER-1",
+          patientSnapshot: { weightKg: 5.1 },
+        } as never,
+        "user-1",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(recalculateCaseGridMedicationDosesMock).toHaveBeenCalledWith(
+      [{ existing: true }],
+      5.1,
+      session,
+    );
+    expect(caseGridServiceMocks.saveGrid).toHaveBeenCalledWith(
+      "SER-1",
+      [{ final: true }],
+      session,
+    );
+    expect(mapGridDtoToRowsMock).not.toHaveBeenCalled();
   });
 
   it("loads case details with related master case details when matches exist", async () => {
@@ -613,6 +716,62 @@ describe("PatientService lower-slice", () => {
     );
   });
 
+  it("does not mark manual unarchive when the case is not a procedure", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      flags: { isProcedure: false },
+      dates: { procedureDate: "2026-04-25" },
+    });
+    caseRepositoryMocks.updateById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.archivePatientCase("SER-1", false, "user-1"),
+    ).resolves.toBeUndefined();
+
+    expect(caseRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "case-1",
+      {
+        $set: {
+          isArchived: false,
+          isManuallyUnarchived: false,
+        },
+      },
+      { session },
+    );
+    expect(toDateInputStringMock).not.toHaveBeenCalled();
+  });
+
+  it("does not mark manual unarchive when the procedure date cannot be resolved", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      flags: { isProcedure: true },
+      dates: { procedureDate: undefined },
+    });
+    toDateInputStringMock.mockReturnValue(undefined);
+    caseRepositoryMocks.updateById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+
+    await expect(
+      service.archivePatientCase("SER-1", false, "user-1"),
+    ).resolves.toBeUndefined();
+
+    expect(caseRepositoryMocks.updateById).toHaveBeenCalledWith(
+      "case-1",
+      {
+        $set: {
+          isArchived: false,
+          isManuallyUnarchived: false,
+        },
+      },
+      { session },
+    );
+  });
+
   it("deletes a patient case, removes linked records, and cleans up document assets", async () => {
     const session = createSession();
     startSessionMock.mockResolvedValue(session);
@@ -684,6 +843,36 @@ describe("PatientService lower-slice", () => {
         file_name: "cloud.pdf",
       }),
     );
+  });
+
+  it("deletes cloudinary-backed case assets with the storage key fallback when no public id exists", async () => {
+    const session = createSession();
+    startSessionMock.mockResolvedValue(session);
+    getCaseBySerialIdOrThrowMock.mockResolvedValue({
+      _id: "case-1",
+      masterCaseId: null,
+    });
+    documentRepositoryMocks.findByCaseId.mockResolvedValue([
+      {
+        _id: { toString: () => "doc-1" },
+        cloudinaryPublicId: undefined,
+        fileName: "cloud.pdf",
+        storageKey: "http://cdn.example.com/cloud.pdf",
+      },
+    ]);
+    documentRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    anesthesiaFormRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    patientMedicineRepositoryMocks.deleteMany.mockResolvedValue(undefined);
+    caseRepositoryMocks.deleteById.mockResolvedValue(undefined);
+    auditLogMock.mockResolvedValue(undefined);
+    deleteFromCloudinaryMock.mockResolvedValue(undefined);
+
+    await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
+
+    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith(
+      "http://cdn.example.com/cloud.pdf",
+    );
+    expect(storageServiceMocks.delete).not.toHaveBeenCalled();
   });
 
   it("returns mapped case documents", async () => {
