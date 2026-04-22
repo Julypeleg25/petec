@@ -155,6 +155,7 @@ describe("requestLogger middleware", () => {
 
   it("skips logging for health, static, and options requests", () => {
     const next = jest.fn();
+    const optionsRes: any = createResponse();
     requestLoggerMiddleware(
       {
         method: "OPTIONS",
@@ -162,9 +163,12 @@ describe("requestLogger middleware", () => {
         requestId: "req-4",
         headers: {},
       } as never,
-      createResponse() as any,
+      optionsRes,
       next,
     );
+    optionsRes.emit("finish");
+
+    const healthRes: any = createResponse();
     requestLoggerMiddleware(
       {
         method: "GET",
@@ -172,9 +176,12 @@ describe("requestLogger middleware", () => {
         requestId: "req-5",
         headers: {},
       } as never,
-      createResponse() as any,
+      healthRes,
       next,
     );
+    healthRes.emit("finish");
+
+    const staticRes: any = createResponse();
     requestLoggerMiddleware(
       {
         method: "GET",
@@ -182,9 +189,10 @@ describe("requestLogger middleware", () => {
         requestId: "req-6",
         headers: {},
       } as never,
-      createResponse() as any,
+      staticRes,
       next,
     );
+    staticRes.emit("finish");
 
     expect(next).toHaveBeenCalledTimes(3);
     expect(infoMock).not.toHaveBeenCalled();

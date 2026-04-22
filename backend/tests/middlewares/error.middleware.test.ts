@@ -152,4 +152,79 @@ describe("error middleware", () => {
       "req-1",
     );
   });
+
+  it.each([
+    ["BadRequestError", "Bad request happened", HttpStatus.BAD_REQUEST, "BAD_REQUEST", "warn"],
+    ["AuthError", "Auth failed", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "warn"],
+    ["ForbiddenError", "Forbidden", HttpStatus.FORBIDDEN, "FORBIDDEN", "warn"],
+    ["NotFoundError", "Missing", HttpStatus.NOT_FOUND, "NOT_FOUND", "warn"],
+    ["ConflictError", "Conflict", HttpStatus.CONFLICT, "CONFLICT", "warn"],
+    ["InternalServerError", "Internal boom", HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "error"],
+  ] as const)(
+    "maps %s to the expected API error code",
+    async (errorClassName, message, statusCode, errorCode, loggerMethod) => {
+      const { errorHandler } = await loadErrorHandler(false);
+      const errorModule = await import("../../src/constants/error.constants.js");
+      const ErrorClass = errorModule[errorClassName] as new (message?: string) => Error;
+      const res = {} as never;
+
+      errorHandler(new ErrorClass(message), createRequest(), res, jest.fn());
+
+      expect(sendErrorMock).toHaveBeenCalledWith(
+        res,
+        statusCode,
+        message,
+        errorCode,
+        undefined,
+        "req-1",
+      );
+      expect((loggerMethod === "warn" ? warnMock : errorMock)).toHaveBeenCalled();
+    },
+  );
+
+  it("formats custom app-error names and sorts validation issues by message within the same path", async () => {
+    const { errorHandler } = await loadErrorHandler(false);
+    const { ValidationError, AppError } = await import("../../src/constants/error.constants.js");
+    const validationRes = {} as never;
+
+    errorHandler(
+      new ValidationError("Validation failed", {
+        body: ["Zulu", "Alpha"],
+        query: ["Beta"],
+      }),
+      createRequest(),
+      validationRes,
+      jest.fn(),
+    );
+
+    expect(warnMock).toHaveBeenCalledWith(
+      "[POST /api/v1/patient] request failed",
+      expect.objectContaining({
+        validation_issues: [
+          { path: "body", message: "Alpha" },
+          { path: "body", message: "Zulu" },
+          { path: "query", message: "Beta" },
+        ],
+      }),
+    );
+
+    const customError = new AppError({
+      message: "Teapot",
+      statusCode: HttpStatus.BAD_REQUEST,
+      isOperational: true,
+    });
+    customError.name = "TeapotError";
+    const customRes = {} as never;
+
+    errorHandler(customError, createRequest(), customRes, jest.fn());
+
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      customRes,
+      HttpStatus.BAD_REQUEST,
+      "Teapot",
+      "TEAPOT_ERROR",
+      undefined,
+      "req-1",
+    );
+  });
 });

@@ -1,17 +1,24 @@
+import type { NextFunction, Request, Response } from "express";
 import { jest } from "@jest/globals";
 import { z } from "zod";
 import { ValidationError } from "../../src/constants/error.constants.js";
 import {
+  toStrictSchema,
   validate,
   validateBody,
   validateParams,
   validateQuery,
 } from "../../src/middlewares/validate.js";
 
+type ValidationRequest = Partial<Request> &
+  Pick<Request, "body" | "query" | "params">;
+
+type NextHandler = (error?: Error | "route" | "router") => void;
+
 describe("validate middleware", () => {
   it("validates and replaces body, query, and params", () => {
-    const next = jest.fn();
-    const req: any = {
+    const next = jest.fn<NextHandler>();
+    const req: ValidationRequest = {
       body: { name: "Dana" },
       query: { page: "2" },
       params: { id: "case-1" },
@@ -21,7 +28,7 @@ describe("validate middleware", () => {
       body: z.object({ name: z.string() }),
       query: z.object({ page: z.coerce.number() }),
       params: z.object({ id: z.string() }),
-    })(req, {} as never, next);
+    })(req as Request, {} as Response, next as NextFunction);
 
     expect(req.body).toEqual({ name: "Dana" });
     expect(req.query).toEqual({ page: 2 });
@@ -30,14 +37,18 @@ describe("validate middleware", () => {
   });
 
   it("throws a ValidationError for strict-body violations", () => {
-    const req = {
+    const req: ValidationRequest = {
       body: { name: "Dana", extra: true },
       query: {},
       params: {},
-    } as never;
+    };
 
     expect(() =>
-      validateBody(z.object({ name: z.string() }))(req, {} as never, jest.fn()),
+      validateBody(z.object({ name: z.string() }))(
+        req as Request,
+        {} as Response,
+        jest.fn<NextHandler>() as NextFunction,
+      ),
     ).toThrow(ValidationError);
   });
 
@@ -48,9 +59,9 @@ describe("validate middleware", () => {
           body: {},
           query: { page: "bad" },
           params: {},
-        } as never,
-        {} as never,
-        jest.fn(),
+        } as ValidationRequest as Request,
+        {} as Response,
+        jest.fn<NextHandler>() as NextFunction,
       ),
     ).toThrow("Query validation failed");
 
@@ -60,10 +71,16 @@ describe("validate middleware", () => {
           body: {},
           query: {},
           params: { id: "not-a-uuid" },
-        } as never,
-        {} as never,
-        jest.fn(),
+        } as ValidationRequest as Request,
+        {} as Response,
+        jest.fn<NextHandler>() as NextFunction,
       ),
     ).toThrow("Params validation failed");
+  });
+
+  it("returns non-object schemas unchanged when strict mode is not applicable", () => {
+    const schema = z.string();
+
+    expect(toStrictSchema(schema)).toBe(schema);
   });
 });
