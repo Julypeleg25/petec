@@ -22,6 +22,12 @@ describe("storageService.utils", () => {
     );
   });
 
+  it("rejects storage keys that resolve outside the upload root without traversal tokens", () => {
+    expect(() => resolveStoragePath("C:/escape.txt")).toThrow(
+      "Storage path escapes upload directory for key: C:/escape.txt",
+    );
+  });
+
   it("resolves safe storage paths inside the upload root", () => {
     expect(resolveStoragePath("reports/file.pdf")).toBe(
       path.resolve(UPLOAD_ROOT_DIR, "reports/file.pdf"),

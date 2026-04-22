@@ -224,4 +224,81 @@ describe("zodError.utils", () => {
       ],
     });
   });
+
+  it("formats symbol and fallback meta values and sorts same-path issues deterministically", () => {
+    const fallbackMetaValue = {
+      toJSON() {
+        throw new Error("cannot serialize");
+      },
+      toString() {
+        return "fallback-meta";
+      },
+    };
+
+    const issues = [
+      asIssue({
+        code: "zeta",
+        message: "Same",
+        path: ["shared"],
+        received: fallbackMetaValue,
+      }),
+      asIssue({
+        code: "alpha",
+        message: "Beta",
+        path: ["shared"],
+        expected: Symbol("expected"),
+        maximum: 10,
+      }),
+      asIssue({
+        code: "alpha",
+        message: "Alpha",
+        path: ["shared"],
+      }),
+      asIssue({
+        code: "zeta",
+        message: "Same",
+        path: ["shared"],
+      }),
+    ];
+
+    const formatted = formatZodIssuesForLog(issues);
+
+    expect(formatted.zod_issues_by_path).toEqual([
+      {
+        path: "shared",
+        issue_count: 4,
+        codes: ["alpha", "zeta"],
+        messages: ["Alpha", "Beta", "Same"],
+      },
+    ]);
+    expect(formatted.zod_issues).toEqual([
+      {
+        index: 2,
+        path: "shared",
+        code: "alpha",
+        message: "Alpha",
+      },
+      {
+        index: 1,
+        path: "shared",
+        code: "alpha",
+        message: "Beta",
+        expected: "Symbol(expected)",
+        maximum: 10,
+      },
+      {
+        index: 0,
+        path: "shared",
+        code: "zeta",
+        message: "Same",
+        received: "fallback-meta",
+      },
+      {
+        index: 3,
+        path: "shared",
+        code: "zeta",
+        message: "Same",
+      },
+    ]);
+  });
 });

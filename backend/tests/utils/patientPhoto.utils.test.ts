@@ -48,4 +48,10 @@ describe("patientPhoto.utils", () => {
       `${ROUTES.PATIENT}/photo/patient-1`,
     );
   });
+
+  it("builds an unversioned patient photo url when no update time is provided", () => {
+    expect(toPatientPhotoUrl("patient-1", "photo.jpg")).toBe(
+      `${ROUTES.PATIENT}/photo/patient-1`,
+    );
+  });
 });

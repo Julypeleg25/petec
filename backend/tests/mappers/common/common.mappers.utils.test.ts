@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { jest } from "@jest/globals";
 import {
   toBooleanOrNull,
   toBooleanWithDefault,
@@ -70,6 +71,19 @@ describe("common.mappers.utils", () => {
       new Date(Date.UTC(2026, 3, 20, 12, 0, 0, 0)),
     );
     expect(toCanonicalJerusalemDate(undefined)).toBeUndefined();
+  });
+
+  it("returns undefined when jerusalem date parts are incomplete", () => {
+    const formatToPartsSpy = jest
+      .spyOn(Intl.DateTimeFormat.prototype, "formatToParts")
+      .mockReturnValue([
+        { type: "year", value: "2026" },
+        { type: "month", value: "04" },
+      ] as Intl.DateTimeFormatPart[]);
+
+    expect(toDateInputString(new Date("2026-04-19T23:30:00.000Z"))).toBeUndefined();
+
+    formatToPartsSpy.mockRestore();
   });
 
   it("maps named references and nullable primitive helpers", () => {

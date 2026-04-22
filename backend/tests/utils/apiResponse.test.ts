@@ -54,6 +54,19 @@ describe("apiResponse", () => {
     });
   });
 
+  it("sends scalar success responses without adding a log summary", () => {
+    const res = createResponse();
+
+    sendSuccess(res, "ok", z.string());
+
+    expect(res.locals.logSummary).toBeUndefined();
+    expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: "ok",
+    });
+  });
+
   it("sends created responses with log notes", () => {
     const res = createResponse();
     const schema = z.object({

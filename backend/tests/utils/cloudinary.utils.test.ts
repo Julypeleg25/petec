@@ -1,12 +1,36 @@
 import { jest } from "@jest/globals";
 
-const randomUUIDMock = jest.fn() as any;
-const configMock = jest.fn() as any;
-const uploadStreamMock = jest.fn() as any;
-const destroyMock = jest.fn() as any;
-const createReadStreamMock = jest.fn() as any;
-const pipeMock = jest.fn() as any;
-const sanitizeUploadedFileNameMock = jest.fn() as any;
+type CloudinaryConfig = {
+  cloud_name: string;
+  api_key: string;
+  api_secret: string;
+};
+
+type UploadResponse = {
+  secure_url?: string;
+  public_id?: string;
+};
+
+type UploadOptions = {
+  public_id: string;
+  resource_type: string;
+};
+
+type UploadCallback = (error?: Error, result?: UploadResponse) => void;
+
+const randomUUIDMock = jest.fn<() => string>();
+const configMock = jest.fn<(config: CloudinaryConfig) => void>();
+const uploadStreamMock = jest.fn<
+  (options: UploadOptions, callback: UploadCallback) => string
+>();
+const destroyMock = jest.fn<(publicId: string) => Promise<void>>();
+const pipeMock = jest.fn<(stream: string) => void>();
+const createReadStreamMock = jest.fn<
+  (buffer: Buffer) => { pipe: typeof pipeMock }
+>();
+const sanitizeUploadedFileNameMock = jest.fn<
+  (fileName: string | undefined, fallbackFileName: string) => string
+>();
 const infoMock = jest.fn();
 const warnMock = jest.fn();
 const errorMock = jest.fn();
@@ -107,10 +131,7 @@ describe("cloudinary.utils", () => {
     const { uploadToCloudinary } = await loadCloudinaryUtils();
     sanitizeUploadedFileNameMock.mockReturnValue("milo.png");
     uploadStreamMock.mockImplementation(
-      (
-        options: { public_id: string; resource_type: string },
-        callback: (error: unknown, result?: { secure_url?: string; public_id?: string }) => void,
-      ) => {
+      (options, callback) => {
         callback(undefined, {
           secure_url: `https://cdn.test/${options.public_id}.png`,
           public_id: options.public_id,
@@ -165,10 +186,7 @@ describe("cloudinary.utils", () => {
     sanitizeUploadedFileNameMock.mockReturnValue("milo.png");
 
     uploadStreamMock.mockImplementationOnce(
-      (
-        _options: unknown,
-        callback: (error: unknown, result?: { secure_url?: string; public_id?: string }) => void,
-      ) => {
+      (_options, callback) => {
         callback(new Error("upload failed"));
         return "upload-stream";
       },
@@ -184,10 +202,7 @@ describe("cloudinary.utils", () => {
     ).rejects.toThrow("Error uploading image to Cloudinary");
 
     uploadStreamMock.mockImplementationOnce(
-      (
-        _options: unknown,
-        callback: (error: unknown, result?: { secure_url?: string; public_id?: string }) => void,
-      ) => {
+      (_options, callback) => {
         callback(undefined, {});
         return "upload-stream";
       },
@@ -250,5 +265,30 @@ describe("cloudinary.utils", () => {
         publicIdOrUrl: "patients/photos/direct-id",
       },
     );
+  });
+
+  it("warns for malformed Cloudinary urls that cannot resolve a public id", async () => {
+    const { deleteFromCloudinary } = await loadCloudinaryUtils();
+
+    await deleteFromCloudinary(
+      "https://res.cloudinary.com/demo/image/upload/v123",
+    );
+    await deleteFromCloudinary("http://%");
+
+    expect(warnMock).toHaveBeenNthCalledWith(
+      1,
+      "Skipping Cloudinary delete because public id could not be resolved",
+      {
+        public_id_or_url: "https://res.cloudinary.com/demo/image/upload/v123",
+      },
+    );
+    expect(warnMock).toHaveBeenNthCalledWith(
+      2,
+      "Skipping Cloudinary delete because public id could not be resolved",
+      {
+        public_id_or_url: "http://%",
+      },
+    );
+    expect(destroyMock).not.toHaveBeenCalled();
   });
 });
