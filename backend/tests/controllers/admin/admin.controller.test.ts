@@ -300,4 +300,94 @@ describe("AdminController", () => {
 
     expect(next).toHaveBeenCalledWith(error);
   });
+
+  it.each([
+    [
+      "getAllTypes",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({
+          typeName: SYSTEM_TYPE_NAMES.ROUTES_OF_ADMINISTRATION,
+        });
+        getAllIncludingInactiveMock.mockRejectedValue(error);
+      },
+      () => controller.getAllTypes({ params: {} } as never, res, next),
+    ],
+    [
+      "createType",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ typeName: SYSTEM_TYPE_NAMES.MEASURE_UNIT_TYPES });
+        getValidatedBodyMock.mockReturnValue({ name: "mg" });
+        createMock.mockRejectedValue(error);
+      },
+      () => controller.createType({ params: {}, body: {} } as never, res, next),
+    ],
+    [
+      "updateType",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({
+          typeName: SYSTEM_TYPE_NAMES.ANIMAL_TYPES,
+          id: "type-1",
+        });
+        getValidatedBodyMock.mockReturnValue({ id: "ignore-me", name: "Dog" });
+        updateMock.mockRejectedValue(error);
+      },
+      () => controller.updateType({ params: {}, body: {} } as never, res, next),
+    ],
+    [
+      "deleteType",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({
+          typeName: SYSTEM_TYPE_NAMES.RACE_TYPES,
+          id: "type-1",
+        });
+        removeMock.mockRejectedValue(error);
+      },
+      () => controller.deleteType({ params: {} } as never, res, next),
+    ],
+    [
+      "getTypesByAnimalType",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({
+          typeName: SYSTEM_TYPE_NAMES.FOOD_TYPES,
+          animalTypeId: "animal-1",
+        });
+        getByAnimalTypeIdMock.mockRejectedValue(error);
+      },
+      () => controller.getTypesByAnimalType({ params: {} } as never, res, next),
+    ],
+    [
+      "getAllUsers",
+      (error: Error) => {
+        getAllUsersMock.mockRejectedValue(error);
+      },
+      () => controller.getAllUsers({} as never, res, next),
+    ],
+    [
+      "updateUser",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ userId: "user-1" });
+        getValidatedBodyMock.mockReturnValue({ firstName: "Amy" });
+        updateUserMock.mockRejectedValue(error);
+      },
+      () => controller.updateUser({ params: {}, body: {} } as never, res, next),
+    ],
+    [
+      "deleteUser",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ userId: "user-1" });
+        deleteUserMock.mockRejectedValue(error);
+      },
+      () => controller.deleteUser({ params: {} } as never, res, next),
+    ],
+  ] as const)(
+    "forwards %s failures to next",
+    async (_methodName, arrange, invoke) => {
+      const error = new Error("admin failed");
+      arrange(error);
+
+      await invoke();
+
+      expect(next).toHaveBeenCalledWith(error);
+    },
+  );
 });

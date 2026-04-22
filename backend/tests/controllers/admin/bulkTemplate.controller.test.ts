@@ -119,4 +119,19 @@ describe("BulkTemplateController", () => {
     expect((error as Error).message).toBe("CSV file is required");
     expect(uploadTemplateMock).not.toHaveBeenCalled();
   });
+
+  it("forwards download failures to next", async () => {
+    const error = new Error("download failed");
+    const res = {
+      setHeader: jest.fn(),
+      status: jest.fn(),
+      end: jest.fn(),
+    } as never;
+    getValidatedBodyMock.mockReturnValue({ systemType: "medicines" });
+    downloadTemplateMock.mockRejectedValue(error);
+
+    await controller.downloadTemplate({ body: {} } as never, res, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
 });

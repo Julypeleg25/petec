@@ -120,4 +120,55 @@ describe("MedicineController", () => {
 
     expect(next).toHaveBeenCalledWith(error);
   });
+
+  it.each([
+    [
+      "getAllByCategoryType",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({
+          categoryType: MEDICINE_CATEGORY_TYPES.MEDICINE,
+        });
+        getAllByCategoryTypeMock.mockRejectedValue(error);
+      },
+      () => controller.getAllByCategoryType({ params: {} } as never, res, next),
+    ],
+    [
+      "getAllCategoryTypes",
+      (error: Error) => {
+        getAllCategoryTypesMock.mockRejectedValue(error);
+      },
+      () => controller.getAllCategoryTypes({} as never, res, next),
+    ],
+    [
+      "getMedicinesFrequencies",
+      (error: Error) => {
+        getMedicinesFrequenciesMock.mockRejectedValue(error);
+      },
+      () => controller.getMedicinesFrequencies({} as never, res, next),
+    ],
+    [
+      "getMedicinesRoutesForAdministration",
+      (error: Error) => {
+        getMedicinesRoutesForAdministrationMock.mockRejectedValue(error);
+      },
+      () => controller.getMedicinesRoutesForAdministration({} as never, res, next),
+    ],
+    [
+      "getMeasureUnitTypes",
+      (error: Error) => {
+        getMeasureUnitTypesMock.mockRejectedValue(error);
+      },
+      () => controller.getMeasureUnitTypes({} as never, res, next),
+    ],
+  ] as const)(
+    "forwards %s failures to next",
+    async (_methodName, arrange, invoke) => {
+      const error = new Error("medicine failed");
+      arrange(error);
+
+      await invoke();
+
+      expect(next).toHaveBeenCalledWith(error);
+    },
+  );
 });

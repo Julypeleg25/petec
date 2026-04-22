@@ -135,6 +135,26 @@ describe("AuthController", () => {
     expect(sendNoContentMock).toHaveBeenCalledWith(res);
   });
 
+  it("logs users out without a user id when the authenticated payload is malformed", async () => {
+    logoutMock.mockResolvedValue(undefined);
+
+    await controller.logout(
+      {
+        cookies: {
+          [COOKIE_NAMES.REFRESH]: "refresh-token",
+        },
+        authenticatedUser: {
+          userId: 123,
+        },
+      } as never,
+      res,
+      next,
+    );
+
+    expect(logoutMock).toHaveBeenCalledWith(undefined, "refresh-token", res);
+    expect(sendNoContentMock).toHaveBeenCalledWith(res);
+  });
+
   it("sends the generic forgot-password confirmation message", async () => {
     const body = { email: "doctor@example.com" };
     getValidatedBodyMock.mockReturnValue(body);
@@ -160,4 +180,68 @@ describe("AuthController", () => {
     expect(resetPasswordMock).toHaveBeenCalledWith(body);
     expect(sendNoContentMock).toHaveBeenCalledWith(res);
   });
+
+  it.each([
+    [
+      "register",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ email: "doctor@example.com" });
+        registerMock.mockRejectedValue(error);
+      },
+      () => controller.register({ body: {} } as never, res, next),
+    ],
+    [
+      "login",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ email: "doctor@example.com", password: "secret" });
+        loginMock.mockRejectedValue(error);
+      },
+      () => controller.login({ body: {} } as never, res, next),
+    ],
+    [
+      "logout",
+      (error: Error) => {
+        logoutMock.mockRejectedValue(error);
+      },
+      () =>
+        controller.logout(
+          {
+            cookies: {
+              [COOKIE_NAMES.REFRESH]: "refresh-token",
+            },
+            authenticatedUser: {
+              userId: "user-1",
+            },
+          } as never,
+          res,
+          next,
+        ),
+    ],
+    [
+      "forgotPassword",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ email: "doctor@example.com" });
+        forgotPasswordMock.mockRejectedValue(error);
+      },
+      () => controller.forgotPassword({ body: {} } as never, res, next),
+    ],
+    [
+      "resetPassword",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ token: "reset-token", password: "new-password" });
+        resetPasswordMock.mockRejectedValue(error);
+      },
+      () => controller.resetPassword({ body: {} } as never, res, next),
+    ],
+  ] as const)(
+    "forwards %s failures to next",
+    async (_methodName, arrange, invoke) => {
+      const error = new Error("auth failed");
+      arrange(error);
+
+      await invoke();
+
+      expect(next).toHaveBeenCalledWith(error);
+    },
+  );
 });

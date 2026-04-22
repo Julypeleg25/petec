@@ -423,4 +423,161 @@ describe("PatientController", () => {
 
     expect(next).toHaveBeenCalledWith(error);
   });
+
+  it.each([
+    [
+      "createPatientAndCase",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ name: "Nina" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.createPatientAndCase.mockRejectedValue(error);
+      },
+      () => controller.createPatientAndCase({ body: {} } as never, res, next),
+    ],
+    [
+      "editPatientAndCase",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ caseId: "case-1" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.editPatientAndCase.mockRejectedValue(error);
+      },
+      () => controller.editPatientAndCase({ body: {} } as never, res, next),
+    ],
+    [
+      "getCaseDetails",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1", masterCaseId: "master-1" });
+        patientServiceMocks.getCaseDetails.mockRejectedValue(error);
+      },
+      () => controller.getCaseDetails({ params: {} } as never, res, next),
+    ],
+    [
+      "archivePatientCase",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ caseId: "case-1", shouldArchive: true });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.archivePatientCase.mockRejectedValue(error);
+      },
+      () => controller.archivePatientCase({ body: {} } as never, res, next),
+    ],
+    [
+      "deletePatientCase",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ caseId: "case-1" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.deletePatientCase.mockRejectedValue(error);
+      },
+      () => controller.deletePatientCase({ body: {} } as never, res, next),
+    ],
+    [
+      "getDocuments",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
+        patientServiceMocks.getCaseDocuments.mockRejectedValue(error);
+      },
+      () => controller.getDocuments({ params: {} } as never, res, next),
+    ],
+    [
+      "uploadDocument",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ caseId: "case-1" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientUploadServiceMocks.uploadDocument.mockRejectedValue(error);
+      },
+      () => controller.uploadDocument({ body: {}, file: { originalname: "report.pdf" } } as never, res, next),
+    ],
+    [
+      "deleteDocument",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ documentId: "doc-1" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.deleteDocument.mockRejectedValue(error);
+      },
+      () => controller.deleteDocument({ params: {} } as never, res, next),
+    ],
+    [
+      "getAnesthesiaForm",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
+        patientServiceMocks.getAnesthesiaForm.mockRejectedValue(error);
+      },
+      () => controller.getAnesthesiaForm({ params: {} } as never, res, next),
+    ],
+    [
+      "upsertAnesthesiaForm",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
+        getValidatedBodyMock.mockReturnValue({ notes: "stable" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientServiceMocks.upsertAnesthesiaForm.mockRejectedValue(error);
+      },
+      () => controller.upsertAnesthesiaForm({ params: {}, body: {} } as never, res, next),
+    ],
+    [
+      "getReleasePatientData",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
+        patientServiceMocks.getReleasePatientData.mockRejectedValue(error);
+      },
+      () => controller.getReleasePatientData({ params: {} } as never, res, next),
+    ],
+    [
+      "getChartsData",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
+        patientServiceMocks.getChartsData.mockRejectedValue(error);
+      },
+      () => controller.getChartsData({ params: {} } as never, res, next),
+    ],
+    [
+      "getDailyPlan",
+      (error: Error) => {
+        patientServiceMocks.getDailyPlan.mockRejectedValue(error);
+      },
+      () => controller.getDailyPlan({} as never, res, next),
+    ],
+    [
+      "getCalendarMonth",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ year: 2026, month: 4 });
+        patientServiceMocks.getCalendarMonth.mockRejectedValue(error);
+      },
+      () => controller.getCalendarMonth({ params: {} } as never, res, next),
+    ],
+    [
+      "updateDailyPlan",
+      (error: Error) => {
+        getValidatedBodyMock.mockReturnValue({ rows: [] });
+        patientServiceMocks.updateDailyPlan.mockRejectedValue(error);
+      },
+      () => controller.updateDailyPlan({ body: {} } as never, res, next),
+    ],
+    [
+      "uploadPatientPhoto",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ patientId: "patient-1" });
+        getAuthenticatedUserIdMock.mockReturnValue("user-1");
+        patientUploadServiceMocks.uploadPatientPhoto.mockRejectedValue(error);
+      },
+      () => controller.uploadPatientPhoto({ params: {}, file: { originalname: "photo.png" } } as never, res, next),
+    ],
+    [
+      "getPatientPhoto",
+      (error: Error) => {
+        getValidatedParamsMock.mockReturnValue({ patientId: "patient-1" });
+        patientServiceMocks.getPatientPhotoStream.mockRejectedValue(error);
+      },
+      () => controller.getPatientPhoto({ params: {} } as never, res, next),
+    ],
+  ] as const)(
+    "forwards %s failures to next",
+    async (_methodName, arrange, invoke) => {
+      const error = new Error("controller failed");
+      arrange(error);
+
+      await invoke();
+
+      expect(next).toHaveBeenCalledWith(error);
+    },
+  );
 });

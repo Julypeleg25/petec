@@ -64,4 +64,13 @@ describe("UserController", () => {
 
     expect(next).toHaveBeenCalledWith(error);
   });
+
+  it("forwards doctor lookup failures to next", async () => {
+    const error = new Error("doctor lookup failed");
+    getDoctorsMock.mockRejectedValue(error);
+
+    await controller.getDoctors({} as never, res, next);
+
+    expect(next).toHaveBeenCalledWith(error);
+  });
 });
