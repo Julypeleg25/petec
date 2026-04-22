@@ -1,8 +1,14 @@
+import { PATIENT_MAPPER_DEFAULTS } from "../../../src/mappers/patient/patient.mapper.constants.js";
 import { Types } from "mongoose";
+import type { ICaseDetailsRow } from "../../../src/models/case/index.js";
 import {
+  compareGroupedDateKeys,
   groupCaseDetailsRows,
   mapGridRowToDto,
 } from "../../../src/mappers/patient/patient.response.grid.mappers.js";
+
+const asGridRow = (row: Record<string, unknown>): ICaseDetailsRow =>
+  row as unknown as ICaseDetailsRow;
 
 describe("patient.response.grid.mappers", () => {
   it("maps grid rows to DTOs and filters invalid medicine references", () => {
@@ -13,7 +19,7 @@ describe("patient.response.grid.mappers", () => {
     const routeId = new Types.ObjectId();
 
     const result = mapGridRowToDto(
-      {
+      asGridRow({
         _id: rowId,
         index: 5,
         date: "2026-04-21",
@@ -111,7 +117,7 @@ describe("patient.response.grid.mappers", () => {
         ownerUpdate: "called owner",
         ownerUpdateIsRequired: false,
         ownerUpdateIsEditable: true,
-      } as never,
+      }),
       2,
     );
 
@@ -189,15 +195,70 @@ describe("patient.response.grid.mappers", () => {
     };
 
     const grouped = groupCaseDetailsRows([
-      unknownDateRow,
-      laterTimeRow,
-      olderRow,
-      earlierTimeRow,
-    ] as never);
+      asGridRow(unknownDateRow),
+      asGridRow(laterTimeRow),
+      asGridRow(olderRow),
+      asGridRow(earlierTimeRow),
+    ]);
 
     expect(grouped).toHaveLength(3);
     expect(grouped[0]).toEqual([olderRow]);
     expect(grouped[1]).toEqual([earlierTimeRow, laterTimeRow]);
     expect(grouped[2]).toEqual([unknownDateRow]);
+  });
+
+  it("falls back to generated row ids and sorts same-time rows by numeric index", () => {
+    const fallbackMappedRow = mapGridRowToDto(
+      asGridRow({
+        date: "2026-04-21",
+        time: "07:00",
+      }),
+      4,
+    );
+
+    const sameTimeHigherIndex = {
+      _id: new Types.ObjectId(),
+      date: "2026-04-21",
+      time: "09:00",
+      index: 5,
+    };
+    const sameTimeLowerIndex = {
+      _id: new Types.ObjectId(),
+      date: "2026-04-21",
+      time: "09:00",
+      index: 1,
+    };
+    const unknownDateRow = {
+      _id: new Types.ObjectId(),
+      time: "08:00",
+      index: Number.NaN,
+    };
+
+    const grouped = groupCaseDetailsRows([
+      asGridRow(unknownDateRow),
+      asGridRow(sameTimeLowerIndex),
+      asGridRow(sameTimeHigherIndex),
+    ]);
+
+    expect(fallbackMappedRow.id).toBe("5");
+    expect(fallbackMappedRow.index).toBe(4);
+    expect(grouped[0]).toEqual([sameTimeLowerIndex, sameTimeHigherIndex]);
+    expect(grouped[1]).toEqual([unknownDateRow]);
+  });
+
+  it("sorts unknown date groups after known dates in both comparator directions", () => {
+    expect(
+      compareGroupedDateKeys(
+        PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP,
+        "2026-04-21",
+      ),
+    ).toBe(1);
+    expect(
+      compareGroupedDateKeys(
+        "2026-04-21",
+        PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP,
+      ),
+    ).toBe(-1);
+    expect(compareGroupedDateKeys("2026-04-21", "2026-04-22")).toBeLessThan(0);
   });
 });

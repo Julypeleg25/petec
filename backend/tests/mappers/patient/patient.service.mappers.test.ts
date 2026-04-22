@@ -2,6 +2,7 @@ import { ROUTES } from "@petec/shared";
 import { jest } from "@jest/globals";
 import { Types } from "mongoose";
 import {
+  compareDailyPlanRowsDesc,
   isPhotoStorageKey,
   mapCaseToChartsDataResponse,
   mapCaseToDailyPlanDetail,
@@ -60,6 +61,28 @@ describe("patient.service.mappers", () => {
     });
   });
 
+  it("ignores patient-like objects that do not expose an id", () => {
+    const result = mapRelatedCasesToMasterCaseDetails([
+      {
+        _id: new Types.ObjectId(),
+        createdAt: new Date("2026-04-21T00:00:00.000Z"),
+        patientId: {
+          name: "Ghost",
+          photoName: "ghost.png",
+        },
+      },
+    ] as never);
+
+    expect(result).toEqual([
+      {
+        caseId: expect.any(String),
+        patientName: "",
+        patientPhotoName: null,
+        createdAt: "2026-04-21T00:00:00.000Z",
+      },
+    ]);
+  });
+
   it("maps chart series and calculates min/max from numeric values", () => {
     const result = mapCaseToChartsDataResponse({
       caseDetailsGrid: [
@@ -111,6 +134,21 @@ describe("patient.service.mappers", () => {
       weight: [],
       dataMin: 0,
       dataMax: 100,
+    });
+  });
+
+  it("uses fallback point labels when chart rows do not expose a display date", () => {
+    expect(
+      mapCaseToChartsDataResponse({
+        caseDetailsGrid: [{ pulse: 12 }],
+      } as never),
+    ).toEqual({
+      temperature: [],
+      pulse: [{ name: "Point 1", value: 12 }],
+      respiration: [],
+      weight: [],
+      dataMin: 12,
+      dataMax: 12,
     });
   });
 
@@ -289,5 +327,75 @@ describe("patient.service.mappers", () => {
       ownerUpdate: [],
       releaseMedicines: [],
     });
+  });
+
+  it("sorts same-time daily-plan rows by descending index", () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-04-21T09:00:00.000Z"));
+
+    const result = mapCaseToDailyPlanDetail({
+      _id: new Types.ObjectId(),
+      serialId: "555-1",
+      patientId: {
+        name: "Milo",
+        owner: {
+          name: "Dana",
+          phone: "0501234567",
+        },
+      },
+      caseDetailsGrid: [
+        {
+          date: "2026-04-21",
+          time: "10:00",
+          index: 1,
+          procedures: [
+            {
+              typeId: { _id: "proc-1", name: "Lower" },
+              isGiven: true,
+            },
+          ],
+        },
+        {
+          date: "2026-04-21",
+          time: "10:00",
+          index: 3,
+          procedures: [
+            {
+              typeId: { _id: "proc-2", name: "Higher" },
+              isGiven: true,
+            },
+          ],
+        },
+      ],
+    } as never);
+
+    expect(result.caseProcedures).toEqual([
+      {
+        name: "Higher",
+        value: true,
+        date: "10:00 21/04/2026",
+      },
+      {
+        name: "Lower",
+        value: true,
+        date: "10:00 21/04/2026",
+      },
+    ]);
+  });
+
+  it("compares daily-plan rows by date before falling back to time and index", () => {
+    expect(
+      compareDailyPlanRowsDesc(
+        {
+          date: "2026-04-21",
+          time: "10:00",
+          index: 1,
+        } as never,
+        {
+          date: "2026-04-22",
+          time: "08:00",
+          index: 99,
+        } as never,
+      ),
+    ).toBeGreaterThan(0);
   });
 });

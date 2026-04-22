@@ -73,7 +73,7 @@ const getSystemTypePopulateFields = (
 export const escapeRegex = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const toSearchRegex = (value: string): RegExp => {
+export const toSearchRegex = (value: string): RegExp => {
   const tokens = value
     .trim()
     .split(/\s+/)
@@ -436,9 +436,6 @@ export const buildUsersFilter = (filter: MongoFilter): MongoFilter => {
     andClauses.push({ [mappedKey]: toSearchRegex(trimmedValue) });
   }
 
-  if (andClauses.length === 0) {
-    return {};
-  }
   if (andClauses.length === 1) {
     return andClauses[0];
   }

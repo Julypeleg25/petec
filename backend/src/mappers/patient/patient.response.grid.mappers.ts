@@ -204,17 +204,7 @@ export const groupCaseDetailsRows = (
     byDate.set(dateKey, groupedRows);
   }
 
-  const dates = Array.from(byDate.keys()).sort((left, right) => {
-    if (left === PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP) {
-      return 1;
-    }
-
-    if (right === PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP) {
-      return -1;
-    }
-
-    return left.localeCompare(right);
-  });
+  const dates = Array.from(byDate.keys()).sort(compareGroupedDateKeys);
 
   return dates.map((date) => {
     const groupedRows = byDate.get(date) ?? [];
@@ -238,4 +228,16 @@ export const groupCaseDetailsRows = (
       return leftIndex - rightIndex;
     });
   });
+};
+
+export const compareGroupedDateKeys = (left: string, right: string): number => {
+  if (left === PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP) {
+    return 1;
+  }
+
+  if (right === PATIENT_MAPPER_DEFAULTS.UNKNOWN_DATE_GROUP) {
+    return -1;
+  }
+
+  return left.localeCompare(right);
 };
