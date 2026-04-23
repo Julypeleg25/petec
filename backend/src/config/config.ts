@@ -28,6 +28,9 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().optional().default(""),
   CLOUDINARY_API_SECRET: z.string().trim().optional().default(""),
   UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
+  CLINICA_URL: z.string().url().default("https://ww2.clinicaonline.co.il"),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
@@ -61,7 +64,7 @@ export const ENV = {
   isProduction: envs.NODE_ENV === "production",
   isDevelopment: envs.NODE_ENV === "development",
   isTest: envs.NODE_ENV === "test",
-  frontendUrl: envs.FRONTEND_URL,
+  frontendUrl: "http://localhost:5174",
   mailAdmin: envs.MAIL_ADMIN ?? "",
   jwtAccessSecret: envs.JWT_ACCESS_SECRET,
   jwtRefreshSecret: envs.JWT_REFRESH_SECRET,
@@ -77,4 +80,7 @@ export const ENV = {
   accessTokenExpiresInMs,
   refreshTokenExpiresIn,
   refreshTokenExpiresInMs,
+  geminiApiKey: envs.GEMINI_API_KEY ?? "",
+  geminiModel: envs.GEMINI_MODEL,
+  clinicaBaseUrl: envs.CLINICA_URL,
 } as const;
