@@ -3,6 +3,7 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import clinicaRoutes from "@routes/clinica.routes";
 
 import { ENV } from "@config/config";
 import { ROUTES, RATE_LIMIT, JSON_BODY_LIMIT, HttpStatus } from "@petec/shared";
@@ -23,6 +24,7 @@ app.use(requestId);
 app.use(requestLogger);
 
 app.use(helmet());
+app.use("/clinica", clinicaRoutes);
 
 const authLimiter = rateLimit({
   windowMs: RATE_LIMIT.AUTH_WINDOW_MS,

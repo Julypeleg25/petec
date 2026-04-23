@@ -19,6 +19,9 @@ const envSchema = z.object({
 
   MJ_APIKEY_PUBLIC: z.string().optional(),
   MJ_APIKEY_PRIVATE: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
+  CLINICA_URL: z.string().url().default("https://ww2.clinicaonline.co.il"),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
@@ -46,4 +49,7 @@ export const ENV = {
   jwtResetPasswordSecret: data.JWT_RESET_PASSWORD_SECRET ?? data.JWT_ACCESS_SECRET,
   mailjetPublicKey: data.MJ_APIKEY_PUBLIC ?? "",
   mailjetPrivateKey: data.MJ_APIKEY_PRIVATE ?? "",
+  geminiApiKey: data.GEMINI_API_KEY ?? "",
+  geminiModel: data.GEMINI_MODEL,
+  clinicaBaseUrl: data.CLINICA_URL,
 } as const;
