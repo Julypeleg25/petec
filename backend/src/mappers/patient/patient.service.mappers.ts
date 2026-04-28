@@ -199,7 +199,7 @@ const isCurrentOrFutureDailyPlanRow = (
   currentJerusalemDateKey: string,
 ): boolean => {
   const dateKey = toNormalizedDate(row.date, row.dateTime);
-  return dateKey.length > 0 && dateKey === currentJerusalemDateKey;
+  return dateKey.length > 0 && dateKey >= currentJerusalemDateKey;
 };
 
 const compareDailyPlanRowsDesc = (
