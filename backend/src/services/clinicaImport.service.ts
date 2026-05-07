@@ -2,54 +2,40 @@ import { PatientModel } from "../models/patient/Patient.js";
 import { ImportedClinicaAggregate } from "../utils/clinica-query.types.js";
 
 class ClinicaImportService {
-  async importAggregate(data: ImportedClinicaAggregate): Promise<ImportedClinicaAggregate> {
-    const updatePayload: {
-      name: string;
-      owner: {
-        name: string;
-        phone: string;
-      };
-      photoName?: string;
-    } = {
-      name: data.patient.name,
-      owner: {
-        name: data.patient.owner.name,
-        phone: data.patient.owner.phone,
-      },
-    };
-
-    if (data.patient.photoName) {
-      updatePayload.photoName = data.patient.photoName;
-    }
-
-    await PatientModel.findOneAndUpdate(
-      {
-        name: data.patient.name,
-        "owner.phone": data.patient.owner.phone,
-      },
-      {
-        $set: updatePayload,
-      },
-      {
-        new: true,
-        upsert: true,
-        setDefaultsOnInsert: true,
-      },
-    );
-
-    return data;
-  }
-
-  async importMany(items: ImportedClinicaAggregate[]): Promise<ImportedClinicaAggregate[]> {
-    const imported: ImportedClinicaAggregate[] = [];
+  importMany = async (items: ImportedClinicaAggregate[]): Promise<unknown[]> => {
+    const results: unknown[] = [];
 
     for (const item of items) {
-      const result = await this.importAggregate(item);
-      imported.push(result);
+      if (!item.patient.name) {
+        continue;
+      }
+
+      const updated = await PatientModel.findOneAndUpdate(
+        {
+          name: item.patient.name,
+          "owner.phone": item.patient.owner.phone,
+        },
+        {
+          $set: {
+            name: item.patient.name,
+            owner: {
+              name: item.patient.owner.name,
+              phone: item.patient.owner.phone,
+            },
+          },
+        },
+        {
+          returnDocument: "after",
+          upsert: true,
+          setDefaultsOnInsert: true,
+        },
+      );
+
+      results.push(updated);
     }
 
-    return imported;
-  }
+    return results;
+  };
 }
 
 export const clinicaImportService = new ClinicaImportService();

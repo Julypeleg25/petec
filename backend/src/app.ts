@@ -18,19 +18,14 @@ import tableRoutes from "./routes/table/index.js";
 import userRoutes from "./routes/user/index.js";
 import medicineRoutes from "./routes/medicine/index.js";
 import clinicaRoutes from "./routes/clinica.routes.js";
-import cors from "cors"
 
 
-const app = express();
+
+const app = express();  
 
 app.use(requestIdMiddleware);
 app.use(requestLoggerMiddleware);
 applyAppSecurity(app);
-
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
 
 app.use(cookieParser());
 app.use(express.json({ limit: JSON_BODY_LIMIT }));
@@ -41,13 +36,15 @@ app.get(ROUTES.HEALTH, (_req, res) => {
     res.status(HttpStatus.OK).json({ success: true, data: { status: "healthy" } });
 });
 
+
+
 app.use(ROUTES.AUTH, authRoutes);
 app.use(ROUTES.PATIENT, patientRoutes);
 app.use(ROUTES.ADMIN, adminRoutes);
 app.use(ROUTES.TABLE, tableRoutes);
 app.use(ROUTES.USERS, userRoutes);
 app.use(ROUTES.MEDICINE, medicineRoutes);
-app.use(ROUTES.CLINICA, clinicaRoutes);
+app.use("/clinica", clinicaRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 import { Browser, chromium, Page } from "playwright";
 import { ENV } from "../config/config.js";
-import { ParsedClinicaQuery } from "../utils/clinica-query.types.js";
+import { ImportedClinicaAggregate } from "../utils/clinica-query.types.js";
 
 interface LoginCredentials {
   username: string;
@@ -10,28 +10,28 @@ interface LoginCredentials {
 class ClinicaScraperService {
   private browser: Browser | null = null;
 
-  async init(): Promise<void> {
+  init = async (): Promise<void> => {
     this.browser = await chromium.launch({
       headless: true,
     });
-  }
+  };
 
-  async close(): Promise<void> {
+  close = async (): Promise<void> => {
     if (this.browser) {
       await this.browser.close();
       this.browser = null;
     }
-  }
+  };
 
-  private getBrowser(): Browser {
+  getBrowser = (): Browser => {
     if (!this.browser) {
       throw new Error("Browser is not initialized");
     }
 
     return this.browser;
-  }
+  };
 
-  private async login(page: Page, credentials: LoginCredentials): Promise<void> {
+  login = async (page: Page, credentials: LoginCredentials): Promise<void> => {
     const loginUrl = `${ENV.clinicaBaseUrl}/login.aspx?ReturnUrl=%2f`;
 
     await page.goto(loginUrl, {
@@ -39,79 +39,226 @@ class ClinicaScraperService {
       timeout: 60000,
     });
 
-    await page.fill('input[type="text"]', credentials.username);
-    await page.fill('input[type="password"]', credentials.password);
+    await page.fill("#ctl00_MainContent_Login1_UserName", credentials.username);
+    await page.fill("#ctl00_MainContent_Login1_Password", credentials.password);
 
     await Promise.all([
-      page.waitForLoadState("networkidle"),
-      page.click('input[type="submit"], button[type="submit"]'),
+      page.waitForLoadState("networkidle").catch(() => undefined),
+      page.click("#ctl00_MainContent_Login1_LoginButton"),
     ]);
 
     if (page.url().toLowerCase().includes("login")) {
-      throw new Error("Clinica login failed");
+      throw new Error("Login failed");
     }
-  }
+  };
 
-  async scrapeRawTextByQuery(
-    credentials: LoginCredentials,
-    parsedQuery: ParsedClinicaQuery,
-  ): Promise<string> {
+  selectClinicCenterIfNeeded = async (page: Page): Promise<void> => {
+    const centerSelect = page.locator("select").first();
+    const centerButton = page.locator("#ctl00_MainContent_Button1");
+
+    if ((await centerSelect.count()) === 0 || (await centerButton.count()) === 0) {
+      return;
+    }
+
+    await Promise.all([
+      page.waitForLoadState("networkidle").catch(() => undefined),
+      centerButton.click(),
+    ]);
+  };
+
+  openClientsPage = async (page: Page): Promise<void> => {
+    await page.goto(`${ENV.clinicaBaseUrl}/vetclinic/therapists/patientlistvet.aspx`, {
+      waitUntil: "networkidle",
+      timeout: 60000,
+    });
+
+    await page.waitForTimeout(1500);
+  };
+
+  scrapeClients = async (): Promise<ImportedClinicaAggregate[]> => {
     const browser = this.getBrowser();
     const context = await browser.newContext();
     const page = await context.newPage();
 
     try {
-      await this.login(page, credentials);
+      await this.login(page, {
+        username: ENV.clinicUsername,
+        password: ENV.clinicPassword,
+      });
 
-      const candidateUrls = [
-        `${ENV.clinicaBaseUrl}/patients`,
-        `${ENV.clinicaBaseUrl}/clients`,
-        `${ENV.clinicaBaseUrl}/default.aspx`,
-        ENV.clinicaBaseUrl,
-      ];
+      await this.selectClinicCenterIfNeeded(page);
+      await this.openClientsPage(page);
 
-      let loaded = false;
-
-      for (const url of candidateUrls) {
-        try {
-          await page.goto(url, {
-            waitUntil: "networkidle",
-            timeout: 30000,
-          });
-
-          loaded = true;
-          break;
-        } catch {
-          continue;
-        }
-      }
-
-      if (!loaded) {
-        throw new Error("Could not open any Clinica data page");
-      }
-
-      const searchInput = page.locator(
-        'input[type="search"], input[name*="search"], input[id*="search"], input[type="text"]',
-      ).first();
-
-      if (await searchInput.count()) {
-        await searchInput.fill(parsedQuery.searchText);
-        await page.keyboard.press("Enter");
-        await page.waitForTimeout(2000);
-      }
-
-      return await page.locator("body").innerText();
+      return await this.extractPatientsFromClientsTable(page);
     } finally {
       await context.close();
     }
-  }
+  };
 
-  async scrapeAllRawText(credentials: LoginCredentials): Promise<string> {
-    return this.scrapeRawTextByQuery(credentials, {
-      searchText: "",
-      includeTreatments: true,
+  extractPatientsFromClientsTable = async (page: Page): Promise<ImportedClinicaAggregate[]> => {
+    const table = page.locator("table").filter({ hasText: "שם הלקוח" }).first();
+    const rows = table.locator("tr");
+    const rowCount = await rows.count();
+
+    const items: ImportedClinicaAggregate[] = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      const cells = rows.nth(i).locator("td");
+      const cellCount = await cells.count();
+
+      if (cellCount < 3) {
+        continue;
+      }
+
+      const values: string[] = [];
+
+      for (let j = 0; j < cellCount; j++) {
+        const value = ((await cells.nth(j).textContent()) || "").trim();
+
+        if (value) {
+          values.push(value);
+        }
+      }
+
+      const phone = this.extractPhone(values);
+      const clientNameWithPets = this.extractClientNameWithPets(values);
+      const externalPatientId = this.extractClientNumber(values);
+
+      if (!phone || !clientNameWithPets) {
+        continue;
+      }
+
+      const parts = clientNameWithPets
+        .split("+")
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+      const ownerName = parts[0] || clientNameWithPets;
+      const petNames = parts.length > 1 ? parts.slice(1) : [clientNameWithPets];
+
+      for (const petName of petNames) {
+        if (!this.isValidPetName(petName)) {
+          continue;
+        }
+
+        items.push({
+          patient: {
+            externalPatientId,
+            name: petName,
+            owner: {
+              name: ownerName,
+              phone,
+            },
+          },
+        });
+      }
+    }
+
+    return this.removeDuplicates(items);
+  };
+
+  extractPhone = (values: string[]): string => {
+    for (const value of values) {
+      const match = value.match(/05\d{8}/);
+
+      if (match) {
+        return match[0];
+      }
+    }
+
+    return "";
+  };
+
+  extractClientNumber = (values: string[]): string | undefined => {
+    const numbers = values.filter((value) => /^\d{3,}$/.test(value));
+    return numbers[0];
+  };
+
+  extractClientNameWithPets = (values: string[]): string => {
+    const ignoredWords = [
+      "מייל",
+      "הודעת טקסט",
+      "טלפון נייד",
+      "טלפון בית",
+      "כתובת",
+      "שם הלקוח",
+      "מס לקוח",
+      "ניהול",
+      "הגדרות",
+      "יומן",
+      "רשימת לקוחות",
+      "מעקב לקוחות",
+      "תזכורות",
+      "דיווח כלבת",
+      "יומן רופא",
+      "חיפוש",
+      "רענן",
+      "סינון",
+      "פרטי כרטיס אשראי",
+      "כל הרופאים",
+    ];
+
+    const candidates = values.filter((value) => {
+      const hasHebrew = /[\u0590-\u05FF]/.test(value);
+      const isPhone = /05\d{8}/.test(value);
+      const isNumber = /^\d+$/.test(value);
+      const isTooLong = value.length > 80;
+      const isIgnored = ignoredWords.some((word) => value.includes(word));
+
+      return hasHebrew && !isPhone && !isNumber && !isTooLong && !isIgnored;
     });
-  }
+
+    const withPlus = candidates.find((value) => value.includes("+"));
+
+    if (withPlus) {
+      return withPlus;
+    }
+
+    return candidates.sort((a, b) => b.length - a.length)[0] || "";
+  };
+
+  isValidPetName = (name: string): boolean => {
+    if (!name) {
+      return false;
+    }
+
+    if (name.length > 40) {
+      return false;
+    }
+
+    const ignoredWords = [
+      "סינון",
+      "פרטי",
+      "כרטיס",
+      "אשראי",
+      "רשימת",
+      "לקוחות",
+      "תיקי",
+      "יומן",
+      "ניהול",
+      "הגדרות",
+      "רופא",
+      "מעקב",
+      "תזכורות",
+    ];
+
+    return !ignoredWords.some((word) => name.includes(word));
+  };
+
+  removeDuplicates = (items: ImportedClinicaAggregate[]): ImportedClinicaAggregate[] => {
+    const seen = new Set<string>();
+
+    return items.filter((item) => {
+      const key = `${item.patient.name}-${item.patient.owner.phone}`;
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  };
 }
 
 export const clinicaScraperService = new ClinicaScraperService();

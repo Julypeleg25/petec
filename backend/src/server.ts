@@ -5,12 +5,15 @@ import { logger } from "./config/logger.js";
 import { APP_EXIT_CODE_ERROR } from "@petec/shared";
 import connectToDatabase from "./db/dbConnection.js";
 import { initializeScheduledJobs } from "./utils/serverSchedule.utils.js";
+import { startClinicaDailySyncJob } from "./jobs/clinicaDailySync.job.js";
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 10000;
 
 const startServer = async (): Promise<void> => {
   try {
     await connectToDatabase();
+
+    startClinicaDailySyncJob();
 
     const server = app.listen(ENV.port, () => {
       logger.info(
