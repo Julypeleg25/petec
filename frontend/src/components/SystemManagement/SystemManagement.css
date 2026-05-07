@@ -1,5 +1,9 @@
 .systemManagement {
   height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .systemManagement,
@@ -8,20 +12,26 @@
 }
 
 .system-management-main {
-  height: 85%;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
   padding: 2em;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .system-management-navbar {
   justify-content: flex-end;
   display: flex;
   display: -webkit-flex;
-  padding-top: 1em;
+  padding: 1em 1em 0;
   width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5em;
 }
 
 .system-management-navbar button {
-  margin-right: 1em;
+  margin-right: 0;
 }
 
 .systemManagement .form-select > select,
@@ -190,4 +200,63 @@
   outline: none;
   border-color: var(--color-main);
   box-shadow: 0 0 0 2px rgba(244, 120, 29, 0.2);
+}
+
+@media screen and (max-width: 700px) {
+  .systemManagement {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .system-management-navbar {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .system-management-navbar .btn {
+    flex: 1 1 calc(50% - 0.5rem);
+    max-width: 220px;
+  }
+
+  .system-management-main {
+    padding: 0.75rem;
+    overflow: visible;
+  }
+
+  .systemManagement .form-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .save-entity-form-container {
+    width: 100%;
+    padding: 1rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .save-entity-form {
+    width: 100%;
+  }
+
+  .save-entity-form .form-input-container,
+  .save-entity-form .form-select {
+    margin: 0.5em 0;
+  }
+
+  .modal.system-management-modal {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .modal.system-management-modal .delete-modal {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .system-management-navbar .btn {
+    flex-basis: 100%;
+    max-width: none;
+  }
 }

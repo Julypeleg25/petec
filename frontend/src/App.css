@@ -47,6 +47,8 @@ select {
   font-family: inherit;
   font-weight: 600;
   letter-spacing: 0.05em;
+  max-width: 100%;
+  white-space: normal;
 }
 
 .btn:disabled {
@@ -177,7 +179,30 @@ textarea::-webkit-resizer,
 }
 
 @media screen and (max-width: 600px) {
+  :root {
+    --header-height: 176px;
+    --table-pagination-height: 74px;
+  }
+
+  body * {
+    overflow-wrap: anywhere;
+  }
+
   .btn {
     font-size: 0.8rem;
+    min-height: 40px;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .btn-large,
+  .btn-medium,
+  .btn-small {
+    width: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
   }
 }

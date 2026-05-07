@@ -72,18 +72,26 @@
 .mtc-table {
   height: 100%;
   width: 100%;
-  min-width: 100%;
+  min-width: max-content;
   direction: rtl;
   border-radius: 5px 5px 0 0;
   border-collapse: collapse;
   table-layout: fixed;
-  overflow-x: auto;
 }
 
 .mtc-table-section-container {
   height: auto;
   position: relative;
-  overflow: visible;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mtc-table-section-container > div {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mtc-table thead {
@@ -120,4 +128,19 @@
   display: flex;
   display: -webkit-flex;
   flex-direction: row-reverse;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: center;
+}
+
+@media screen and (max-width: 700px) {
+  .mtc-table-header,
+  .mtc-table-cell {
+    font-size: 0.84rem;
+    padding: 0.35em 0.45em;
+  }
+
+  .table-btn-container {
+    justify-content: center;
+  }
 }

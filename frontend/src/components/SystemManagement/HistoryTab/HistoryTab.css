@@ -113,3 +113,39 @@
   overflow-x: auto;
   overflow-y: visible;
 }
+
+@media (max-width: 700px) {
+  .history-tab {
+    gap: 1rem;
+  }
+
+  .history-tab__header {
+    align-items: flex-start;
+  }
+
+  .history-tab__title-wrap {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .history-tab__title-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+  }
+
+  .history-tab__title {
+    font-size: 1.35rem;
+  }
+
+  .history-tab__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .history-tab__table-card {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 18px;
+  }
+}

@@ -4,6 +4,8 @@
   margin: 0.5em auto;
   font-size: 1.1rem;
   padding: 0.5em 1em;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .daily-plan-table {
@@ -13,6 +15,7 @@
   position: relative;
   padding: 0 0.5em;
   direction: rtl;
+  -webkit-overflow-scrolling: touch;
 }
 
 .daily-plan-table-header {
@@ -172,4 +175,32 @@
   float: right;
   width: fit-content;
   margin-bottom: 0.7em;
+}
+
+@media screen and (max-width: 700px) {
+  .DailyPlan {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    margin: 0;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .daily-plan-table {
+    height: auto;
+    max-height: none;
+    padding: 0;
+  }
+
+  .daily-plan-table-header,
+  .daily-plan-table-body {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .save-daily-plan-btn {
+    width: 100%;
+    float: none;
+  }
 }

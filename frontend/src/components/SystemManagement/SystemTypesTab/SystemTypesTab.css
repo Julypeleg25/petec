@@ -244,3 +244,43 @@
     border-radius: 18px;
   }
 }
+
+@media (max-width: 700px) {
+  .system-types-tab {
+    gap: 1rem;
+  }
+
+  .system-types-tab__title-wrap {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .system-types-tab__title-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+  }
+
+  .system-types-tab__title {
+    font-size: 1.35rem;
+  }
+
+  .system-types-tab__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .system-types-tab__toolbar-wrap,
+  .system-types-toolbar,
+  .system-types-toolbar__selector {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .system-types-tab__toolbar-card,
+  .system-types-tab__table-card {
+    width: 100%;
+    padding: 0.5rem;
+  }
+}

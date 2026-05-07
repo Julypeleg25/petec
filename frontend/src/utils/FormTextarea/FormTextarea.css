@@ -5,6 +5,8 @@
   align-items: flex-end;
   justify-content: flex-start;
   width: 80%;
+  max-width: 100%;
+  min-width: 0;
   direction: ltr;
 }
 
@@ -28,6 +30,7 @@
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   text-align: right;
+  min-width: 0;
 }
 
 .form-textarea > textarea {
@@ -37,5 +40,16 @@
   border: 3px solid var(--input-border-color);
   padding: 0.5em 0.7em;
   width: 100%;
+  min-width: 0;
   font-size: 1rem;
+}
+
+@media screen and (max-width: 700px) {
+  .form-textarea-container {
+    width: 100%;
+  }
+
+  .form-textarea-label {
+    font-size: 1rem;
+  }
 }

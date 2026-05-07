@@ -185,3 +185,52 @@
     border-radius: 18px;
   }
 }
+
+@media (max-width: 700px) {
+  .users-tab {
+    gap: 1rem;
+  }
+
+  .users-tab__header,
+  .users-tab__title-wrap {
+    align-items: flex-start;
+  }
+
+  .users-tab__title-wrap {
+    width: 100%;
+  }
+
+  .users-tab__title-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+  }
+
+  .users-tab__title {
+    font-size: 1.35rem;
+  }
+
+  .users-tab__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .users-tab__table-card {
+    width: 100%;
+    padding: 0.5rem;
+  }
+
+  .users-delete-modal {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .users-delete-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .users-delete-modal__cancel-btn,
+  .users-delete-modal__confirm-btn {
+    width: 100%;
+  }
+}

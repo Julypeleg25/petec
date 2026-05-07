@@ -2,6 +2,7 @@
   width: 100%;
   height: 95%;
   margin: 1em 0;
+  min-height: 0;
 }
 
 .new-patient-form-container,
@@ -16,6 +17,7 @@
   padding: 1.5em 1em;
   border-radius: 20px;
   border: 3px solid var(--color-main);
+  box-sizing: border-box;
 }
 
 .new-patient-form-container {
@@ -68,6 +70,7 @@
   flex-wrap: wrap;
   -webkit-flex-wrap: wrap; 
   width: 100%;
+  min-width: 0;
 }
 
 .new-patient-form-image-section {
@@ -141,10 +144,12 @@
   flex-direction: row-reverse;
   width: 100%;
   justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5em;
 }
 
 .edit-patient-btns-container button {
-  margin: 0.8em 0.8em 0.8em 0;
+  margin: 0.8em 0 0.8em 0;
   max-width: 100px;
 }
 
@@ -196,6 +201,7 @@
   width: fit-content;
   max-width: 100%;
   margin-left: auto;
+  min-width: 0;
 }
 
 .case-daily-details-date-actions {
@@ -243,10 +249,11 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap-reverse;
+  gap: 0.75em;
 }
 
 .above-daily-details-table-section > div {
-  margin-right: 1.5em;
+  margin-right: 0;
 }
 
 .daily-details-table-fields-info {
@@ -421,6 +428,8 @@
   justify-content: flex-end;
   gap: 1em;
   margin-bottom: 1em;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .child-cases-container .child-case:last-child {
@@ -494,10 +503,170 @@
 }
 
 @media screen and (max-width: 700px) {
+  .SavePatient {
+    height: auto;
+    min-height: 100%;
+    margin: 0.75em 0;
+  }
+
+  .new-patient-form-container,
+  .edit-patient-form-container {
+    width: calc(100% - 1rem);
+    height: auto;
+    max-height: none;
+    margin: 0.5rem auto;
+    padding: 0.9rem;
+    border-radius: 16px;
+    overflow: visible;
+  }
+
+  .new-patient-form-title {
+    align-self: center;
+    margin: 0 0 0.75rem;
+    text-align: center;
+    font-size: 1.25rem;
+  }
+
+  .new-patient-form,
+  .edit-patient-form {
+    overflow-y: visible;
+  }
+
+  .new-patient-form-data-section {
+    gap: 0.5rem;
+  }
+
+  .new-patient-form-image-section,
+  .edit-patient-form-image-section,
+  .new-patient-form-info-section,
+  .edit-patient-form-info-section {
+    width: 100%;
+    min-width: 0;
+    margin-right: 0;
+  }
+
+  .new-patient-form-info-section,
+  .edit-patient-form-info-section {
+    row-gap: 0.1rem;
+  }
+
+  .new-patient-form-info-section > .form-input-container,
+  .new-patient-form-info-section > .form-select,
+  .new-patient-form-info-section > .form-textarea-container,
+  .new-patient-form-info-section > .form-checkbox-container,
   .edit-patient-form-info-section > .form-input-container,
   .edit-patient-form-info-section > .form-select,
   .edit-patient-form-info-section > .form-textarea-container,
   .edit-patient-form-info-section > .form-checkbox-container {
     width: 100%;
+    min-width: 0;
+  }
+
+  .edit-patient-form-checkboxes,
+  .new-patient-form-checkboxes {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .patient-age-inputs {
+    gap: 0.5rem;
+  }
+
+  .edit-patient-btns-container {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .edit-patient-btns-container button,
+  .export-case-details-btn,
+  .release-info-btn,
+  .patient-documents-case-details-btn,
+  .patient-charts-case-details-btn,
+  .patient-archive-case-details-btn {
+    flex: 1 1 calc(50% - 0.5rem);
+    max-width: none;
+    min-width: 0;
+  }
+
+  .delete-patient-btn {
+    flex: 0 0 44px;
+    width: 44px !important;
+    margin-right: 0 !important;
+  }
+
+  .case-daily-details-date-controls {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .case-daily-details-date-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .case-daily-details-date-picker {
+    width: 100%;
+  }
+
+  .case-daily-details-date-picker .form-select {
+    align-items: stretch;
+  }
+
+  .above-daily-details-table-section {
+    justify-content: stretch;
+  }
+
+  .daily-details-table-fields-info,
+  .daily-details-btns-container {
+    width: 100%;
+  }
+
+  .daily-details-table-fields-info > div {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    font-size: 1rem;
+  }
+
+  .daily-details-btns {
+    justify-content: center;
+  }
+
+  .paint-button {
+    width: 100%;
+  }
+
+  .child-cases-container {
+    justify-content: flex-start;
+    padding-bottom: 0.4rem;
+  }
+
+  .child-cases-container .child-case:last-child {
+    margin-right: 0;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .patient-age-inputs {
+    flex-direction: column;
+  }
+
+  .patient-age-inputs .form-input-container {
+    width: 100% !important;
+  }
+
+  .edit-patient-btns-container button,
+  .export-case-details-btn,
+  .release-info-btn,
+  .patient-documents-case-details-btn,
+  .patient-charts-case-details-btn,
+  .patient-archive-case-details-btn {
+    flex-basis: 100%;
+  }
+
+  .delete-patient-btn {
+    flex-basis: 44px;
   }
 }
