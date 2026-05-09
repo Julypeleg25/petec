@@ -4,6 +4,7 @@ import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.ty
 import type { NewPatientData, ChildCaseData } from "../types/savePatient.types";
 import type { CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
 import { getDateForInput } from "../../../../utils/DateFormattingUtil";
+import { getClosestStartHour } from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
 import { buildEmptyCaseDailyDetailsTemplate } from "../utils/savePatientCaseDetails.utils";
 import {
@@ -78,7 +79,7 @@ export function usePatientFormState() {
         getDateForInput(new Date()),
     );
     const [selectedStartHour, setSelectedStartHour] = useState<string>(
-        SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
+        getClosestStartHour(),
     );
     const [showCaseDetailsDaysOptions, setShowCaseDetailsDaysOptions] =
         useState(false);
@@ -169,7 +170,7 @@ export function usePatientFormState() {
 
     const setTimeSelectionValue = useCallback((value: string) => {
         if (!value) {
-            setSelectedStartHour(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+            setSelectedStartHour(getClosestStartHour());
             return;
         }
         setSelectedStartHour(String(Number(value)));
