@@ -78,7 +78,7 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
       }}
       closeWhenClickOutside={true}
       size="lg"
-      className="system-management-modal"
+      className="system-management-modal save-user-create-modal"
       overlayClassName="save-user-modal-overlay"
       component={
         <div className="SaveUser save-user-dialog" dir="rtl">
