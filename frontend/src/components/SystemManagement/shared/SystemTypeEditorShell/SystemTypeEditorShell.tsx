@@ -11,6 +11,8 @@ interface SystemTypeEditorShellProps {
   isPending: boolean;
   submitDisabled?: boolean;
   editorClassName?: string;
+  modalClassName?: string;
+  overlayClassName?: string;
   size?: "sm" | "md" | "lg" | "fullscreen";
   children: ReactNode;
 }
@@ -25,6 +27,8 @@ export function SystemTypeEditorShell({
   isPending,
   submitDisabled = false,
   editorClassName,
+  modalClassName = "system-management-modal",
+  overlayClassName,
   size = "lg",
   children,
 }: SystemTypeEditorShellProps) {
@@ -43,7 +47,8 @@ export function SystemTypeEditorShell({
       }}
       closeWhenClickOutside={true}
       size={size}
-      className="system-management-modal"
+      className={modalClassName}
+      overlayClassName={overlayClassName}
       component={
         <div className={rootClassName} dir="rtl">
           <div className="save-entity-form-container system-type-editor__container">
