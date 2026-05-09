@@ -1,3 +1,4 @@
+import { ClinicaMedicalRecordModel } from "../models/clinicaMedicalRecord/ClinicaMedicalRecord.js";
 import { PatientModel } from "../models/patient/Patient.js";
 import { ImportedClinicaAggregate } from "../utils/clinica-query.types.js";
 
@@ -10,7 +11,7 @@ class ClinicaImportService {
         continue;
       }
 
-      const updated = await PatientModel.findOneAndUpdate(
+      const patient = await PatientModel.findOneAndUpdate(
         {
           name: item.patient.name,
           "owner.phone": item.patient.owner.phone,
@@ -31,7 +32,36 @@ class ClinicaImportService {
         },
       );
 
-      results.push(updated);
+      for (const record of item.medicalRecords) {
+        if (!record.rawText) {
+          continue;
+        }
+
+        await ClinicaMedicalRecordModel.findOneAndUpdate(
+          {
+            patientId: patient._id,
+            recordType: record.recordType,
+          },
+          {
+            $set: {
+              patientId: patient._id,
+              patientName: record.patientName,
+              ownerName: record.ownerName,
+              ownerPhone: record.ownerPhone,
+              recordType: record.recordType,
+              rawText: record.rawText,
+              syncedAt: record.syncedAt,
+            },
+          },
+          {
+            returnDocument: "after",
+            upsert: true,
+            setDefaultsOnInsert: true,
+          },
+        );
+      }
+
+      results.push(patient);
     }
 
     return results;
