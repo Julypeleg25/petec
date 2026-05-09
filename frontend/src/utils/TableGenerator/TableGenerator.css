@@ -160,7 +160,6 @@
   overflow-y: scroll;
   justify-content: space-around;
   direction: rtl;
-  height: 100%;
   min-height: 0;
 }
 

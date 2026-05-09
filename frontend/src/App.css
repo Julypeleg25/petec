@@ -18,6 +18,11 @@
   --color-alerts-blue: rgb(16, 16, 196);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+
 input,
 textarea,
 select,
@@ -180,7 +185,6 @@ textarea::-webkit-resizer,
 
 @media screen and (max-width: 600px) {
   :root {
-    --header-height: 176px;
     --table-pagination-height: 74px;
   }
 

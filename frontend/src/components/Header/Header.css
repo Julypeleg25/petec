@@ -1,22 +1,22 @@
 .main-page-header {
   width: 100%;
   min-height: var(--header-height);
+  height: auto;
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   justify-content: space-between;
   background-color: var(--color-main);
   align-items: center;
-  gap: 1rem;
-  padding: 0.6rem 1.25rem;
+
   box-sizing: border-box;
 }
 
 .logout-and-hello-user-container {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   flex-direction: column;
   color: var(--color-white);
-  margin-left: 1.75em;
+  margin-left: 3em;
   margin-top: 0.5em;
   text-align: center;
   flex: 0 0 auto;
@@ -30,7 +30,7 @@
 
 .logo-and-navbar-container {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   flex-direction: column;
   align-self: flex-start;
   align-items: flex-end;
@@ -49,18 +49,18 @@
   font-size: 1.1rem;
   font-weight: 500;
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   flex-direction: column;
 }
 
 .header-navbar button {
-  margin-right: 0;
+  margin-right: 1em;
 }
 
 .header-navbar {
   justify-content: flex-end;
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   flex-wrap: wrap;
   gap: 0.4em;
   max-width: 100%;
@@ -87,7 +87,7 @@
 @media screen and (max-width: 760px) {
   .main-page-header {
     height: auto;
-    min-height: var(--header-height);
+    min-height: 176px;
     flex-direction: column;
     justify-content: center;
     align-items: stretch;
@@ -116,6 +116,7 @@
   .header-navbar .btn {
     flex: 1 1 30%;
     min-width: 88px;
+    margin-right: 0;
     padding: 0.45rem 0.5rem;
   }
 

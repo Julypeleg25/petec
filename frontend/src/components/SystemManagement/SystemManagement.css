@@ -34,6 +34,14 @@
   margin-right: 0;
 }
 
+.system-management-navbar .btn-active,
+.system-management-navbar .btn-selected,
+.system-management-navbar .btn-selected:hover,
+.system-management-navbar .btn-selected:disabled,
+.system-management-navbar .btn-selected:disabled:hover {
+  border: 3px solid var(--color-main);
+}
+
 .systemManagement .form-select > select,
 .systemManagement .form-select-control {
   height: 26px !important;
