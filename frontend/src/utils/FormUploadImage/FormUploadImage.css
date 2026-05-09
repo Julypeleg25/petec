@@ -9,6 +9,7 @@
 .upload-image-container {
   width: 150px;
   height: 150px;
+  max-width: 100%;
   border-radius: 20px;
   border: 3px solid var(--input-border-color);
   margin: 0 auto;
@@ -81,4 +82,11 @@
   bottom: 10px;
   right: 10px;
   z-index: 3;
+}
+
+@media screen and (max-width: 700px) {
+  .upload-image-container-large {
+    width: min(220px, 70vw);
+    height: min(220px, 70vw);
+  }
 }

@@ -5,7 +5,7 @@ import type {
     CaseDetailsStateParams,
     CaseDetailsStateParamsCandidate,
 } from "../CaseDetailsTable.types";
-import { parseCaseGridHour } from "../caseGrid.utils";
+import { parseCaseGridHour, CASE_GRID_HOUR_STEP } from "../caseGrid.utils";
 
 export const toCaseDetailsMedicineCell = (
     medicine: MedicineSelectOptionObj,
@@ -159,4 +159,11 @@ export const parseHourOption = (value: string): number | null => {
     }
 
     return parsedHour;
+};
+export const getClosestStartHour = (date = new Date()): string => {
+    const hourWithMinutes = date.getHours() + date.getMinutes() / 60;
+    const closestHour =
+        Math.round(hourWithMinutes / CASE_GRID_HOUR_STEP) * CASE_GRID_HOUR_STEP;
+
+    return String(closestHour % 24);
 };

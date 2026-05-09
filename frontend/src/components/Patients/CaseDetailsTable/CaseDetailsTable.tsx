@@ -1,11 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import "./CaseDetailsTable.css";
 import { useCaseDetailsData } from "./hooks/useCaseDetailsData";
 import { useCaseDetailsTableSelectionModals } from "./hooks/useCaseDetailsTableSelectionModals";
 import { getLatestVitals, isValueInRange } from "./utils/caseDetailsVitals.utils";
-import {
-  parseCaseGridHour,
-} from "./caseGrid.utils";
 import {
   MEDICINE_SECTIONS,
   OPTION_SECTIONS,
@@ -49,6 +46,7 @@ function CaseDetailsTable({
   selectedStartHour,
   setSelectedStartHour,
 }: CaseDetailsTableProps) {
+  const tableRef = useRef<HTMLDivElement>(null);
   const {
     fecesTypes,
     urineTypes,
@@ -162,7 +160,7 @@ function CaseDetailsTable({
   );
 
   return (
-    <div className="case-details-table">
+    <div className="case-details-table" ref={tableRef}>
       <CaseDetailsTableHeader
         currentDayRows={currentDayRows}
         selectedStartHour={selectedStartHour}

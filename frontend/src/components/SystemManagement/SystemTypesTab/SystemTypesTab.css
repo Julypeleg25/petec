@@ -25,8 +25,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(244, 121, 32, 0.12);
-  color: #f47920;
+  background: rgba(177, 89, 205, 0.12);
+  color: var(--color-main);
   font-size: 1.2rem;
 }
 
@@ -66,7 +66,7 @@
 
 .system-types-tab__table-card {
   background: #fff;
-  border: 1px solid #f1e1d5;
+  border: 1px solid #e8d8f1;
   border-radius: 24px;
   padding: 1rem;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
@@ -94,7 +94,7 @@
 .system-types-tab__toolbar-card,
 .system-types-tab__table-card {
   background: #fff;
-  border: 1px solid #f1e1d5;
+  border: 1px solid #e8d8f1;
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
 }
@@ -179,12 +179,12 @@
 }
 
 .system-types-tab__table-card thead th {
-  background: #faf7f4;
+  background: var(--color-light-grey);
   color: #4b5563;
   font-weight: 800;
   font-size: 0.98rem;
   padding: 0.9rem 1rem;
-  border-bottom: 1px solid #ece7e2;
+  border-bottom: 1px solid var(--color-dark-grey);
   text-align: right;
   vertical-align: middle;
 }
@@ -204,8 +204,8 @@
 
 .system-types-tab__table-card thead input:focus,
 .system-types-tab__table-card thead select:focus {
-  border-color: #f47920;
-  box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.12);
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 3px rgba(177, 89, 205, 0.12);
 }
 
 .system-types-tab__table-card tbody td {
@@ -221,7 +221,7 @@
 }
 
 .system-types-tab__table-card tbody tr:hover {
-  background: #fffaf5;
+  background: var(--color-light-grey);
 }
 
 .system-types-tab__table-card td {
@@ -242,5 +242,45 @@
   .system-types-tab__table-card {
     padding: 0.75rem;
     border-radius: 18px;
+  }
+}
+
+@media (max-width: 700px) {
+  .system-types-tab {
+    gap: 1rem;
+  }
+
+  .system-types-tab__title-wrap {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .system-types-tab__title-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 12px;
+  }
+
+  .system-types-tab__title {
+    font-size: 1.35rem;
+  }
+
+  .system-types-tab__subtitle {
+    font-size: 0.9rem;
+  }
+
+  .system-types-tab__toolbar-wrap,
+  .system-types-toolbar,
+  .system-types-toolbar__selector {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .system-types-tab__toolbar-card,
+  .system-types-tab__table-card {
+    width: 100%;
+    padding: 0.5rem;
   }
 }
