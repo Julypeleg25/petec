@@ -4,6 +4,7 @@
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  background: var(--color-white);
 }
 
 .main-page-main {
@@ -11,6 +12,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+  background: var(--color-white);
 }
 
 @media screen and (max-width: 760px) {

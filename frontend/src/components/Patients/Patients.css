@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--color-white);
 }
 
 .patients-navbar {
@@ -217,6 +218,10 @@
   display: none;
 }
 
+.patients-mobile-menu {
+  display: none;
+}
+
 @media screen and (max-width: 720px) {
   .Patients {
     height: auto;
@@ -224,29 +229,83 @@
     overflow: visible;
   }
 
-  .patients-navbar {
+  .patients-mobile-menu {
+    width: 100%;
+    display: flex;
     justify-content: center;
-    padding: 0.75rem;
+    position: relative;
+    padding: 0.45rem 0.75rem 0.1rem;
+    box-sizing: border-box;
+    z-index: 20;
   }
 
-  .patients-navbar .btn {
-    flex: 1 1 calc(50% - 0.5rem);
-    max-width: 220px;
-    margin: 0;
+  .patients-mobile-menu__trigger {
+    width: min(100%, 420px);
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+  }
+
+  .patients-mobile-menu__trigger:focus-visible,
+  .patients-mobile-menu__panel button:focus-visible {
+    outline: 2px solid var(--color-main);
+    outline-offset: 2px;
+  }
+
+  .patients-mobile-menu__panel {
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    right: 0.75rem;
+    left: 0.75rem;
+    margin: 0 auto;
+    width: min(420px, calc(100% - 1.5rem));
+    padding: 0.45rem;
+    border: 1px solid rgba(177, 89, 205, 0.22);
+    border-radius: 14px;
+    background: var(--color-white);
+    box-shadow: 0 14px 30px rgba(37, 26, 46, 0.16);
+    direction: rtl;
+  }
+
+  .patients-mobile-menu__panel button {
+    width: 100%;
+    min-height: 40px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #2f2437;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: right;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .patients-mobile-menu__panel button:hover:not(:disabled),
+  .patients-mobile-menu__panel button.is-active {
+    color: var(--color-main);
+    background: rgba(177, 89, 205, 0.12);
+  }
+
+  .patients-mobile-menu__panel button:disabled {
+    opacity: 1;
+    filter: none;
+  }
+
+  .patients-mobile-menu__divider {
+    height: 1px;
+    margin: 0.35rem 0;
+    background: #ecdaf2;
+  }
+
+  .patients-navbar {
+    display: none;
   }
 
   .nav-patients-cards {
-    display: flex;
-    width: 90%;
-    margin: 0 auto;
-    justify-content: center;
-    margin-top: 0.8em;
-    gap: 1em;
-  }
-
-  .nav-patients-cards .btn {
-    flex: 1 1 0;
-    max-width: 180px;
+    display: none;
   }
 
   .patients-main-section {
@@ -306,16 +365,6 @@
 }
 
 @media screen and (max-width: 420px) {
-  .patients-navbar .btn {
-    flex-basis: 100%;
-    max-width: none;
-  }
-
-  .nav-patients-cards {
-    width: 100%;
-    gap: 0.5rem;
-  }
-
   .patient-card {
     min-height: 320px;
   }

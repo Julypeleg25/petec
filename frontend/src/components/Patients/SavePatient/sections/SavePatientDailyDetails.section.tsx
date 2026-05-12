@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FaInfoCircle, FaPlus, FaTrash } from "react-icons/fa";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
@@ -52,11 +53,19 @@ function SavePatientDailyDetailsSection({
   addNewCaseDailyDetails,
   deleteSelectedCaseDailyDetails,
 }: SavePatientDailyDetailsSectionProps) {
+  const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
   const caseDateOptions = buildCaseDetailsDateOptions(caseDetailsList);
   const shouldShowCaseDatePicker =
     caseDateOptions.length > 1 ||
     caseDateOptions.some((option) => !option.value.startsWith("new-day-"));
   const canDeleteSelectedCaseDay = caseDetailsList.length > 0;
+  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isArchived;
+
+  const runMobileAction = (action: (e: SavePatientActionEvent) => void) =>
+    (event: SavePatientActionEvent) => {
+      setIsMobileActionsOpen(false);
+      action(event);
+    };
 
   return (
     <div className="above-daily-details-table-section">
@@ -140,12 +149,12 @@ function SavePatientDailyDetailsSection({
             </button>
           </div>
         </div>
-        <div className="daily-details-btns">
+        <div className="daily-details-btns daily-details-btns-desktop">
           <button
             type="submit"
             className="btn btn-small daily-details-save-btn"
             form="save-patient-form"
-            disabled={isSaveButtonsDisabled || !hasChanges || isArchived}
+            disabled={isSaveDisabled}
           >
             שמור
           </button>
@@ -165,6 +174,41 @@ function SavePatientDailyDetailsSection({
           >
             {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
           </button>
+        </div>
+        <div className="daily-details-mobile-actions">
+          <button
+            type="button"
+            className="btn daily-details-mobile-actions__trigger"
+            onClick={() => setIsMobileActionsOpen((prev) => !prev)}
+            aria-expanded={isMobileActionsOpen}
+            aria-controls="daily-details-mobile-actions-panel"
+          >
+            פעולות טבלה
+          </button>
+          {isMobileActionsOpen && (
+            <div
+              id="daily-details-mobile-actions-panel"
+              className="daily-details-mobile-actions__panel"
+            >
+              <button
+                type="submit"
+                form="save-patient-form"
+                disabled={isSaveDisabled}
+                onClick={() => setIsMobileActionsOpen(false)}
+              >
+                שמור
+              </button>
+              <button type="button" onClick={runMobileAction(handlePaintingModeButtonClick)}>
+                {paintingMode ? "עצור סימון" : "סימון שדות חובה"}
+              </button>
+              <button
+                type="button"
+                onClick={runMobileAction(handleSetEditableFieldsButtonClick)}
+              >
+                {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
