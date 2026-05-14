@@ -28,7 +28,7 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().optional().default(""),
   CLOUDINARY_API_SECRET: z.string().trim().optional().default(""),
   UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
-  CLINICA_URL: z.string().url().default("https://ww2.clinicaonline.co.il"),
+  CLINICA_URL: z.string().url(),
   CLINIC_USERNAME: z.string().optional(),
   CLINIC_PASSWORD: z.string().optional(),
 });
@@ -64,7 +64,7 @@ export const ENV = {
   isProduction: envs.NODE_ENV === "production",
   isDevelopment: envs.NODE_ENV === "development",
   isTest: envs.NODE_ENV === "test",
-  frontendUrl: "http://localhost:5174",
+  frontendUrl: envs.FRONTEND_URL,
   mailAdmin: envs.MAIL_ADMIN ?? "",
   jwtAccessSecret: envs.JWT_ACCESS_SECRET,
   jwtRefreshSecret: envs.JWT_REFRESH_SECRET,

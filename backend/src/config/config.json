@@ -1,6 +1,7 @@
 {
 "PORT": 5001,
 "MONGODB_URI": "mongodb+srv://julypeleg_db_user:JZc2yFK4Vf0gTaAw@petec-cluster.w3sd2tk.mongodb.net/petec",
+"CLINICA_URL": "https://ww2.clinicaonline.co.il",
 "ACCESS_TOKEN_EXPIRES_IN": "1h",
 "REFRESH_TOKEN_EXPIRES_IN": "1d",
 "MAIL_ADMIN": "julypeleg@gmail.com"
