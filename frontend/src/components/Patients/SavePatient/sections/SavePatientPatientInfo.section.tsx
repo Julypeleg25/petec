@@ -1,3 +1,5 @@
+import { useRef, useState } from "react";
+import { FaBars, FaTimes } from "react-icons/fa";
 import DatePicker from "../../../../utils/DatePicker/DatePicker";
 import FormInput from "../../../../utils/FormInput/FormInput";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
@@ -70,6 +72,20 @@ interface SavePatientPatientInfoSectionProps {
   setIsAllergic: React.Dispatch<React.SetStateAction<boolean>>;
   isProcedure: boolean;
   setIsProcedure: React.Dispatch<React.SetStateAction<boolean>>;
+  // Mobile actions props
+  isArchived?: boolean;
+  isSaveButtonsDisabled?: boolean;
+  hasChanges?: boolean;
+  isSaving?: boolean;
+  isExporting?: boolean;
+  isArchiving?: boolean;
+  onBack?: () => void;
+  onShowReleasePatientModal?: () => void;
+  onExportCaseDetails?: () => void;
+  onShowPatientDocumentsModal?: () => void;
+  onShowPatientChartsModal?: () => void;
+  onShowArchiveConfirmationModal?: () => void;
+  onShowDeletePatientCaseModal?: () => void;
 }
 
 function SavePatientPatientInfoSection({
@@ -124,7 +140,27 @@ function SavePatientPatientInfoSection({
   setIsAllergic,
   isProcedure,
   setIsProcedure,
+  isArchived,
+  isSaveButtonsDisabled,
+  hasChanges,
+  isSaving,
+  isExporting,
+  isArchiving,
+  onBack,
+  onShowReleasePatientModal,
+  onExportCaseDetails,
+  onShowPatientDocumentsModal,
+  onShowPatientChartsModal,
+  onShowArchiveConfirmationModal,
+  onShowDeletePatientCaseModal,
 }: SavePatientPatientInfoSectionProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
+
+  const runMobileAction = (action?: () => void) => {
+    setIsMobileMenuOpen(false);
+    action?.();
+  };
   const currentPatientImage = isEdit ? getPatientImageSrc(photoName) : "#";
   const getOptionText = (options: SelectOptionObj[], value: string): string =>
     options.find((option) => option.value === value)?.text || "-";
@@ -190,6 +226,75 @@ function SavePatientPatientInfoSection({
             <div className="edit-patient-mobile-summary__identity">
               <h2>{formData.name || "מטופל"}</h2>
               <span>תיק {formData.caseId || "-"}</span>
+            </div>
+            <div className="edit-patient-mobile-actions">
+              <button
+                type="button"
+                className="btn edit-patient-mobile-actions__trigger"
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="edit-patient-mobile-actions-panel"
+              >
+                {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+                <span>פעולות</span>
+              </button>
+              {isMobileMenuOpen && (
+                <div
+                  id="edit-patient-mobile-actions-panel"
+                  className="edit-patient-mobile-actions__panel"
+                >
+                  <button type="button" onClick={() => runMobileAction(onBack)}>
+                    חזרה
+                  </button>
+                  <button
+                    type="submit"
+                    form="save-patient-form"
+                    disabled={isSaveDisabled}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {isSaving ? "...שומר" : "שמור"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowReleasePatientModal)}
+                  >
+                    שחרור
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onExportCaseDetails)}
+                    disabled={isExporting}
+                  >
+                    {isExporting ? "...מייצא" : "PDF - ייצא ל"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowPatientDocumentsModal)}
+                  >
+                    מסמכים
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowPatientChartsModal)}
+                  >
+                    מידע גרפי
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowArchiveConfirmationModal)}
+                    disabled={isArchiving}
+                  >
+                    {isArchiving ? "...מעבד" : isArchived ? "הוצא מהארכיון" : "העבר לארכיון"}
+                  </button>
+                  <button
+                    type="button"
+                    className="edit-patient-mobile-actions__danger"
+                    onClick={() => runMobileAction(onShowDeletePatientCaseModal)}
+                  >
+                    מחיקה
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <dl className="edit-patient-mobile-summary__grid">

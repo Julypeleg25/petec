@@ -14,9 +14,10 @@ import {
 
 interface HeaderProps {
   type: MainPageType;
+  patientsNavType?: string;
 }
 
-function Header({ type }: HeaderProps) {
+function Header({ type, patientsNavType }: HeaderProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -118,6 +119,7 @@ function Header({ type }: HeaderProps) {
           {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
           <span>תפריט</span>
         </button>
+        <div id="header-contextual-menu" />
         {isMobileMenuOpen && (
           <div id="header-mobile-menu-panel" className="header-mobile-menu__panel">
             {user?.role === roles.ADMIN && (

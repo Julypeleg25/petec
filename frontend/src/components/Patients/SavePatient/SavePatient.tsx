@@ -266,6 +266,21 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               setIsAllergic={setIsAllergic}
               isProcedure={isProcedure}
               setIsProcedure={setIsProcedure}
+              isArchived={isArchived}
+              isSaveButtonsDisabled={isSaveButtonsDisabled}
+              hasChanges={hasChanges}
+              isSaving={isSaving}
+              isExporting={isExporting}
+              isArchiving={isArchiving}
+              onBack={() => navigate(-1)}
+              onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
+              onExportCaseDetails={exportCaseDetails}
+              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
+              onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
+              onShowArchiveConfirmationModal={() =>
+                setShowArchiveConfirmationModal(true)
+              }
+              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
             />
             {!isEdit && (
               <button

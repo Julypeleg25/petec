@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaInfoCircle, FaPlus, FaTrash } from "react-icons/fa";
+import { FaBars, FaInfoCircle, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
@@ -183,6 +183,7 @@ function SavePatientDailyDetailsSection({
             aria-expanded={isMobileActionsOpen}
             aria-controls="daily-details-mobile-actions-panel"
           >
+            {isMobileActionsOpen ? <FaTimes /> : <FaBars />}
             פעולות טבלה
           </button>
           {isMobileActionsOpen && (
@@ -206,6 +207,17 @@ function SavePatientDailyDetailsSection({
                 onClick={runMobileAction(handleSetEditableFieldsButtonClick)}
               >
                 {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
+              </button>
+              <button type="button" onClick={runMobileAction(addNewCaseDailyDetails)}>
+                הוספת יום אשפוז
+              </button>
+              <button
+                type="button"
+                className="daily-details-mobile-actions__danger"
+                onClick={runMobileAction(deleteSelectedCaseDailyDetails)}
+                disabled={isArchived || !canDeleteSelectedCaseDay}
+              >
+                מחיקת יום אשפוז
               </button>
             </div>
           )}
