@@ -18,6 +18,29 @@ import { usePatientFormState } from "./usePatientFormState";
 import { useCaseDetailsState } from "./useCaseDetailsState";
 import { useSavePatientActions } from "./useSavePatientActions";
 import { buildSavePatientChangeSnapshot } from "../utils/savePatientChangeTracking.utils";
+import type { NewPatientData } from "../types/savePatient.types";
+import type { ClinicaNewPatientState } from "../../../../features/clinica/types/clinicaNewPatient.types";
+import { mapClinicaStateToNewPatientFormData } from "../../../../features/clinica/mappers/clinicaClientToNewPatient.mapper";
+import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
+
+const normalizeOptionText = (value?: string): string =>
+  value?.trim().replace(/\s+/g, " ").toLowerCase() ?? "";
+
+const findOptionValueByText = (
+  options: readonly SelectOptionObj[],
+  value?: string,
+): string => {
+  const normalizedValue = normalizeOptionText(value);
+
+  if (!normalizedValue) {
+    return "";
+  }
+
+  return (
+    options.find((option) => normalizeOptionText(option.text) === normalizedValue)
+      ?.value ?? ""
+  );
+};
 
 export function useSavePatient(
   caseIdString: string,
@@ -25,9 +48,21 @@ export function useSavePatient(
   masterCaseId: string | undefined,
   isEdit: boolean,
   beforeNavigation?: () => void,
+  initialFormData?: NewPatientData,
+  initialClinicaState?: ClinicaNewPatientState,
 ) {
   const mountedRef = useRef(true);
-  const state = usePatientFormState();
+  const clinicaSelectPrefillRef = useRef({
+    animal: false,
+    color: false,
+    doctor: false,
+    gender: false,
+    insurance: false,
+    race: false,
+  });
+  const [activeClinicaPrefillState, setActiveClinicaPrefillState] =
+    useState<ClinicaNewPatientState | undefined>(initialClinicaState);
+  const state = usePatientFormState(initialFormData);
   const {
     editableFieldsMode,
     paintingMode,
@@ -64,6 +99,175 @@ export function useSavePatient(
   useMappedSelectOptions(doctorsQuery.data, toStaffOptions, state.setDoctors);
   useMappedSelectOptions(nursesQuery.data, toStaffOptions, state.setNurses);
   useMappedSelectOptions(raceTypesQuery.data, toSelectOptions, state.setRaceTypes);
+
+  useEffect(() => {
+    if (!activeClinicaPrefillState || isEdit) {
+      return;
+    }
+
+    const snapshot = activeClinicaPrefillState.patientSnapshot;
+    const prefillStatus = clinicaSelectPrefillRef.current;
+
+    if (!prefillStatus.gender && state.selectedGenderType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.genderTypes, snapshot.gender);
+      if (value) {
+        state.setSelectedGenderType(value);
+        prefillStatus.gender = true;
+      }
+    }
+
+    if (!prefillStatus.animal && state.selectedAnimalType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.animalTypes, snapshot.species);
+      if (value) {
+        state.setSelectedAnimalType(value);
+        getRaceTypes(value);
+        prefillStatus.animal = true;
+      }
+    }
+
+    if (!prefillStatus.race && state.selectedRaceType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.raceTypes, snapshot.breed);
+      if (value) {
+        state.setSelectedRaceType(value);
+        prefillStatus.race = true;
+      }
+    }
+
+    if (!prefillStatus.color && state.selectedAnimalColor === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.animalColors, snapshot.color);
+      if (value) {
+        state.setSelectedAnimalColor(value);
+        prefillStatus.color = true;
+      }
+    }
+
+    if (!prefillStatus.insurance && state.selectedInsurance === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.insuranceList, snapshot.insurance);
+      if (value) {
+        state.setSelectedInsurance(value);
+        prefillStatus.insurance = true;
+      }
+    }
+
+    if (!prefillStatus.doctor && state.selectedDoctor === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
+      const value = findOptionValueByText(state.doctors, snapshot.treatingDoctor);
+      if (value) {
+        state.setSelectedDoctor(value);
+        prefillStatus.doctor = true;
+      }
+    }
+  }, [
+    getRaceTypes,
+    activeClinicaPrefillState,
+    isEdit,
+    state.animalColors,
+    state.animalTypes,
+    state.doctors,
+    state.genderTypes,
+    state.insuranceList,
+    state.raceTypes,
+    state.selectedAnimalColor,
+    state.selectedAnimalType,
+    state.selectedDoctor,
+    state.selectedGenderType,
+    state.selectedInsurance,
+    state.selectedRaceType,
+    state.setSelectedAnimalColor,
+    state.setSelectedAnimalType,
+    state.setSelectedDoctor,
+    state.setSelectedGenderType,
+    state.setSelectedInsurance,
+    state.setSelectedRaceType,
+  ]);
+
+  const applyClinicaPrefill = useCallback(
+    (clinicaState: ClinicaNewPatientState) => {
+      const nextFormData = mapClinicaStateToNewPatientFormData(clinicaState);
+      const snapshot = clinicaState.patientSnapshot;
+
+      clinicaSelectPrefillRef.current = {
+        animal: false,
+        color: false,
+        doctor: false,
+        gender: false,
+        insurance: false,
+        race: false,
+      };
+      state.setSelectedAnimalColor(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      state.setSelectedAnimalType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      state.setSelectedDoctor(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      state.setSelectedGenderType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      state.setSelectedInsurance(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      state.setSelectedRaceType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+      setActiveClinicaPrefillState(clinicaState);
+
+      state.handleInputChange(nextFormData.caseId ?? "", "caseId");
+      state.handleInputChange(nextFormData.name ?? "", "name");
+      state.handleInputChange(nextFormData.owner?.name ?? "", "owner.name");
+      state.handleInputChange(nextFormData.owner?.phone ?? "", "owner.phone");
+      state.handleInputChange(nextFormData.comments ?? "", "comments");
+      state.handleInputChange(
+        nextFormData.admission?.referringDoctor ?? "",
+        "admission.referringDoctor",
+      );
+      state.handleInputChange(
+        snapshot.weightKg === undefined ? "" : String(snapshot.weightKg),
+        "patientSnapshot.weightKg",
+      );
+      state.handleInputChange(
+        snapshot.ageYears === undefined ? "" : String(snapshot.ageYears),
+        "patientSnapshot.ageYears",
+      );
+      state.handleInputChange(
+        snapshot.ageMonths === undefined ? "" : String(snapshot.ageMonths),
+        "patientSnapshot.ageMonths",
+      );
+    },
+    [
+      state.handleInputChange,
+      state.setSelectedAnimalColor,
+      state.setSelectedAnimalType,
+      state.setSelectedDoctor,
+      state.setSelectedGenderType,
+      state.setSelectedInsurance,
+      state.setSelectedRaceType,
+    ],
+  );
+
+  const clearClinicaPrefill = useCallback(() => {
+    clinicaSelectPrefillRef.current = {
+      animal: false,
+      color: false,
+      doctor: false,
+      gender: false,
+      insurance: false,
+      race: false,
+    };
+    setActiveClinicaPrefillState(undefined);
+    state.setSelectedAnimalColor(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.setSelectedAnimalType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.setSelectedDoctor(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.setSelectedGenderType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.setSelectedInsurance(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.setSelectedRaceType(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+    state.handleInputChange("", "caseId");
+    state.handleInputChange("", "name");
+    state.handleInputChange("", "owner.name");
+    state.handleInputChange("", "owner.phone");
+    state.handleInputChange("", "comments");
+    state.handleInputChange("", "admission.referringDoctor");
+    state.handleInputChange("", "patientSnapshot.weightKg");
+    state.handleInputChange("", "patientSnapshot.ageYears");
+    state.handleInputChange("", "patientSnapshot.ageMonths");
+  }, [
+    state.handleInputChange,
+    state.setSelectedAnimalColor,
+    state.setSelectedAnimalType,
+    state.setSelectedDoctor,
+    state.setSelectedGenderType,
+    state.setSelectedInsurance,
+    state.setSelectedRaceType,
+  ]);
 
   const { getCaseDetailsData } = useCaseDetailsState(
     state,
@@ -257,6 +461,8 @@ export function useSavePatient(
     loading: state.loading,
     formData: state.formData,
     handleInputChange: state.handleInputChange,
+    applyClinicaPrefill,
+    clearClinicaPrefill,
 
     isArchived: state.isArchived,
     selectedFile: state.selectedFile,

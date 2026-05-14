@@ -66,6 +66,20 @@ function Header({ type }: HeaderProps) {
           )}
           <button
             className={`btn ${
+              type === MAIN_PAGE_TYPES.CLINICA
+                ? "btn-selected"
+                : "btn-active"
+            }`}
+            title="clinica"
+            onClick={() => {
+              navigate(AppRoutes.Clinica);
+            }}
+            disabled={type === MAIN_PAGE_TYPES.CLINICA}
+          >
+            קליניקה
+          </button>
+          <button
+            className={`btn ${
               type === MAIN_PAGE_TYPES.CALENDAR
                 ? "btn-selected"
                 : "btn-active"

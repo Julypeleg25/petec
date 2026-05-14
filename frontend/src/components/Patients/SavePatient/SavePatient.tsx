@@ -17,6 +17,9 @@ import {
   resolveSelectedCaseDate,
 } from "./sections/utils/savePatientSections.utils";
 import { resolveChildCaseRoute } from "./utils/savePatientNavigation.utils";
+import type { ClinicaNewPatientState } from "../../../features/clinica/types/clinicaNewPatient.types";
+import { mapClinicaStateToNewPatientFormData } from "../../../features/clinica/mappers/clinicaClientToNewPatient.mapper";
+import { ClinicaPatientSearchPrefill } from "../../../features/clinica/components/ClinicaPatientSearchPrefill";
 
 interface SavePatientProps {
   beforeNavigation?: () => void;
@@ -26,6 +29,11 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
   const location = useLocation();
   const { masterCaseId, caseId } = useParams();
   const isEdit = location.pathname !== AppRoutes.Patients.NewPatient;
+  const clinicaState = location.state as ClinicaNewPatientState | null;
+  const initialFormData =
+    !isEdit && clinicaState?.source === "clinica"
+      ? mapClinicaStateToNewPatientFormData(clinicaState)
+      : undefined;
   const caseIdString = caseId ?? "";
   const allowNavigationRef = useRef(false);
 
@@ -47,6 +55,8 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     loading,
     formData,
     handleInputChange,
+    applyClinicaPrefill,
+    clearClinicaPrefill,
     isArchived,
     selectedFile,
     setSelectedFile,
@@ -137,6 +147,8 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     masterCaseId,
     isEdit,
     handleBeforeNavigation,
+    initialFormData,
+    !isEdit && clinicaState?.source === "clinica" ? clinicaState : undefined,
   );
   const handleSaveAndExit = useCallback(
     () =>
@@ -203,6 +215,12 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
             />
           )}
           {!isEdit && <h2 className="new-patient-form-title">מטופל חדש</h2>}
+          {!isEdit && clinicaState?.source !== "clinica" && (
+            <ClinicaPatientSearchPrefill
+              onClear={clearClinicaPrefill}
+              onSelect={applyClinicaPrefill}
+            />
+          )}
           <SavePatientChildCasesSection
             childCases={childCases}
             currentCaseId={caseId}

@@ -22,6 +22,8 @@ export const AppRoutes = {
         Calendar: "/patients/calendar",
     },
 
+    Clinica: "/clinica",
+
     SystemManagement: {
         History: "/systemManagement/history",
         SystemTypes: "/systemManagement/systemTypes",

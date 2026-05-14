@@ -17,7 +17,7 @@ import adminRoutes from "./routes/admin/index.js";
 import tableRoutes from "./routes/table/index.js";
 import userRoutes from "./routes/user/index.js";
 import medicineRoutes from "./routes/medicine/index.js";
-import clinicaRoutes from "./routes/clinica.routes.js";
+import clinicaRoutes from "./routes/clinica/index.js";
 
 
 

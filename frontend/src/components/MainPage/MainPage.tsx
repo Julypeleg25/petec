@@ -2,6 +2,7 @@ import Header from "../Header/Header";
 import Calendar from "../Patients/Calendar/Calendar";
 import Patients from "../Patients/Patients";
 import SystemManagement from "../SystemManagement/SystemManagement";
+import { ClinicaClientsPage } from "../../features/clinica";
 import type {
   MainPageType,
   SystemManagementTabType,
@@ -24,6 +25,7 @@ function MainPage({
       <Header type={type} />
       <main className="main-page-main">
         {type === "calendar" && <Calendar />}
+        {type === "clinica" && <ClinicaClientsPage />}
         {type === "patients" && <Patients patientsNavType={patientsNavType} />}
         {type === "system-management" && (
           <SystemManagement type={systemManagementType} />
