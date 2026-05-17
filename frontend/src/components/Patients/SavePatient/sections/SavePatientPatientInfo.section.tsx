@@ -1,8 +1,11 @@
+import { useRef, useState } from "react";
+import { FaBars, FaTimes } from "react-icons/fa";
 import DatePicker from "../../../../utils/DatePicker/DatePicker";
 import FormInput from "../../../../utils/FormInput/FormInput";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import FormUploadImage from "../../../../utils/FormUploadImage/FormUploadImage";
+import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
 import {
   SAVE_PATIENT_DEFAULTS,
   SAVE_PATIENT_CATHETER_DATE_FIELD_NAME,
@@ -12,7 +15,10 @@ import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.ty
 import type { NewPatientData } from "../types/savePatient.types";
 import type { SavePatientInputChangeHandler } from "./types/savePatientSections.types";
 import SavePatientFlagsSection from "./SavePatientFlags.section";
-import { getPatientImageSrc } from "../../../../features/patients/utils/patientImage.utils";
+import {
+  getPatientImageSrc,
+  handlePatientImageLoadError,
+} from "../../../../features/patients/utils/patientImage.utils";
 
 interface SavePatientPatientInfoSectionProps {
   isEdit: boolean;
@@ -66,6 +72,20 @@ interface SavePatientPatientInfoSectionProps {
   setIsAllergic: React.Dispatch<React.SetStateAction<boolean>>;
   isProcedure: boolean;
   setIsProcedure: React.Dispatch<React.SetStateAction<boolean>>;
+  // Mobile actions props
+  isArchived?: boolean;
+  isSaveButtonsDisabled?: boolean;
+  hasChanges?: boolean;
+  isSaving?: boolean;
+  isExporting?: boolean;
+  isArchiving?: boolean;
+  onBack?: () => void;
+  onShowReleasePatientModal?: () => void;
+  onExportCaseDetails?: () => void;
+  onShowPatientDocumentsModal?: () => void;
+  onShowPatientChartsModal?: () => void;
+  onShowArchiveConfirmationModal?: () => void;
+  onShowDeletePatientCaseModal?: () => void;
 }
 
 function SavePatientPatientInfoSection({
@@ -120,11 +140,185 @@ function SavePatientPatientInfoSection({
   setIsAllergic,
   isProcedure,
   setIsProcedure,
+  isArchived,
+  isSaveButtonsDisabled,
+  hasChanges,
+  isSaving,
+  isExporting,
+  isArchiving,
+  onBack,
+  onShowReleasePatientModal,
+  onExportCaseDetails,
+  onShowPatientDocumentsModal,
+  onShowPatientChartsModal,
+  onShowArchiveConfirmationModal,
+  onShowDeletePatientCaseModal,
 }: SavePatientPatientInfoSectionProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
+
+  const runMobileAction = (action?: () => void) => {
+    setIsMobileMenuOpen(false);
+    action?.();
+  };
   const currentPatientImage = isEdit ? getPatientImageSrc(photoName) : "#";
+  const getOptionText = (options: SelectOptionObj[], value: string): string =>
+    options.find((option) => option.value === value)?.text || "-";
+  const patientAge = [
+    formData.patientSnapshot?.ageYears
+      ? `${formData.patientSnapshot.ageYears} שנים`
+      : "",
+    formData.patientSnapshot?.ageMonths
+      ? `${formData.patientSnapshot.ageMonths} חודשים`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const summaryItems = [
+    { label: "בעלים", value: formData.owner.name || "-" },
+    { label: "טלפון", value: formData.owner.phone || "-" },
+    { label: "סוג", value: getOptionText(animalTypes, selectedAnimalType) },
+    { label: "גזע", value: getOptionText(raceTypes, selectedRaceType) },
+    { label: "מין", value: getOptionText(genderTypes, selectedGenderType) },
+    {
+      label: "משקל",
+      value: formData.patientSnapshot?.weightKg
+        ? `${formData.patientSnapshot.weightKg} ק\"ג`
+        : "-",
+    },
+    { label: "גיל", value: patientAge || "-" },
+    { label: "רופא/ה", value: getOptionText(doctors, selectedDoctor) },
+    { label: "אח/ות", value: getOptionText(nurses, selectedNurse) },
+    {
+      label: "קטטר",
+      value:
+        getFormattedDateFromDBdate(
+          formData.dates?.catheterDate instanceof Date
+            ? formData.dates.catheterDate
+            : null,
+        ) || "-",
+    },
+  ];
+  const activeFlags = [
+    isAMB ? "AMB" : "",
+    isHeartMurmur ? "רשרוש לב" : "",
+    isRiskAnesthesia ? "סיכון הרדמה" : "",
+    isNPO ? "NPO" : "",
+    isAggressive ? "אגרסיבי" : "",
+    isEscapePotential ? "חשש בריחה" : "",
+    isCerenia ? "Cerenia" : "",
+    isConvenia ? "Convenia" : "",
+    isAllergic ? "אלרגיה" : "",
+    isProcedure ? "פרוצדורה" : "",
+  ].filter(Boolean);
 
   return (
     <section className="new-patient-form-data-section">
+      {isEdit && (
+        <section className="edit-patient-mobile-summary" aria-label="פרטי מטופל">
+          <div className="edit-patient-mobile-summary__main">
+            <img
+              className="edit-patient-mobile-summary__image"
+              src={currentPatientImage}
+              onError={handlePatientImageLoadError}
+              alt="patient"
+            />
+            <div className="edit-patient-mobile-summary__identity">
+              <h2>{formData.name || "מטופל"}</h2>
+              <span>תיק {formData.caseId || "-"}</span>
+            </div>
+            <div className="edit-patient-mobile-actions">
+              <button
+                type="button"
+                className="btn edit-patient-mobile-actions__trigger"
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="edit-patient-mobile-actions-panel"
+              >
+                {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+                <span>פעולות</span>
+              </button>
+              {isMobileMenuOpen && (
+                <div
+                  id="edit-patient-mobile-actions-panel"
+                  className="edit-patient-mobile-actions__panel"
+                >
+                  <button type="button" onClick={() => runMobileAction(onBack)}>
+                    חזרה
+                  </button>
+                  <button
+                    type="submit"
+                    form="save-patient-form"
+                    disabled={isSaveDisabled}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {isSaving ? "...שומר" : "שמור"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowReleasePatientModal)}
+                  >
+                    שחרור
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onExportCaseDetails)}
+                    disabled={isExporting}
+                  >
+                    {isExporting ? "...מייצא" : "PDF - ייצא ל"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowPatientDocumentsModal)}
+                  >
+                    מסמכים
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowPatientChartsModal)}
+                  >
+                    מידע גרפי
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowArchiveConfirmationModal)}
+                    disabled={isArchiving}
+                  >
+                    {isArchiving ? "...מעבד" : isArchived ? "הוצא מהארכיון" : "העבר לארכיון"}
+                  </button>
+                  <button
+                    type="button"
+                    className="edit-patient-mobile-actions__danger"
+                    onClick={() => runMobileAction(onShowDeletePatientCaseModal)}
+                  >
+                    מחיקה
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <dl className="edit-patient-mobile-summary__grid">
+            {summaryItems.map((item) => (
+              <div key={item.label} className="edit-patient-mobile-summary__item">
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+          {formData.admission?.hospitalizationReason && (
+            <p className="edit-patient-mobile-summary__reason">
+              {formData.admission.hospitalizationReason}
+            </p>
+          )}
+          {activeFlags.length > 0 && (
+            <div className="edit-patient-mobile-summary__flags">
+              {activeFlags.map((flag) => (
+                <span key={flag}>{flag}</span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
       <section
         className={`${isEdit ? "edit" : "new"}-patient-form-image-section`}
       >

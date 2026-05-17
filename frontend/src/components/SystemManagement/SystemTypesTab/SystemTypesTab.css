@@ -172,6 +172,7 @@
   overflow-x: auto;
   overflow-y: visible;
 }
+
 .system-types-tab__table-card table {
   width: 100%;
   border-collapse: separate;
@@ -238,6 +239,7 @@
 }
 
 @media (max-width: 900px) {
+
   .system-types-tab__toolbar-card,
   .system-types-tab__table-card {
     padding: 0.75rem;

@@ -1,4 +1,5 @@
-import { FaArrowRight, FaTrash } from "react-icons/fa";
+import { useState } from "react";
+import { FaArrowRight, FaBars, FaTimes, FaTrash } from "react-icons/fa";
 
 interface SavePatientEditActionsSectionProps {
   isArchived: boolean;
@@ -31,9 +32,13 @@ function SavePatientEditActionsSection({
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
 }: SavePatientEditActionsSectionProps) {
+  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
+
   return (
-    <div className="edit-patient-btns-container">
+    <div className="edit-patient-actions-container">
+      <div className="edit-patient-btns-container edit-patient-actions-desktop">
       <button
+        type="button"
         className="btn btn-active btn-round edit-patient-back-btn"
         onClick={onBack}
       >
@@ -47,17 +52,19 @@ function SavePatientEditActionsSection({
           type="submit"
           className="btn btn-small save-entity-form-btn"
           form="save-patient-form"
-          disabled={isSaveButtonsDisabled || !hasChanges || isSaving || isArchived}
+          disabled={isSaveDisabled}
         >
           {isSaving ? "...שומר" : "שמור"}
         </button>
         <button
+          type="button"
           className="btn btn-small save-entity-form-btn"
           onClick={onShowReleasePatientModal}
         >
           שחרור
         </button>
         <button
+          type="button"
           className="btn btn-small save-entity-form-btn export-case-details-btn"
           onClick={onExportCaseDetails}
           disabled={isExporting}
@@ -65,18 +72,21 @@ function SavePatientEditActionsSection({
           {isExporting ? "...מייצא" : "PDF - ייצא ל"}
         </button>
         <button
+          type="button"
           className="btn btn-small save-entity-form-btn patient-documents-case-details-btn"
           onClick={onShowPatientDocumentsModal}
         >
           מסמכים
         </button>
         <button
+          type="button"
           className="btn btn-small save-entity-form-btn patient-charts-case-details-btn"
           onClick={onShowPatientChartsModal}
         >
           מידע גרפי
         </button>
         <button
+          type="button"
           className="btn btn-small save-entity-form-btn patient-archive-case-details-btn"
           onClick={onShowArchiveConfirmationModal}
           disabled={isArchiving}
@@ -85,11 +95,13 @@ function SavePatientEditActionsSection({
         </button>
       </div>
       <button
+        type="button"
         className="btn btn-small save-entity-form-btn delete-patient-btn"
         onClick={onShowDeletePatientCaseModal}
       >
         <FaTrash />
       </button>
+      </div>
     </div>
   );
 }
