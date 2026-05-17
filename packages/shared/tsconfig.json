@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "rootDir": "src", 
-    "outDir": "dist",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "declaration": true,
-    "baseUrl": ".",
-    "paths": {
-      "@schemas/*": ["./src/schemas/*"],
-      "@dtos/*": ["./src/dtos/*"],
-      "@shared/*": ["./src/*"]
-    }
+    "strict": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
   "include": ["src/**/*"]
 }

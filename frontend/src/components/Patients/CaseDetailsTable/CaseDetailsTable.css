@@ -1,0 +1,427 @@
+:root {
+  --case-details-table-min-width: 148px;
+  --case-details-table-width: 148px;
+  --case-details-table-row-title-cell-max-width: 200px;
+  --case-details-table-cell-padding: 0.5em;
+}
+
+.case-details-table {
+  width: 100%;
+  margin-top: 1em;
+  max-width: 100%;
+  overflow: scroll;
+  direction: rtl;
+  margin-bottom: 1em;
+  max-height: 805px;
+  padding-left: 0.5em;
+  position: relative;
+}
+
+.case-details-table-header {
+  display: flex;
+  display: -webkit-flex; 
+  width: 100%;
+  min-width: min-content;
+  max-height: 300px;
+  position: sticky;
+  z-index: 5;
+  top: 0;
+}
+
+.case-details-table-titles-column {
+  display: flex;
+  display: -webkit-flex; 
+  flex-direction: column;
+  position: sticky;
+  z-index: 3;
+  right: 0;
+}
+
+.case-details-table-header-cell {
+  border-right: 2px solid var(--color-main);
+  border-top: 2px solid var(--color-main);
+  border-bottom: 2px solid var(--color-main);
+  min-width: var(--case-details-table-min-width);
+  width: var(--case-details-table-width);
+  padding: var(--case-details-table-cell-padding);
+  text-align: center;
+  font-weight: 600;
+  background-color: var(--color-white);
+}
+
+.case-details-table-body-row-cell {
+  border-right: 2px solid var(--color-main);
+  border-top: 2px solid var(--color-main);
+  min-width: var(--case-details-table-min-width);
+  width: var(--case-details-table-width);
+  padding: var(--case-details-table-cell-padding);
+  position: relative;
+}
+
+.case-details-table-header-cell-title,
+.case-details-table-body-row-cell-title {
+  min-width: 200px;
+}
+
+.case-details-table-body-row-cell-title-clickable {
+  position: relative;
+}
+
+.case-details-table-body-row-cell-title-clickable button {
+  position: absolute;
+  right: 0.5em;
+  bottom: 0;
+}
+
+.case-details-table-header .case-details-table-header-cell:last-child {
+  border-left: 2px solid var(--color-main);
+}
+
+.case-details-table-body {
+  min-width: min-content;
+}
+
+.case-details-table-body .case-details-table-body-row {
+  display: flex;
+  display: -webkit-flex; 
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.case-details-table-body .case-details-table-body-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: calc(
+    var(--case-details-table-row-title-cell-max-width) +
+      var(--case-details-table-cell-padding) * 2
+  );
+  width: calc(
+    0.3em + var(--case-details-table-row-title-cell-max-width) +
+      var(--case-details-table-cell-padding) * 4 +
+      var(--case-details-table-min-width) * 13
+  );
+  height: 100%;
+  background-color: var(--color-dark-grey);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity 0.2s ease;
+}
+
+.case-details-table-body .case-details-table-body-row:hover::before {
+  opacity: 1;
+}
+
+.case-details-table-body-row-cell-medicine:hover {
+  cursor: pointer;
+}
+
+.case-details-table-body-row-cell-medicine .form-textarea textarea {
+  text-align: left;
+}
+
+.case-details-table-body-row-cell .form-input,
+.case-details-table-body-row-cell .form-textarea {
+  margin: 0;
+}
+
+.case-details-table-body-row-cell .form-textarea {
+  direction: ltr;
+}
+
+.case-details-table-header .case-details-table-header-cell:first-child {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+}
+
+.case-details-table-body
+  .case-details-table-body-row:last-child
+  .case-details-table-body-row-cell {
+  border-bottom: 2px solid var(--color-main);
+}
+
+.case-details-table-body
+  .case-details-table-body-row:first-child
+  .case-details-table-body-row-cell {
+  border-top: none;
+}
+
+.case-details-table-body .case-details-table-body-row-cell:last-child {
+  border-left: 2px solid var(--color-main);
+}
+
+.case-details-table-body .case-details-table-body-row-cell:first-child {
+  font-weight: 600;
+  max-width: var(--case-details-table-row-title-cell-max-width);
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background-color: var(--color-white);
+}
+
+.case-details-table-body-row-empty-cell {
+  background-color: var(--color-light-grey);
+}
+
+.case-details-pop-up,
+.case-details-pop-up-on-double-click {
+  display: none;
+  background-color: white;
+  width: 120px;
+  text-align: center;
+  border-radius: 5px;
+  border: 3px solid var(--color-main);
+  padding: 5px 0;
+  position: absolute;
+  z-index: 10;
+  bottom: 95%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+}
+
+.case-details-pop-up-parent,
+.case-details-pop-up-on-double-click-parent {
+  position: relative;
+}
+
+.case-details-pop-up-parent:hover .case-details-pop-up {
+  display: flex;
+  display: -webkit-flex; 
+  opacity: 1;
+}
+
+.case-details-table-body-row-cell .form-checkbox-container {
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.case-details-table-body-row-cell .form-checkbox-container input {
+  margin: 0;
+}
+
+.case-details-boolean-pop-up-btn {
+  width: 40px;
+  border: none;
+  background-color: var(--btn-background-color);
+  cursor: pointer;
+  padding: 0.3em;
+  border-radius: 5px;
+  color: var(--btn-color-text);
+  font-weight: 600;
+  font-size: 1rem;
+  border: 3px solid var(--btn-background-color);
+  margin: 0 0.25em;
+}
+
+.case-details-boolean-pop-up-btn:hover {
+  color: var(--btn-background-color);
+  background-color: var(--btn-color-text);
+  border: 3px solid var(--btn-background-color);
+}
+
+.medicine-cell-component {
+  display: flex;
+  display: -webkit-flex; 
+  align-items: center;
+  justify-content: center;
+  row-gap: 0.2em;
+  flex-direction: column;
+  width: 500px;
+  margin-left: -250px;
+}
+
+.boolean-cell-component-comment,
+.select-cell-component-comment,
+.comment-cell-component {
+  align-items: center;
+  justify-content: center;
+  row-gap: 0.8em;
+  flex-direction: column;
+  width: 300px;
+  margin-left: -150px;
+}
+
+.comment-cell-component {
+  width: 200px;
+  margin-left: -100px;
+}
+
+.case-details-boolean-pop-up-comment,
+.case-details-select-pop-up-comment {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; 
+  align-items: center;
+  justify-content: center;
+}
+
+.case-details-boolean-pop-up-comment .form-textarea-container,
+.case-details-select-pop-up-comment .form-textarea-container {
+  direction: rtl;
+  align-items: stretch;
+}
+
+.case-details-boolean-pop-up-comment .form-textarea-label,
+.case-details-select-pop-up-comment .form-textarea-label {
+  align-self: flex-end;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+  margin-left: 0;
+  text-align: right;
+}
+
+.case-details-table .form-textarea > textarea {
+  height: auto;
+}
+
+.case-details-table .medicine-inputs-container {
+  flex-direction: row;
+}
+
+
+
+.required-cell {
+  background-color: red;
+}
+
+.un-editable-cell {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background-color: rgb(255, 255, 255, 0.7);
+}
+
+.medicine-comment-textarea {
+  margin-top: 0.5em;
+}
+
+.case-details-options-modal,
+.case-details-medicine-modal {
+  direction: rtl;
+}
+
+.case-details-modal-title {
+  margin-top: 0;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
+}
+
+.modal.case-details-medicine-picker-modal {
+  width: min(580px, 92vw);
+  max-width: 92vw;
+}
+
+.modal.case-details-options-picker-modal {
+  width: min(440px, 88vw);
+  max-width: 88vw;
+}
+
+.case-details-medicine-modal .medicine-picker-selected-section {
+  width: 100%;
+  max-width: 100%;
+}
+
+.case-details-medicine-modal .medicine-picker-selected-medicines {
+  max-height: 240px;
+}
+
+.case-details-medicine-modal .medicine-picker-selected-medicines-text {
+  font-size: 1.22rem;
+}
+
+.case-details-medicine-modal .medicine-picker-selected-medicines-text .selected-medicine-name {
+  font-size: 1.24rem;
+}
+
+.case-details-medicine-modal .confirm-medicine-btn {
+  display: block;
+  margin: 0.75em auto 0 0;
+}
+
+.case-details-medicine-modal .form-input-container,
+.case-details-medicine-modal .form-select,
+.case-details-medicine-modal .form-textarea-container,
+.case-details-medicine-modal .RangeSlider {
+  direction: rtl;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.case-details-medicine-modal .form-input-label,
+.case-details-medicine-modal .form-select-label,
+.case-details-medicine-modal .form-textarea-label,
+.case-details-medicine-modal .RangeSlider label {
+  width: 100%;
+  text-align: right;
+  align-self: flex-end;
+}
+
+@media screen and (max-width: 700px) {
+  :root {
+    --case-details-table-min-width: 96px;
+    --case-details-table-width: 96px;
+    --case-details-table-row-title-cell-max-width: 112px;
+    --case-details-table-cell-padding: 0.28em;
+  }
+
+  .case-details-table {
+    margin-top: 0.45rem;
+    margin-bottom: 0.5rem;
+    padding-left: 0;
+    max-height: none;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  .case-details-table-header-cell,
+  .case-details-table-body-row-cell {
+    font-size: 0.86rem;
+    border-width: 1.5px;
+  }
+
+  .case-details-table-header-cell {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .case-details-table-header-cell-title,
+  .case-details-table-body-row-cell-title {
+    min-width: 112px;
+  }
+
+  .case-details-table-body-row-cell:first-child {
+    max-width: 112px;
+  }
+
+  .case-details-table .form-input > input,
+  .case-details-table .form-textarea > textarea,
+  .case-details-table .form-select > select,
+  .case-details-table .form-select-control {
+    border-width: 2px;
+    border-radius: 14px;
+    min-height: 36px;
+    padding: 0.32rem 0.45rem;
+    font-size: 0.88rem;
+  }
+
+  .case-details-table .form-input,
+  .case-details-table .form-textarea,
+  .case-details-table .form-select {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+  }
+}

@@ -1,0 +1,90 @@
+.save-anesthesia-procedure-form-container {
+  overflow-y: scroll;
+  height: 80%;
+  width: 90%;
+  max-width: 90%;
+}
+
+.save-anesthesia-procedure-form {
+  width: 100%;
+}
+
+.anesthesia-procedure-form-fields {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.anesthesia-procedure-form-text {
+  direction: rtl;
+  text-align: right;
+  font-size: 1.2rem;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.anesthesia-procedure-form-text p {
+  margin-inline: 0;
+  white-space: pre-line;
+  direction: rtl;
+  text-align: right;
+}
+
+.save-anesthesia-procedure-form .form-input-container {
+  margin: 0;
+}
+
+.save-anesthesia-procedure-form .form-input-label,
+.save-anesthesia-procedure-form .form-textarea-label {
+  width: 100%;
+  text-align: right;
+  align-self: flex-end;
+}
+
+.save-anesthesia-procedure-form .form-checkbox-container {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.save-anesthesia-procedure-form .form-checkbox-container input {
+  margin-right: 1em;
+}
+
+.anesthesia-procedure-form-price-details {
+  display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.anesthesia-procedure-signature-label {
+  text-align: right;
+  width: 90%;
+  margin: 0.5em auto;
+  font-size: 1.1rem;
+  display: flex;
+  display: -webkit-flex;
+  justify-content: space-between;
+}
+
+.anesthesia-procedure-signature {
+  border: 3px solid var(--color-main);
+  border-radius: 10px;
+}
+
+.save-anesthesia-procedure-form > .anesthesia-procedure-form-fields:last-of-type .form-input-container {
+  width: min(190px, 100%);
+}
+
+.save-anesthesia-procedure-form > .anesthesia-procedure-form-fields:last-of-type .form-input-label {
+  width: 100%;
+  text-align: right;
+  align-self: flex-end;
+}
+
+.save-anesthesia-procedure-form > .anesthesia-procedure-form-fields:last-of-type .save-entity-form-btn {
+  width: min(150px, 100%);
+}

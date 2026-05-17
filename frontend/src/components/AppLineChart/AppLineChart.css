@@ -1,0 +1,54 @@
+.AppLineChart {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.9rem 1rem 0.75rem;
+  border: 1px solid var(--color-dark-grey);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+  box-sizing: border-box;
+}
+
+.app-line-chart-label {
+  font-size: 1.15rem;
+  color: var(--color-main);
+  font-weight: 600;
+  text-align: right;
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.app-line-chart {
+  margin: 0 auto;
+  height: 100%;
+  width: 96%;
+  flex: 1 1 auto;
+  min-height: 0;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.AppLineChart .recharts-wrapper,
+.AppLineChart .recharts-surface,
+.AppLineChart .recharts-cartesian-axis-tick-value,
+.AppLineChart .chart-bar-label-text {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+.app-line-chart-empty {
+  border: 2px dashed var(--color-main);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--color-main);
+}

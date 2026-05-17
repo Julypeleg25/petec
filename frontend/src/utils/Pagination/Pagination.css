@@ -1,0 +1,138 @@
+.Pagination {
+  min-height: var(--table-pagination-height);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: black;
+  display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  margin-top: 0.5em;
+  padding: 0 0.5em;
+  direction: rtl;
+}
+
+.pagination-disabled button,
+.pagination-disabled input {
+  pointer-events: none;
+  cursor: default;
+}
+
+.pagination-btn {
+  background-color: #fff;
+  color: rgb(68, 68, 68);
+  border: 1px solid rgb(217, 217, 217);
+  outline: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.pagination-btn-container {
+  display: flex;
+  display: -webkit-flex;
+  align-items: center;
+  gap: 0.2em;
+  flex-wrap: nowrap;
+}
+
+.pagination-pages-numbers {
+  text-align: center;
+  color: rgb(92, 92, 92);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.pagination-btn:hover {
+  background-color: rgb(255, 247, 240);
+  color: var(--color-main);
+  border-color: rgba(244, 120, 29, 0.35);
+  cursor: pointer;
+}
+
+.pagination-btn:disabled {
+  color: rgb(180, 180, 180);
+  background-color: rgb(246, 246, 246);
+  border-color: rgb(231, 231, 231);
+  box-shadow: none;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.pagination-btn:disabled svg {
+  opacity: 0.55;
+}
+
+.pagination-btn:disabled:hover {
+  cursor: auto;
+  background-color: rgb(246, 246, 246);
+  color: rgb(180, 180, 180);
+  border-color: rgb(231, 231, 231);
+}
+
+.pagination-current-page {
+  margin: 0 0.5em;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgb(92, 92, 92);
+}
+
+.pagination-current-page-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.search-page-input {
+  width: 52px;
+  height: 28px;
+  text-align: center;
+  border: 1px solid rgb(206, 206, 206);
+  border-radius: 6px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.search-page-input:disabled {
+  background-color: rgb(246, 246, 246);
+  color: rgb(170, 170, 170);
+  border-color: rgb(231, 231, 231);
+  box-shadow: none;
+}
+
+@media screen and (max-width: 600px) {
+  .Pagination {
+    justify-content: center;
+    padding: 0.35em 0.5em;
+  }
+
+  .pagination-btn-container {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 0.4em;
+  }
+
+  .pagination-pages-numbers {
+    width: 100%;
+    order: 3;
+    text-align: center;
+  }
+
+  .pagination-current-page {
+    margin: 0 0.2em;
+  }
+}

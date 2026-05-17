@@ -1,14 +1,26 @@
-import { defineConfig } from "vite";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { defineConfig, searchForWorkspaceRoot } from "vite";
+
+const sharedSourceRoot = path.resolve(__dirname, "../packages/shared/src");
 
 export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
+  plugins: [react()],
+  resolve: {
+    alias: [
+      {
+        find: "@petec/shared",
+        replacement: path.resolve(sharedSourceRoot, "index.ts"),
+      },
+      {
+        find: /^@petec\/shared\/(.*)$/,
+        replacement: `${sharedSourceRoot}/$1`,
+      },
+    ],
+  },
   server: {
-    port: 5173,
-    strictPort: true,
     fs: {
-      allow: [".."],
+      allow: [searchForWorkspaceRoot(process.cwd())],
     },
   },
 });

@@ -1,0 +1,37 @@
+.UploadFile {
+  text-align: right;
+  padding-top: 1.2em;
+  display: flex;
+  display: -webkit-flex; 
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.modal.upload-file-modal {
+  background: #fff;
+  border: 2px solid var(--color-main);
+  box-shadow: 0 18px 35px rgba(177, 89, 205, 0.12);
+  padding: 1.5em;
+}
+
+.modal.upload-file-modal input:focus,
+.modal.upload-file-modal select:focus,
+.modal.upload-file-modal textarea:focus {
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 2px rgba(177, 89, 205, 0.2);
+}
+
+.upload-file-btn {
+  margin: 1em 0;
+  float: none;
+}
+
+.upload-file-input {
+  display: none;
+}
+
+.upload-file-message {
+  font-size: 1.2rem;
+  padding-top: 0.5em;
+  margin: 0;
+}

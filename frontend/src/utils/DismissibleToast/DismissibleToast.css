@@ -1,0 +1,21 @@
+#dismissible-toast-container {
+  text-align: right;
+}
+
+.react-hot-toast-dismiss-btn {
+  background: none;
+  outline: none;
+  border: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  display: -webkit-flex; 
+  align-items: center;
+  justify-content: space-around;
+}
+
+.react-hot-toast-dismiss-btn:hover {
+  cursor: pointer;
+  background-color: rgb(240, 241, 241);
+}

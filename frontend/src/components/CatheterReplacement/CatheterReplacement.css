@@ -1,0 +1,17 @@
+.CatheterReplacement {
+  display: flex;
+  display: -webkit-flex; 
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1em;
+}
+
+.catheter-replacement-text {
+  font-size: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  font-weight: 500;
+}

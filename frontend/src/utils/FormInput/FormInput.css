@@ -1,0 +1,79 @@
+.form-input-container {
+  display: flex;
+  display: -webkit-flex; 
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: 80%;
+  max-width: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex; 
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  text-align: right;
+  min-width: 0;
+}
+
+.form-input-label {
+  margin-top: 0.5em;
+  margin-right: 0.5em;
+  font-size: 1.1rem;
+}
+
+.form-required-indicator {
+  color: #c62828;
+  font-weight: 700;
+}
+
+.form-input-icon {
+  margin-left: 0.5em;
+}
+
+.form-input > input {
+  text-align: right;
+  outline: none;
+  border: none;
+  width: 100%;
+  min-width: 0;
+  border: 3px solid var(--input-border-color);
+  font-size: 1rem;
+  padding: 0.5em 0.7em;
+  border-radius: 20px;
+}
+
+.form-input-link {
+  position: absolute;
+  left: 0;
+  width: 35px;
+}
+
+.form-input-link-disabled {
+  color: #9b9b9b;
+  pointer-events: none;
+  cursor: default;
+}
+
+.show-password-icon {
+  position: absolute;
+  left: 0;
+  margin-left: 1em;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 700px) {
+  .form-input-container {
+    width: 100%;
+  }
+
+  .form-input-label {
+    font-size: 1rem;
+  }
+}

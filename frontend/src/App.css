@@ -1,0 +1,212 @@
+:root {
+  --font-family-theme: "Segoe UI", "Noto Sans Hebrew", Tahoma, Arial, sans-serif;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-main: #b159cd;
+  --input-border-color: var(--color-main);
+  --color-soft-box-shadow: #ead8f0;
+  --btn-color-text: white;
+  --text-color: white;
+  --btn-background-color: var(--color-main);
+  --color-light-grey: #f8f0fb;
+  --color-dark-grey: #ecdaf2;
+  --color-scroll-bar: #ead7f1;
+  --color-scroll-bar-hover: #d7b0e4;
+  --header-height: 150px;
+  --table-pagination-height: 50px;
+  --color-alerts: rgb(211, 2, 2);
+  --color-alerts-blue: rgb(16, 16, 196);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+
+input,
+textarea,
+select,
+button,
+table,
+th,
+td {
+  font-family: inherit;
+}
+
+body * {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+select {
+  max-height: 80px;
+}
+
+.btn {
+  border-radius: 20px;
+  padding: 0.35em 0.7em;
+  font-size: 1rem;
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+  border: none;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.35);
+  box-shadow: none;
+  cursor: not-allowed !important;
+}
+
+.btn:disabled:hover {
+  box-shadow: none;
+}
+
+.btn.btn-active:disabled {
+  color: #8a8a8a;
+  background-color: #f0f0f0;
+  border-color: #b9b9b9;
+}
+
+.btn-selected,
+.btn-selected:hover,
+.btn-selected:disabled,
+.btn-selected:disabled:hover {
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+  border: none;
+  opacity: 1;
+  filter: none;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+.btn-selected:disabled {
+  cursor: default !important;
+}
+
+.navbar .btn:disabled {
+  cursor: auto !important;
+}
+
+.btn-round {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  padding: 0.5em;
+}
+
+.btn-icon-only {
+  border: none !important;
+}
+
+.btn-icon-only:hover {
+  cursor: pointer;
+  background-color: var(--color-white) !important;
+  color: var(--color-main) !important;
+}
+
+.btn-active,
+.header-navbar .btn-active:hover {
+  color: var(--btn-background-color);
+  background-color: var(--btn-color-text);
+  border: 3px solid var(--btn-background-color);
+}
+
+.btn-active:hover {
+  color: var(--btn-color-text);
+  background-color: var(--btn-background-color);
+}
+
+.btn-large {
+  width: 75%;
+}
+
+.btn-medium {
+  width: 50%;
+}
+
+.btn-small {
+  width: 25%;
+}
+
+.btn:hover {
+  cursor: pointer;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.1);
+}
+
+.form-label {
+  font-size: 1.4em;
+  text-decoration: underline;
+  text-align: right;
+  width: 100%;
+  display: block;
+  color: var(--color-main);
+  font-weight: 600;
+}
+
+input,
+textarea {
+  direction: rtl;
+}
+
+textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+textarea::-webkit-resizer,
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-scroll-bar);
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-scroll-bar-hover);
+}
+
+@media screen and (max-width: 600px) {
+  :root {
+    --table-pagination-height: 74px;
+  }
+
+  body * {
+    overflow-wrap: anywhere;
+  }
+
+  .btn {
+    font-size: 0.8rem;
+    min-height: 40px;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .btn-large,
+  .btn-medium,
+  .btn-small {
+    width: 100%;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+}

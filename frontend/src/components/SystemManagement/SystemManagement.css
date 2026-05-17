@@ -1,0 +1,270 @@
+.systemManagement {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.systemManagement,
+.systemManagement * {
+  font-family: var(--font-family-theme);
+}
+
+.system-management-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  padding: 2em;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.system-management-navbar {
+  justify-content: flex-end;
+  display: flex;
+  display: -webkit-flex;
+  padding: 1em 1em 0;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.system-management-navbar button {
+  margin-right: 0;
+}
+
+.system-management-navbar .btn-active,
+.system-management-navbar .btn-selected,
+.system-management-navbar .btn-selected:hover,
+.system-management-navbar .btn-selected:disabled,
+.system-management-navbar .btn-selected:disabled:hover {
+  border: 3px solid var(--color-main);
+}
+
+.systemManagement .form-select > select,
+.systemManagement .form-select-control {
+  height: 26px !important;
+  min-height: 26px !important;
+  line-height: 1.1;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-right: 0.55em !important;
+  padding-left: 1.65em !important;
+  font-size: 0.84rem !important;
+  border-radius: 8px;
+  border-width: 2px;
+  background-position: left 0.6em center !important;
+}
+
+.systemManagement .form-select-label {
+  margin-top: 0.12em;
+  margin-bottom: 0.12em;
+  font-size: 0.88rem;
+}
+
+.systemManagement .form-select {
+  width: 72%;
+  min-width: 190px;
+}
+
+.system-management-users-table {
+  width: 95%;
+  margin: 1.5em auto;
+  height: 100%;
+}
+
+.system-management-system-types-table,
+.system-management-history-table {
+  width: 95%;
+  height: 95%;
+}
+
+.save-entity-form-container {
+  width: 90%;
+  margin: 1em auto;
+  max-width: 500px;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 1em;
+  border-radius: 20px;
+  border: 3px solid var(--color-main);
+  box-sizing: border-box;
+}
+
+.save-entity-form {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+}
+
+.save-entity-form .form-input-container,
+.save-entity-form .form-select {
+  margin: 1em;
+}
+
+.save-entity-form-btn {
+  margin: 1.5em auto;
+}
+
+.modal.system-management-modal {
+  padding: 1.5em 2em 2em;
+  background: radial-gradient(
+      circle at top left,
+      rgba(244, 120, 29, 0.08),
+      transparent 32%
+    ),
+    linear-gradient(170deg, #ffffff, #fffaf5);
+  border: 2px solid rgba(244, 120, 29, 0.25);
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+}
+
+.modal.modal-md.system-management-modal {
+  width: min(500px, 92vw);
+  max-width: 92vw;
+}
+
+.modal.modal-lg.system-management-modal {
+  width: min(620px, 95vw);
+  max-width: 95vw;
+}
+
+.modal.system-management-modal .close-button {
+  top: 18px;
+  left: 18px;
+}
+
+.modal.system-management-modal .save-entity-form-container {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+.modal.system-management-modal .save-entity-form {
+  width: 100%;
+}
+
+.modal.system-management-modal .system-management-modal-title {
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.modal.system-management-modal .delete-modal {
+  align-items: flex-end;
+  text-align: right;
+  direction: rtl;
+  gap: 0.85em;
+  margin-top: 1.2em;
+  min-width: 340px;
+}
+
+.modal.system-management-modal .delete-modal p {
+  margin: 0;
+}
+
+.modal.system-management-modal select,
+.modal.system-management-modal .form-select > select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23212d37%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: left 0.75em top 50%;
+  background-size: 0.65em auto;
+  padding-left: 2em;
+  border-radius: 12px;
+  height: 26px !important;
+  min-height: 26px !important;
+  line-height: 1.1;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-right: 0.55em !important;
+  padding-left: 1.65em !important;
+  border: 1px solid #cbd7e1;
+  font-size: 0.84rem !important;
+  background-position: left 0.6em center !important;
+}
+
+.modal.system-management-modal input {
+  height: 42px;
+  border: 1px solid #cbd7e1;
+  border-radius: 12px;
+  padding: 0.5em 0.75em;
+  font-size: 0.95rem;
+}
+
+.modal.system-management-modal input:focus,
+.modal.system-management-modal select:focus,
+.modal.system-management-modal textarea:focus {
+  outline: none;
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 2px rgba(244, 120, 29, 0.2);
+}
+
+@media screen and (max-width: 700px) {
+  .systemManagement {
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .system-management-navbar {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .system-management-navbar .btn {
+    flex: 1 1 calc(50% - 0.5rem);
+    max-width: 220px;
+  }
+
+  .system-management-main {
+    padding: 0.75rem;
+    overflow: visible;
+  }
+
+  .systemManagement .form-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .save-entity-form-container {
+    width: 100%;
+    padding: 1rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .save-entity-form {
+    width: 100%;
+  }
+
+  .save-entity-form .form-input-container,
+  .save-entity-form .form-select {
+    margin: 0.5em 0;
+  }
+
+  .modal.system-management-modal {
+    padding: 1.25rem 1rem 1.5rem;
+  }
+
+  .modal.system-management-modal .delete-modal {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .system-management-navbar .btn {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
