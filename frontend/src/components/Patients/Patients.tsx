@@ -220,9 +220,10 @@ function Patients({ patientsNavType }: PatientsProps) {
           רשימת מטופלים
         </button>
       </nav>
-      {(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
-        patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES ||
-        isArchive) && (
+      {isShowOneTable &&
+        (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
+          patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES ||
+          isArchive) && (
         <div className="patients-list-type-toggle">
           <button
             type="button"

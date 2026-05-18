@@ -9,8 +9,7 @@
 
 .patients-navbar {
   justify-content: flex-end;
-  display: flex;
-  display: -webkit-flex; 
+  display: none;
   padding-top: 1em;
   width: 100%;
   flex-wrap: wrap;
@@ -245,7 +244,95 @@
 }
 
 .patients-mobile-menu {
-  display: none;
+  width: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  padding: 0;
+  box-sizing: border-box;
+  z-index: 30;
+  pointer-events: auto;
+  flex: 0 0 auto;
+}
+
+.patients-mobile-menu__trigger {
+  width: auto;
+  white-space: nowrap;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.patients-mobile-menu__trigger:hover:not(:disabled),
+.patients-mobile-menu__trigger:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.patients-mobile-menu--with-actions .patients-mobile-menu__trigger {
+  width: 100%;
+}
+
+.patients-mobile-menu__trigger:focus-visible,
+.patients-mobile-menu__panel button:focus-visible {
+  outline: 2px solid var(--color-main);
+  outline-offset: 2px;
+}
+
+.patients-mobile-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 220px;
+  max-width: 85vw;
+  padding: 0.5rem;
+  border: 1px solid rgba(177, 89, 205, 0.22);
+  border-radius: 16px;
+  background: var(--color-white);
+  box-shadow: 0 16px 36px rgba(37, 26, 46, 0.22);
+  direction: rtl;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.patients-mobile-menu__panel button {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #2f2437;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: right;
+  padding: 0.6rem 0.85rem;
+  white-space: nowrap;
+}
+
+.patients-mobile-menu__panel button:hover:not(:disabled),
+.patients-mobile-menu__panel button.is-active {
+  color: var(--color-main);
+  background: rgba(177, 89, 205, 0.12);
+}
+
+.patients-mobile-menu__panel button:disabled {
+  opacity: 1;
+  filter: none;
+}
+
+.patients-mobile-menu__divider {
+  height: 1px;
+  margin: 0.35rem 0;
+  background: #ecdaf2;
 }
 
 @media screen and (max-width: 720px) {
