@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaCamera } from "react-icons/fa";
 import DatePicker from "../../../../utils/DatePicker/DatePicker";
 import FormInput from "../../../../utils/FormInput/FormInput";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
@@ -86,6 +86,7 @@ interface SavePatientPatientInfoSectionProps {
   onShowPatientChartsModal?: () => void;
   onShowArchiveConfirmationModal?: () => void;
   onShowDeletePatientCaseModal?: () => void;
+  onSavePatientChanges?: () => Promise<boolean>;
 }
 
 function SavePatientPatientInfoSection({
@@ -153,13 +154,23 @@ function SavePatientPatientInfoSection({
   onShowPatientChartsModal,
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
+  onSavePatientChanges,
 }: SavePatientPatientInfoSectionProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
+  const isSaveDisabled =
+    isSaveButtonsDisabled ||
+    !hasChanges ||
+    isSaving ||
+    isArchived ||
+    !onSavePatientChanges;
 
   const runMobileAction = (action?: () => void) => {
     setIsMobileMenuOpen(false);
     action?.();
+  };
+  const saveFromMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    void onSavePatientChanges?.();
   };
   const currentPatientImage = isEdit ? getPatientImageSrc(photoName) : "#";
   const getOptionText = (options: SelectOptionObj[], value: string): string =>
@@ -217,12 +228,19 @@ function SavePatientPatientInfoSection({
       {isEdit && (
         <section className="edit-patient-mobile-summary" aria-label="פרטי מטופל">
           <div className="edit-patient-mobile-summary__main">
-            <img
-              className="edit-patient-mobile-summary__image"
-              src={currentPatientImage}
-              onError={handlePatientImageLoadError}
-              alt="patient"
-            />
+            <div className="edit-patient-mobile-summary__image-wrapper">
+              <FormUploadImage
+                uploadedImageId="save-patient-img-mobile"
+                isLarge={false}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                currentImage={currentPatientImage}
+                isDefault={isEdit}
+              />
+              <div className="edit-patient-mobile-summary__image-edit-icon">
+                <FaCamera />
+              </div>
+            </div>
             <div className="edit-patient-mobile-summary__identity">
               <h2>{formData.name || "מטופל"}</h2>
               <span>תיק {formData.caseId || "-"}</span>
@@ -247,10 +265,9 @@ function SavePatientPatientInfoSection({
                     חזרה
                   </button>
                   <button
-                    type="submit"
-                    form="save-patient-form"
+                    type="button"
                     disabled={isSaveDisabled}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={saveFromMobileMenu}
                   >
                     {isSaving ? "...שומר" : "שמור"}
                   </button>

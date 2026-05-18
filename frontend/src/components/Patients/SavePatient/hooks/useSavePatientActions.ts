@@ -181,7 +181,8 @@ export function useSavePatientActions(
             navigateOnCreate = false,
             reloadAfterEdit = true,
         }: SavePatientChangesOptions = {}): Promise<boolean> => {
-            if (!hasChanges) {
+            const hasSelectedImage = Boolean(state.selectedFile);
+            if (!hasChanges && !hasSelectedImage) {
                 return false;
             }
 

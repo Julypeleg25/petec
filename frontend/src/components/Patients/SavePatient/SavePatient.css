@@ -27,10 +27,12 @@
 
 .edit-patient-form-container {
   margin: 0 auto;
-  padding: 0 1em;
+  padding: 0.75rem 1.25rem 1rem;
   height: 100%;
   overflow-y: scroll;
-  width: 95%;
+  width: 96%;
+  border: none;
+  border-radius: 0;
 }
 
 .new-patient-form-title {
@@ -152,6 +154,7 @@
 .edit-patient-actions-container {
   width: 100%;
   position: relative;
+  z-index: 20;
 }
 
 .edit-patient-mobile-actions,
@@ -163,6 +166,93 @@
 .edit-patient-btns-container button {
   margin: 0.8em 0 0.8em 0;
   max-width: 100px;
+}
+
+.edit-patient-actions-menu-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-direction: row;
+  gap: 0.65rem;
+  padding: 0.15rem 0 0.7rem;
+  direction: ltr;
+}
+
+.edit-patient-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.edit-patient-actions-menu__trigger {
+  min-width: 130px;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  box-shadow: 0 8px 20px rgba(177, 89, 205, 0.18);
+}
+
+.edit-patient-actions-menu__trigger:focus-visible,
+.edit-patient-actions-menu__panel button:focus-visible {
+  outline: 2px solid var(--color-main);
+  outline-offset: 2px;
+}
+
+.edit-patient-actions-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 50;
+  width: 230px;
+  max-width: 86vw;
+  padding: 0.5rem;
+  border: 1px solid rgba(177, 89, 205, 0.22);
+  border-radius: 16px;
+  background: var(--color-white);
+  box-shadow: 0 16px 36px rgba(37, 26, 46, 0.2);
+  direction: rtl;
+}
+
+.edit-patient-actions-menu__panel button {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #2f2437;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: right;
+  padding: 0.58rem 0.8rem;
+}
+
+.edit-patient-actions-menu__panel button:hover:not(:disabled) {
+  color: var(--color-main);
+  background: rgba(177, 89, 205, 0.12);
+}
+
+.edit-patient-actions-menu__panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-patient-actions-menu__danger {
+  color: #b42318 !important;
+}
+
+.edit-patient-actions-menu__danger:hover:not(:disabled) {
+  color: #ffffff !important;
+  background: #b42318 !important;
 }
 
 .release-info-btn {
@@ -599,15 +689,55 @@
     flex-wrap: nowrap;
   }
 
-  .edit-patient-mobile-summary__image {
+  .edit-patient-mobile-summary__image-wrapper {
     width: 76px;
     height: 76px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 2px solid #ecdaf2;
     flex: 0 0 auto;
+    border-radius: 16px;
+    border: 2px solid #ecdaf2;
     background: #fdfafd;
     margin-left: 0.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .FormUploadImage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .upload-image-container {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .upload-image-img {
+    border-radius: 0;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .capture-image-btn {
+    display: none;
+  }
+
+  .edit-patient-mobile-summary__image-edit-icon {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-main);
+    font-size: 0.65rem;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   }
 
   .edit-patient-mobile-summary__identity {

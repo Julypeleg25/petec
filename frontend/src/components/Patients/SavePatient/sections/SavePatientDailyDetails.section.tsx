@@ -31,6 +31,7 @@ interface SavePatientDailyDetailsSectionProps {
   handleSetEditableFieldsButtonClick: (e: SavePatientActionEvent) => void;
   addNewCaseDailyDetails: (e: SavePatientActionEvent) => void;
   deleteSelectedCaseDailyDetails: (e: SavePatientActionEvent) => void;
+  onSavePatientChanges: () => Promise<boolean>;
 }
 
 function SavePatientDailyDetailsSection({
@@ -52,6 +53,7 @@ function SavePatientDailyDetailsSection({
   handleSetEditableFieldsButtonClick,
   addNewCaseDailyDetails,
   deleteSelectedCaseDailyDetails,
+  onSavePatientChanges,
 }: SavePatientDailyDetailsSectionProps) {
   const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
   const caseDateOptions = buildCaseDetailsDateOptions(caseDetailsList);
@@ -66,6 +68,10 @@ function SavePatientDailyDetailsSection({
       setIsMobileActionsOpen(false);
       action(event);
     };
+  const saveFromMobileMenu = () => {
+    setIsMobileActionsOpen(false);
+    void onSavePatientChanges();
+  };
 
   return (
     <div className="above-daily-details-table-section">
@@ -192,10 +198,9 @@ function SavePatientDailyDetailsSection({
               className="daily-details-mobile-actions__panel"
             >
               <button
-                type="submit"
-                form="save-patient-form"
+                type="button"
                 disabled={isSaveDisabled}
-                onClick={() => setIsMobileActionsOpen(false)}
+                onClick={saveFromMobileMenu}
               >
                 שמור
               </button>
