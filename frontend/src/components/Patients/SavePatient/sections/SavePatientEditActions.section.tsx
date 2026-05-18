@@ -15,6 +15,7 @@ interface SavePatientEditActionsSectionProps {
   onShowPatientChartsModal: () => void;
   onShowArchiveConfirmationModal: () => void;
   onShowDeletePatientCaseModal: () => void;
+  onSavePatientChanges: () => Promise<boolean>;
 }
 
 function SavePatientEditActionsSection({
@@ -31,12 +32,17 @@ function SavePatientEditActionsSection({
   onShowPatientChartsModal,
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
+  onSavePatientChanges,
 }: SavePatientEditActionsSectionProps) {
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
   const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
   const handleMenuAction = (action: () => void) => {
     setIsActionsMenuOpen(false);
     action();
+  };
+  const saveFromMenu = () => {
+    setIsActionsMenuOpen(false);
+    void onSavePatientChanges();
   };
 
   return (
@@ -67,10 +73,9 @@ function SavePatientEditActionsSection({
               className="edit-patient-actions-menu__panel"
             >
               <button
-                type="submit"
-                form="save-patient-form"
+                type="button"
                 disabled={isSaveDisabled}
-                onClick={() => setIsActionsMenuOpen(false)}
+                onClick={saveFromMenu}
               >
                 {isSaving ? "...שומר" : "שמור"}
               </button>

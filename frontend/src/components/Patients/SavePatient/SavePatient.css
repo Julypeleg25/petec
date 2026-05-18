@@ -689,15 +689,55 @@
     flex-wrap: nowrap;
   }
 
-  .edit-patient-mobile-summary__image {
+  .edit-patient-mobile-summary__image-wrapper {
     width: 76px;
     height: 76px;
-    border-radius: 16px;
-    object-fit: cover;
-    border: 2px solid #ecdaf2;
     flex: 0 0 auto;
+    border-radius: 16px;
+    border: 2px solid #ecdaf2;
     background: #fdfafd;
     margin-left: 0.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .FormUploadImage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .upload-image-container {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .upload-image-img {
+    border-radius: 0;
+  }
+
+  .edit-patient-mobile-summary__image-wrapper .capture-image-btn {
+    display: none;
+  }
+
+  .edit-patient-mobile-summary__image-edit-icon {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-main);
+    font-size: 0.65rem;
+    z-index: 5;
+    pointer-events: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
   }
 
   .edit-patient-mobile-summary__identity {
