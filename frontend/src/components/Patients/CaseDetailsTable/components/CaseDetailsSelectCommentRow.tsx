@@ -79,9 +79,8 @@ export const CaseDetailsSelectCommentRow = memo(
           return (
             <div
               key={i}
-              className={`case-details-table-body-row-cell ${
-                isCellEditable ? "case-details-pop-up-parent" : ""
-              } ${isCellRequired ? "required-cell" : ""}`}
+              className={`case-details-table-body-row-cell ${isCellEditable ? "case-details-pop-up-parent" : ""
+                } ${isCellRequired ? "required-cell" : ""}`}
               onClickCapture={(e) =>
                 handleSimpleCellToggle(
                   e,
@@ -132,8 +131,8 @@ export const CaseDetailsSelectCommentRow = memo(
                   ) || ""
                 }
                 name={commentsKey}
-                height="20px"
-                minHeight="20px"
+                height="40px"
+                minHeight="40px"
                 width="100%"
                 minWidth="60%"
                 maxLength={150}
