@@ -236,6 +236,7 @@ function SavePatientPatientInfoSection({
                 setSelectedFile={setSelectedFile}
                 currentImage={currentPatientImage}
                 isDefault={isEdit}
+                imageClickAction="choice"
               />
               <div className="edit-patient-mobile-summary__image-edit-icon">
                 <FaCamera />
