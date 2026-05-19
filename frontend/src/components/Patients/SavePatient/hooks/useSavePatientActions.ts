@@ -211,6 +211,11 @@ export function useSavePatientActions(
 
             state.disableSaveBtns(true);
 
+            const resolvedProcedureDate =
+                state.isProcedure && !state.formData.dates?.procedureDate
+                    ? new Date()
+                    : state.formData.dates?.procedureDate;
+
             const baseBody: Omit<NewPatientDTO, "caseId"> = {
                 name: state.formData.name,
                 owner: {
@@ -248,9 +253,7 @@ export function useSavePatientActions(
                     catheterDate: toRequestDateValue(
                         state.formData.dates?.catheterDate,
                     ),
-                    procedureDate: toRequestDateValue(
-                        state.formData.dates?.procedureDate,
-                    ),
+                    procedureDate: toRequestDateValue(resolvedProcedureDate),
                 },
                 refs: {
                     animalTypeId: state.selectedAnimalType || undefined,

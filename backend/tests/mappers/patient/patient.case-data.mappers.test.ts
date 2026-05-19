@@ -133,7 +133,7 @@ describe("patient.case-data.mappers", () => {
     expect(result).not.toHaveProperty("refs");
   });
 
-  it("leaves cases active when they are not procedures or have no procedure date", () => {
+  it("leaves non-procedure cases active and defaults missing procedure dates to today", () => {
     jest.useFakeTimers().setSystemTime(new Date("2026-04-21T09:00:00.000Z"));
 
     const nonProcedure = mapNewPatientDtoToCaseData(
@@ -163,6 +163,9 @@ describe("patient.case-data.mappers", () => {
 
     expect(nonProcedure.isArchived).toBe(false);
     expect(missingProcedureDate.isArchived).toBe(false);
+    expect(missingProcedureDate.dates?.procedureDate?.toISOString()).toBe(
+      "2026-04-21T12:00:00.000Z",
+    );
   });
 
   it("merges editable case updates, deletes nullable dates, and keeps manual procedure unarchive overrides", () => {
@@ -300,5 +303,36 @@ describe("patient.case-data.mappers", () => {
       isManuallyUnarchived: false,
       isArchived: true,
     });
+  });
+
+  it("defaults edited cases moved to procedures to today's procedure date", () => {
+    jest.useFakeTimers().setSystemTime(new Date("2026-04-21T09:00:00.000Z"));
+
+    const result = mapEditDtoToCaseUpdate(
+      {
+        flags: {
+          isProcedure: true,
+        },
+      } as never,
+      {
+        flags: {
+          isProcedure: false,
+        },
+        dates: {
+          catheterDate: new Date("2026-04-20T12:00:00.000Z"),
+        },
+      } as never,
+    );
+
+    expect(result.flags).toEqual({
+      isProcedure: true,
+    });
+    expect(result.dates?.catheterDate?.toISOString()).toBe(
+      "2026-04-20T12:00:00.000Z",
+    );
+    expect(result.dates?.procedureDate?.toISOString()).toBe(
+      "2026-04-21T12:00:00.000Z",
+    );
+    expect(result.isArchived).toBe(false);
   });
 });

@@ -113,6 +113,28 @@ const shouldAutoArchiveProcedureCase = (
     isProcedureCaseOutsideToday(flags, dates) &&
     isManuallyUnarchived !== true;
 
+const ensureTodayProcedureDate = (
+    flags?: ICase["flags"],
+    dates?: ICase["dates"],
+): ICase["dates"] | undefined => {
+    if (
+        flags?.isProcedure !== true ||
+        toDateInputString(dates?.procedureDate)
+    ) {
+        return dates;
+    }
+
+    const todayProcedureDate = toCanonicalJerusalemDate(new Date());
+    if (!todayProcedureDate) {
+        return dates;
+    }
+
+    return {
+        ...(dates ?? {}),
+        procedureDate: todayProcedureDate,
+    };
+};
+
 export const mapRefsToObjectIds = (
     refs: NonNullable<NewPatientDTO["refs"]>,
 ): CaseRefsData => {
@@ -197,6 +219,14 @@ export const mapNewPatientDtoToCaseData = (
         caseData.refs = mapRefsToObjectIds(dto.refs);
     }
 
+    const datesWithProcedureDefault = ensureTodayProcedureDate(
+        caseData.flags,
+        caseData.dates,
+    );
+    if (datesWithProcedureDefault) {
+        caseData.dates = datesWithProcedureDefault;
+    }
+
     caseData.isArchived = shouldAutoArchiveProcedureCase(
         caseData.flags,
         caseData.dates,
@@ -259,7 +289,15 @@ export const mapEditDtoToCaseUpdate = (
     }
 
     const nextFlags = update.flags ?? caseObject.flags;
-    const nextDates = update.dates ?? caseObject.dates;
+    let nextDates: ICase["dates"] | undefined = update.dates ?? caseObject.dates;
+    const datesWithProcedureDefault = ensureTodayProcedureDate(
+        nextFlags,
+        nextDates,
+    );
+    if (datesWithProcedureDefault && datesWithProcedureDefault !== nextDates) {
+        update.dates = datesWithProcedureDefault;
+        nextDates = datesWithProcedureDefault;
+    }
     const nextIsManuallyUnarchived = shouldKeepManualUnarchiveOverride(
         caseObject.isManuallyUnarchived,
         nextFlags,
