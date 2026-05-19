@@ -65,10 +65,12 @@ function SavePatientDailyDetailsSection({
 
   const runMobileAction = (action: (e: SavePatientActionEvent) => void) =>
     (event: SavePatientActionEvent) => {
-      setIsMobileActionsOpen(false);
       action(event);
+      setIsMobileActionsOpen(false);
     };
-  const saveFromMobileMenu = () => {
+  const saveFromMobileMenu = (event: SavePatientActionEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     setIsMobileActionsOpen(false);
     void onSavePatientChanges();
   };
@@ -204,11 +206,18 @@ function SavePatientDailyDetailsSection({
               >
                 שמור
               </button>
-              <button type="button" onClick={runMobileAction(handlePaintingModeButtonClick)}>
+              <button
+                type="button"
+                className={paintingMode ? "daily-details-mobile-actions__mode-active" : ""}
+                aria-pressed={paintingMode}
+                onClick={runMobileAction(handlePaintingModeButtonClick)}
+              >
                 {paintingMode ? "עצור סימון" : "סימון שדות חובה"}
               </button>
               <button
                 type="button"
+                className={editableFieldsMode ? "daily-details-mobile-actions__mode-active" : ""}
+                aria-pressed={editableFieldsMode}
                 onClick={runMobileAction(handleSetEditableFieldsButtonClick)}
               >
                 {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
