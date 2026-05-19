@@ -99,8 +99,8 @@ export const CaseDetailsBooleanCommentRow = memo(
                   ) || ""
                 }
                 name={dataKeyPrefix}
-                height="40px"
-                minHeight="40px"
+                height="20px"
+                minHeight="20px"
                 maxHeight="100px"
                 width="100%"
                 minWidth="60%"

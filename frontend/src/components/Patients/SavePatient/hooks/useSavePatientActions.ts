@@ -15,7 +15,6 @@ import { systemTypesApi } from "../../../../features/system-management/systemTyp
 import { AppRoutes } from "../../../../config/appRoutes";
 import { getCaseDayPrimaryDataRow, resolveCaseDayStartHour } from "../../CaseDetailsTable/caseGrid.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
-import { getClosestStartHour } from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
 import { mapCaseDetailsGridToDto } from "../utils/savePatient.utils";
 import {
     buildEmptyCaseDailyDetailsTemplate,
@@ -365,7 +364,12 @@ export function useSavePatientActions(
             state.setCaseDetailsDataIndex(0);
             state.setShowCaseDetailsDaysOptions(true);
 
-            state.setTimeSelectionValue(getClosestStartHour());
+            const previousStartHour = resolveCaseDayStartHour(state.caseDetailsList[0] ?? []);
+            state.setTimeSelectionValue(
+                previousStartHour !== null
+                    ? String(previousStartHour)
+                    : SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
+            );
 
             const firstDataRow = getCaseDayPrimaryDataRow(defaultCaseDailyData);
             state.setSelectedCaseDate(
@@ -389,7 +393,7 @@ export function useSavePatientActions(
                 state.setCaseDetailsList([emptyCaseDay]);
                 state.setCaseDetailsDataIndex(0);
                 state.setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
-                state.setTimeSelectionValue(getClosestStartHour());
+                state.setTimeSelectionValue(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
                 state.setShowCaseDetailsDaysOptions(false);
                 return;
             }
@@ -406,7 +410,7 @@ export function useSavePatientActions(
             state.setTimeSelectionValue(
                 nextStartHour !== null
                     ? String(nextStartHour)
-                    : getClosestStartHour(),
+                    : SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
             );
             state.setShowCaseDetailsDaysOptions(
                 nextList.some((caseDay) => Boolean(getCaseDayPrimaryDataRow(caseDay)?.date)),
