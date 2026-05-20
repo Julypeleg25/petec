@@ -366,3 +366,12 @@
   text-align: right;
   align-self: flex-end;
 }
+
+.case-details-table textarea[id^="urine-textarea-"],
+.case-details-table textarea[id^="feces-textarea-"],
+.case-details-table textarea[id^="puke-textarea-"] {
+  min-height: 48px !important;
+  height: auto !important;
+  padding: 0.55em 0.7em;
+  line-height: 1.2;
+}
