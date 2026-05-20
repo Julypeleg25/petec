@@ -43,6 +43,7 @@ function Calendar() {
   const [isDayListOpen, setIsDayListOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<SelectedCalendarDay | null>(null);
   const [todayJumpRequest, setTodayJumpRequest] = useState(0);
+  const hasInitialTodayJumpRef = useRef(false);
 
   const currentMonthCursor = createCurrentMonthCursor();
   const todayDateKey = getDateKey(new Date());
@@ -76,6 +77,29 @@ function Calendar() {
       setSelectedDay(null);
     }
   }, [isDayListOpen]);
+
+  useEffect(() => {
+    if (hasInitialTodayJumpRef.current) {
+      return;
+    }
+    if (isLoading) {
+      return;
+    }
+    if (
+      visibleMonth.year !== currentMonthCursor.year ||
+      visibleMonth.month !== currentMonthCursor.month
+    ) {
+      return;
+    }
+    hasInitialTodayJumpRef.current = true;
+    setTodayJumpRequest((current) => current + 1);
+  }, [
+    isLoading,
+    visibleMonth.month,
+    visibleMonth.year,
+    currentMonthCursor.month,
+    currentMonthCursor.year,
+  ]);
 
   useEffect(() => {
     if (todayJumpRequest === 0) {
