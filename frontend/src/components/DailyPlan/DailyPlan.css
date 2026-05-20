@@ -11,11 +11,20 @@
 .daily-plan-table {
   width: 100%;
   height: 97%;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
   padding: 0 0.5em;
-  direction: rtl;
+  direction: ltr;
   -webkit-overflow-scrolling: touch;
+}
+
+.daily-plan-table-horizontal {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  direction: rtl;
 }
 
 .daily-plan-grid {
@@ -168,7 +177,7 @@
 @media print {
   @page {
     size: A4 landscape;
-    margin: 8mm;
+    margin: 6mm;
   }
 
   html,
@@ -197,9 +206,11 @@
     margin: 0;
     padding: 0;
     color: #18202a;
-    font-size: 8.5pt;
-    line-height: 1.3;
+    font-size: 7pt;
+    line-height: 1.25;
     background: #ffffff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   .daily-plan-toolbar,
@@ -209,36 +220,54 @@
 
   .daily-plan-print-header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     direction: rtl;
-    padding: 0 0 5mm;
-    margin-bottom: 4mm;
-    border-bottom: 1.5pt solid #1f4b5f;
+    padding: 0 0 3.5mm;
+    margin-bottom: 3mm;
+    border-bottom: 1pt solid #b9c8cf;
   }
 
   .daily-plan-print-header h1 {
     margin: 0;
-    font-size: 20pt;
+    font-size: 17pt;
     font-weight: 700;
-    color: #17384a;
+    line-height: 1;
+    color: #123447;
   }
 
   .daily-plan-print-header p {
-    margin: 1mm 0 0;
-    font-size: 10pt;
+    display: inline-flex;
+    width: fit-content;
+    margin: 1.5mm 0 0;
+    padding: 0.8mm 2.5mm;
+    border: 0.6pt solid #c9d6dc;
+    border-radius: 999px;
+    background: #f4f8fa;
+    font-size: 7.5pt;
     font-weight: 700;
     letter-spacing: 0;
-    color: #4b6472;
+    color: #4a6371;
   }
 
   .daily-plan-print-meta {
     display: flex;
     flex-direction: column;
-    gap: 1.5mm;
+    gap: 1.2mm;
     text-align: right;
-    font-size: 9pt;
-    color: #263746;
+    font-size: 7.5pt;
+    color: #243847;
+  }
+
+  .daily-plan-print-meta span {
+    padding: 0.8mm 2mm;
+    border: 0.6pt solid #d4e0e5;
+    border-radius: 2mm;
+    background: #fbfdfe;
+  }
+
+  .daily-plan-print-meta b {
+    color: #123447;
   }
 
   .daily-plan-table {
@@ -248,82 +277,156 @@
     padding: 0;
   }
 
-  .daily-plan-table-header {
-    position: static;
-    height: auto;
+  .daily-plan-grid,
+  .daily-plan-table-header,
+  .daily-plan-table-body-row {
+    grid-template-columns:
+      minmax(9mm, 0.55fr)
+      minmax(14mm, 0.72fr)
+      minmax(18mm, 0.9fr)
+      minmax(21mm, 1fr)
+      minmax(23mm, 1.1fr)
+      minmax(30mm, 1.45fr)
+      minmax(30mm, 1.45fr)
+      minmax(28mm, 1.35fr)
+      minmax(28mm, 1.35fr)
+      minmax(34mm, 1.65fr);
+  }
+
+  .daily-plan-grid {
+    display: block;
+    width: 100%;
     min-width: 0;
-    border: 1pt solid #263746;
-    background: #eaf1f4;
-    color: #172733;
+    overflow: hidden;
+    border: 1pt solid #7d929c;
+    border-radius: 2mm;
+    background: #ffffff;
+  }
+
+  .daily-plan-table-header {
+    display: grid;
+    background: #dfeaf0;
+    color: #102d3e;
   }
 
   .daily-plan-table-body {
-    min-width: 0;
-    border: 1pt solid #263746;
-    border-top: none;
+    display: block;
   }
 
   .daily-plan-table-body-row {
+    display: grid;
     break-inside: avoid;
     page-break-inside: avoid;
-    border-bottom: 1pt solid #b8c7cf;
   }
 
   .daily-plan-table-header-cell,
   .daily-plan-table-body-cell {
+    position: static;
     min-width: 0;
-    border-right: 1pt solid #b8c7cf;
-    padding: 1.8mm 1mm;
-    font-size: 7.2pt;
+    min-height: 0;
+    border-right: 0.7pt solid #cad7dd;
+    border-bottom: 0.7pt solid #cad7dd;
+    padding: 1.8mm 1.2mm;
+    font-size: 6.2pt;
     overflow-wrap: anywhere;
-    word-break: normal;
+    word-break: break-word;
+    line-height: 1.2;
   }
 
   .daily-plan-table-header-cell {
     font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 8mm;
+    border-bottom-color: #8fa5af;
+    background: #dfeaf0;
   }
 
   .daily-plan-table-header-cell:first-child,
   .daily-plan-table-body-row > .daily-plan-table-body-cell:first-child {
+    border-right: none;
     min-width: 0;
   }
 
-  .daily-plan-table-header-cell:nth-child(2),
-  .daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(2),
-  .daily-plan-table-header-cell:nth-child(3),
-  .daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(3),
-  .daily-plan-table-header-cell:nth-child(4),
-  .daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(4),
-  .daily-plan-table-header-cell:nth-child(5),
-  .daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(5),
-  .daily-plan-table-header-cell-large,
-  .daily-plan-table-body-cell-large {
-    min-width: 0;
+  .daily-plan-table-body-cell {
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    color: #1f2f3a;
+  }
+
+  .daily-plan-table-body-row:nth-child(even) > .daily-plan-table-body-cell {
+    background: #f7fafb;
+  }
+
+  .daily-plan-table-body-row > .daily-plan-table-body-cell:first-child,
+  .daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(2) {
+    font-weight: 700;
+    color: #123447;
+    background: #fbfdfe;
+  }
+
+  .daily-plan-table-body-cell.daily-plan-table-body-cell-large {
+    align-items: flex-start;
+    text-align: right;
+    gap: 0.6mm;
   }
 
   .daily-plan-table-body-cell-examinations,
   .daily-plan-table-body-cell-owner-update,
   .daily-plan-table-body-cell-medicines {
     width: 100%;
-    margin: 0 0 1.2mm;
+    margin: 0;
+    padding-bottom: 0.7mm;
+    border-bottom: 0.4pt solid #e3ebef;
+  }
+
+  .daily-plan-table-body-cell-examinations:last-child,
+  .daily-plan-table-body-cell-owner-update:last-child,
+  .daily-plan-table-body-cell-medicines:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
   .daily-plan-table-body-cell-examinations > span:last-child,
   .daily-plan-table-body-cell-owner-update > span:last-child,
   .daily-plan-table-body-cell-examinations > span:nth-child(2),
   .daily-plan-table-body-cell-medicines > span:last-child {
-    font-size: 6.8pt;
+    font-size: 5.8pt;
     padding-right: 0;
+    color: #536a76;
+  }
+
+  .daily-plan-table-body-cell-examinations > span b,
+  .daily-plan-table-body-cell-medicines > span b,
+  .daily-plan-table-body-cell-owner-update > span b {
+    color: #142f40;
   }
 
   .daily-plan-table-body-cell-number {
     gap: 0.8mm;
+    align-items: flex-start;
+  }
+
+  .daily-plan-table-body-cell-number .form-checkbox-container {
+    transform: scale(0.8);
+    transform-origin: top right;
   }
 
   .daily-plan-print-comment {
     display: block;
     width: 100%;
-    min-height: 10mm;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 8mm;
+    padding: 1mm;
+    border: 0.6pt solid #d8e3e8;
+    border-radius: 1.5mm;
+    background: #fbfdfe;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     text-align: right;
     white-space: pre-wrap;
   }

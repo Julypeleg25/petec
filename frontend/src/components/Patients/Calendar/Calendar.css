@@ -22,11 +22,15 @@
   gap: 0.85rem;
   padding: 0.5rem 0.8rem 0.8rem;
   box-sizing: border-box;
-  direction: rtl;
+  direction: ltr;
   color: var(--calendar-ink);
   font-family: inherit;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.Calendar > * {
+  direction: rtl;
 }
 
 .Calendar *,
@@ -192,7 +196,10 @@
   background: #fff;
   color: #5f4d6c;
   font-size: 0.9rem;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .calendar-nav-btn:hover {
@@ -227,7 +234,9 @@
   cursor: pointer;
   appearance: auto;
   min-height: 44px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .calendar-select option {
@@ -305,8 +314,6 @@
   box-shadow: 0 0 0 1px #5a2b6f;
 }
 
-
-
 .calendar-content {
   min-height: 0;
   flex: 1 0 auto;
@@ -377,7 +384,10 @@
   justify-content: space-between;
   gap: 0.75rem;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
   margin-top: 0.25rem;
   margin-bottom: 0.4rem;
 }
@@ -402,7 +412,9 @@
   background: #fdfafd;
   position: relative;
   z-index: 10;
-  box-shadow: 0 0 0 2px #6d3585, 0 8px 16px rgba(109, 53, 133, 0.12);
+  box-shadow:
+    0 0 0 2px #6d3585,
+    0 8px 16px rgba(109, 53, 133, 0.12);
 }
 
 .calendar-day[data-calendar-today="true"],
@@ -551,20 +563,11 @@
   gap: 0.45rem;
   overflow-y: auto;
   padding-left: 0.6rem;
+  direction: ltr;
 }
 
-.calendar-patient-list::-webkit-scrollbar,
-.calendar-agenda-patients::-webkit-scrollbar {
-  width: 5px;
-}
-.calendar-patient-list::-webkit-scrollbar-track,
-.calendar-agenda-patients::-webkit-scrollbar-track {
-  margin: 4px 0;
-}
-.calendar-patient-list::-webkit-scrollbar-thumb,
-.calendar-agenda-patients::-webkit-scrollbar-thumb {
-  background: rgba(177, 89, 205, 0.2);
-  border-radius: 4px;
+.calendar-agenda-patients > * {
+  direction: rtl;
 }
 
 .calendar-case-compact {
@@ -578,7 +581,9 @@
   align-items: center;
   gap: 0.55rem;
   text-align: right;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .calendar-case-compact:hover {
@@ -1185,8 +1190,6 @@
 }
 
 @media screen and (max-width: 1200px) {
-
-
   .calendar-grid {
     grid-auto-rows: minmax(272px, auto);
   }
@@ -1238,6 +1241,11 @@
     gap: 0.8rem;
     overflow-y: auto;
     padding-right: 0.1rem;
+    direction: ltr;
+  }
+
+  .calendar-agenda > * {
+    direction: rtl;
   }
 }
 

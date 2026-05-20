@@ -20,16 +20,20 @@ export function DailyPlanTable({
 }: DailyPlanTableProps) {
   return (
     <div className="daily-plan-table">
-      <DailyPlanTableHeader />
-      <div className="daily-plan-table-body">
-        {dailyPlanDetails.map((dailyPlanDetail) => (
-          <DailyPlanTableRow
-            key={dailyPlanDetail.case_id}
-            dailyPlanDetail={dailyPlanDetail}
-            formData={formData}
-            onCommentChange={onCommentChange}
-          />
-        ))}
+      <div className="daily-plan-table-horizontal">
+        <div className="daily-plan-grid">
+          <DailyPlanTableHeader />
+          <div className="daily-plan-table-body">
+            {dailyPlanDetails.map((dailyPlanDetail) => (
+              <DailyPlanTableRow
+                key={dailyPlanDetail.case_id}
+                dailyPlanDetail={dailyPlanDetail}
+                formData={formData}
+                onCommentChange={onCommentChange}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

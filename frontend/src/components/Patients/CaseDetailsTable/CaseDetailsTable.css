@@ -9,12 +9,16 @@
   width: 100%;
   margin-top: 1em;
   max-width: 100%;
-  overflow: scroll;
-  direction: rtl;
+  overflow: auto;
+  direction: ltr;
   margin-bottom: 1em;
   max-height: 805px;
   padding-left: 0.5em;
   position: relative;
+}
+
+.case-details-table > * {
+  direction: rtl;
 }
 
 .case-details-table-header {

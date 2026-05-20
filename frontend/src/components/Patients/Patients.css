@@ -114,7 +114,12 @@
   width: 100%;
   text-align: right;
   font-size: 1rem;
-  overflow-y: scroll;
+  overflow-y: auto;
+  direction: ltr;
+}
+
+.patient-card-info > * {
+  direction: rtl;
 }
 
 .patient-card-info span {

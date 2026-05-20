@@ -108,7 +108,6 @@
 
 .mtc-table tbody {
   display: table-row-group;
-  scrollbar-width: none;
 }
 
 .mtc-table-body-table-row {

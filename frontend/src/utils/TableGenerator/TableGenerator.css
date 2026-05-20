@@ -157,10 +157,14 @@
   display: -webkit-flex;
   flex-wrap: wrap;
   -webkit-flex-wrap: wrap;
-  overflow-y: scroll;
+  overflow-y: auto;
   justify-content: space-around;
-  direction: rtl;
+  direction: ltr;
   min-height: 0;
+}
+
+.table-cards-container > * {
+  direction: rtl;
 }
 
 .table-card {
