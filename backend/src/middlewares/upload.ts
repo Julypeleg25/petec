@@ -18,11 +18,11 @@ const BULK_TEMPLATE_MIME_TYPES = [
   "text/plain",
 ] as const;
 
-const ensureDirSync = (dir: string): void => {
+export const ensureDirSync = (dir: string): void => {
   fs.mkdirSync(dir, { recursive: true });
 };
 
-const createFileFilter = (
+export const createFileFilter = (
   allowedMimeTypes: ReadonlyArray<string>,
 ): ((_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => void) =>
   (_req: Request, file: Express.Multer.File, cb: FileFilterCallback): void => {
@@ -37,7 +37,7 @@ const createFileFilter = (
     cb(new ValidationError(`File type ${file.mimetype} is not allowed`));
   };
 
-const createDiskStorage = (prefix: string) =>
+export const createDiskStorage = (prefix: string) =>
   multer.diskStorage({
     destination: (_req, file, cb) => {
       try {
@@ -67,7 +67,7 @@ const createDiskStorage = (prefix: string) =>
     },
   });
 
-const createDiskUpload = (
+export const createDiskUpload = (
   allowedMimeTypes: ReadonlyArray<string>,
   maxFileSizeBytes: number,
   prefix: string,
@@ -78,7 +78,7 @@ const createDiskUpload = (
     fileFilter: createFileFilter(allowedMimeTypes),
   });
 
-const createMemoryUpload = (
+export const createMemoryUpload = (
   allowedMimeTypes: ReadonlyArray<string>,
   maxFileSizeBytes: number,
 ): multer.Multer =>

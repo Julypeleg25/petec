@@ -56,7 +56,8 @@ function UploadFile({
     <Modal
       setIsOpen={setIsOpen}
       closeWhenClickOutside={true}
-      className={modalClassName}
+      className={["upload-file-modal", modalClassName].filter(Boolean).join(" ")}
+      overlayClassName="save-user-modal-overlay"
       component={
         <div className="UploadFile" dir="rtl">
           {message !== undefined && (

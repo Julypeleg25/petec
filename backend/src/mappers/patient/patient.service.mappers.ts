@@ -202,7 +202,7 @@ const isCurrentOrFutureDailyPlanRow = (
   return dateKey.length > 0 && dateKey >= currentJerusalemDateKey;
 };
 
-const compareDailyPlanRowsDesc = (
+export const compareDailyPlanRowsDesc = (
   left: DailyPlanRow,
   right: DailyPlanRow,
 ): number => {

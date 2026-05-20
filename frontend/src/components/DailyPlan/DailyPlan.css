@@ -4,15 +4,28 @@
   margin: 0.5em auto;
   font-size: 1.1rem;
   padding: 0.5em 1em;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .daily-plan-table {
   width: 100%;
   height: 97%;
-  overflow: scroll;
+  overflow: auto;
   position: relative;
   padding: 0 0.5em;
   direction: rtl;
+  -webkit-overflow-scrolling: touch;
+}
+
+.daily-plan-grid {
+  display: grid;
+  grid-template-columns:
+    95px 120px 150px 150px 180px minmax(240px, 1fr) minmax(240px, 1fr) minmax(240px, 1fr) minmax(240px, 1fr) minmax(240px, 1fr);
+  min-width: max-content;
+  width: 100%;
+  border: 3px solid var(--color-main);
+  box-sizing: border-box;
 }
 
 .daily-plan-toolbar {
@@ -38,105 +51,63 @@
 }
 
 .daily-plan-table-header {
-  width: 100%;
-  height: 40px;
-  display: flex;
-  flex-direction: row;
-  border: 3px solid var(--color-main);
+  display: contents;
+}
+
+.daily-plan-table-header-cell {
   position: sticky;
-  z-index: 5;
   top: 0;
+  z-index: 5;
   background-color: var(--color-white);
-  min-width: fit-content;
-  box-sizing: border-box;
-}
-
-.daily-plan-table-body {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  border: 3px solid var(--color-main);
-  border-top: none;
-  border-bottom: none;
-  min-width: fit-content;
-  box-sizing: border-box;
-}
-
-.daily-plan-table-header-cell,
-.daily-plan-table-body-cell {
+  border-bottom: 3px solid var(--color-main);
   border-right: 3px solid var(--color-main);
-  flex: 1;
-  min-width: 160px;
   text-align: center;
-  font-weight: 1.1rem;
+  font-size: 1.1rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5em 0.1em;
+  padding: 0.5em 0.3em;
   box-sizing: border-box;
+  min-height: 40px;
 }
 
-.daily-plan-table-header-cell:first-child,
-.daily-plan-table-body-row > .daily-plan-table-body-cell:first-child {
-  flex: 0.6;
-  min-width: 95px;
-}
-
-.daily-plan-table-header-cell:nth-child(2),
-.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(2) {
-  flex: 0.9;
-  min-width: 120px;
-}
-
-.daily-plan-table-header-cell:nth-child(3),
-.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(3) {
-  flex: 1.15;
-  min-width: 150px;
-}
-
-.daily-plan-table-header-cell:nth-child(4),
-.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(4) {
-  flex: 1.1;
-  min-width: 150px;
-}
-
-.daily-plan-table-header-cell:nth-child(5),
-.daily-plan-table-body-row > .daily-plan-table-body-cell:nth-child(5) {
-  flex: 1.25;
-  min-width: 180px;
-}
-
-.daily-plan-table-body-cell {
-  font-weight: 400;
-  flex-direction: column;
-  word-break: normal;
-  overflow-wrap: normal;
-  white-space: normal;
-  justify-content: flex-start;
-}
-
-.daily-plan-table-header-cell-large,
-.daily-plan-table-body-cell-large {
-  flex: 1.8;
-  min-width: 240px;
-}
-
-.daily-plan-table-header > .daily-plan-table-header-cell:first-child {
+.daily-plan-table-header-cell:first-child {
   border-right: none;
 }
 
-.daily-plan-table-body-row {
-  width: 100%;
-  height: 40px;
-  display: flex;
-  flex-direction: row;
-  border-bottom: 3px solid var(--color-main);
-  height: fit-content;
-  box-sizing: border-box;
+.daily-plan-table-body {
+  display: contents;
 }
 
-.daily-plan-table-body-row > .daily-plan-table-body-cell:first-child {
+.daily-plan-table-body-row {
+  display: contents;
+}
+
+.daily-plan-table-body-cell {
+  border-bottom: 3px solid var(--color-main);
+  border-right: 3px solid var(--color-main);
+  font-weight: 400;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.5em 0.3em;
+  box-sizing: border-box;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.daily-plan-table-body-cell.daily-plan-table-body-cell-large {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: right;
+}
+
+.daily-plan-table-body-row>.daily-plan-table-body-cell:first-child {
   border-right: none;
 }
 
@@ -151,28 +122,28 @@
   align-items: flex-start;
 }
 
-.daily-plan-table-body-cell-medicines > span:first-child {
+.daily-plan-table-body-cell-medicines>span:first-child {
   padding-right: 0.6em;
 }
 
-.daily-plan-table-body-cell-examinations > span:last-child,
-.daily-plan-table-body-cell-owner-update > span:last-child {
+.daily-plan-table-body-cell-examinations>span:last-child,
+.daily-plan-table-body-cell-owner-update>span:last-child {
   font-size: 0.9rem;
   padding-right: 1.1em;
 }
 
-.daily-plan-table-body-cell-examinations > span:nth-child(2) {
+.daily-plan-table-body-cell-examinations>span:nth-child(2) {
   font-size: 1rem;
   padding-right: 1em;
 }
 
-.daily-plan-table-body-cell-medicines > span:last-child {
+.daily-plan-table-body-cell-medicines>span:last-child {
   padding-right: 1em;
 }
 
-.daily-plan-table-body-cell-examinations > span b,
-.daily-plan-table-body-cell-medicines > span b,
-.daily-plan-table-body-cell-owner-update > span b {
+.daily-plan-table-body-cell-examinations>span b,
+.daily-plan-table-body-cell-medicines>span b,
+.daily-plan-table-body-cell-owner-update>span b {
   font-weight: 500;
 }
 
@@ -355,5 +326,27 @@
     min-height: 10mm;
     text-align: right;
     white-space: pre-wrap;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .DailyPlan {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    margin: 0;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .daily-plan-table {
+    height: auto;
+    max-height: none;
+    padding: 0;
+  }
+
+  .save-daily-plan-btn {
+    width: 100%;
+    float: none;
   }
 }

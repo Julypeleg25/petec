@@ -138,11 +138,20 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     isEdit,
     handleBeforeNavigation,
   );
+  const hasPendingSave = hasChanges || Boolean(selectedFile);
   const handleSaveAndExit = useCallback(
     () =>
       savePatientChanges({
         navigateOnCreate: false,
         reloadAfterEdit: false,
+      }),
+    [savePatientChanges],
+  );
+  const handleSaveFromMenu = useCallback(
+    () =>
+      savePatientChanges({
+        navigateOnCreate: false,
+        reloadAfterEdit: true,
       }),
     [savePatientChanges],
   );
@@ -155,7 +164,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     saveAndExit,
   } = useSavePatientExitGuard({
     allowNavigationRef,
-    hasChanges,
+    hasChanges: hasPendingSave,
     isSaving,
     onSaveAndExit: handleSaveAndExit,
   });
@@ -187,7 +196,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
             <SavePatientEditActionsSection
               isArchived={isArchived}
               isSaveButtonsDisabled={isSaveButtonsDisabled}
-              hasChanges={hasChanges}
+              hasChanges={hasPendingSave}
               isSaving={isSaving}
               isExporting={isExporting}
               isArchiving={isArchiving}
@@ -200,6 +209,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 setShowArchiveConfirmationModal(true)
               }
               onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onSavePatientChanges={handleSaveFromMenu}
             />
           )}
           {!isEdit && <h2 className="new-patient-form-title">מטופל חדש</h2>}
@@ -266,6 +276,22 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               setIsAllergic={setIsAllergic}
               isProcedure={isProcedure}
               setIsProcedure={setIsProcedure}
+              isArchived={isArchived}
+              isSaveButtonsDisabled={isSaveButtonsDisabled}
+              hasChanges={hasPendingSave}
+              isSaving={isSaving}
+              isExporting={isExporting}
+              isArchiving={isArchiving}
+              onBack={() => navigate(-1)}
+              onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
+              onExportCaseDetails={exportCaseDetails}
+              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
+              onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
+              onShowArchiveConfirmationModal={() =>
+                setShowArchiveConfirmationModal(true)
+              }
+              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onSavePatientChanges={handleSaveFromMenu}
             />
             {!isEdit && (
               <button
@@ -286,7 +312,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 onCaseDateChange={handleCaseDateChange}
                 handleInputChange={handleInputChange}
                 isSaveButtonsDisabled={isSaveButtonsDisabled}
-                hasChanges={hasChanges}
+                hasChanges={hasPendingSave}
                 isArchived={isArchived}
                 paintingMode={paintingMode}
                 editableFieldsMode={editableFieldsMode}
@@ -296,6 +322,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 }
                 addNewCaseDailyDetails={addNewCaseDailyDetails}
                 deleteSelectedCaseDailyDetails={deleteSelectedCaseDailyDetails}
+                onSavePatientChanges={handleSaveFromMenu}
               />
             )}
             {isEdit && (

@@ -6,4 +6,5 @@ export interface FormUploadImageProps {
     selectedFile?: File | null;
     setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
     disabled?: boolean;
+    imageClickAction?: "file" | "camera" | "choice";
 }

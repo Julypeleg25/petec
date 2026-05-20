@@ -13,7 +13,7 @@ import {
 import { ValidationError } from "../constants/error.constants.js";
 import { toValidationErrorDetails } from "../utils/zodError.utils.js";
 
-const toStrictSchema = (schema: ZodSchema): ZodSchema => {
+export const toStrictSchema = (schema: ZodSchema): ZodSchema => {
     if (schema instanceof z.ZodObject) {
         return schema.strict();
     }

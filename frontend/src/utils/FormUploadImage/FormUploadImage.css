@@ -9,6 +9,7 @@
 .upload-image-container {
   width: 150px;
   height: 150px;
+  max-width: 100%;
   border-radius: 20px;
   border: 3px solid var(--input-border-color);
   margin: 0 auto;
@@ -36,6 +37,62 @@
   cursor: pointer;
   z-index: 2;
 }
+
+.upload-image-camera-hit-area {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.upload-image-camera-hit-area:disabled {
+  cursor: not-allowed;
+}
+
+.upload-image-choice-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.upload-image-action-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 20;
+  min-width: 112px;
+  padding: 0.25rem;
+  border: 1px solid rgba(177, 89, 205, 0.22);
+  border-radius: 12px;
+  background: var(--color-white);
+  box-shadow: 0 10px 24px rgba(37, 26, 46, 0.16);
+  direction: rtl;
+}
+
+.upload-image-action-menu button {
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #2f2437;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+  padding: 0.4rem 0.55rem;
+}
+
+.upload-image-action-menu button:hover,
+.upload-image-action-menu button:focus-visible {
+  color: var(--color-main);
+  background: rgba(177, 89, 205, 0.12);
+}
+
 .upload-image-img {
   display: block;
   width: 100%;
@@ -81,4 +138,11 @@
   bottom: 10px;
   right: 10px;
   z-index: 3;
+}
+
+@media screen and (max-width: 700px) {
+  .upload-image-container-large {
+    width: min(220px, 70vw);
+    height: min(220px, 70vw);
+  }
 }

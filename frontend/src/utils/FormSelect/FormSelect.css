@@ -57,3 +57,19 @@
 option {
   direction: rtl;
 }
+
+@media screen and (max-width: 700px) {
+  .form-select {
+    width: 100%;
+  }
+
+  .form-select-label {
+    font-size: 1rem;
+  }
+
+  .form-select > select,
+  .form-select-control {
+    font-size: 1rem;
+    padding-right: 0.8em;
+  }
+}

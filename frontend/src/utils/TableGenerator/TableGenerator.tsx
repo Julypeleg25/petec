@@ -141,13 +141,18 @@ function TableGenerator<T extends RowData = RowData>({
     <>
       {isCards ? (
         <div
+          className="table-generator-cards-content"
           ref={tableSectionContainerRef}
           style={{
             height: "calc(100% - var(--table-pagination-height))",
             position: "relative",
           }}
         >
-          <div ref={tableContainerRef} style={{ height: "100%" }}>
+          <div
+            className="table-generator-cards-viewport"
+            ref={tableContainerRef}
+            style={{ height: "100%" }}
+          >
             {loading && <MyLoader />}
             {!loading && tableData.length === 0 ? (
               <div className="mtc-no-data-container">אין מידע זמין</div>

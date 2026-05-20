@@ -3,6 +3,9 @@ import {
   TABLE_QUERY_KEYS,
   TABLE_SORT_FIELDS,
 } from "@petec/shared";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { FaBars, FaTimes } from "react-icons/fa";
 import SearchBar from "../../utils/SearchBar/SearchBar";
 import TableGenerator from "../../utils/TableGenerator/TableGenerator";
 import { TABLE_SORT_DIRECTIONS } from "../../utils/TableGenerator/TableGenerator.types";
@@ -24,6 +27,9 @@ interface PatientsProps {
 }
 
 function Patients({ patientsNavType }: PatientsProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [headerMenuContainer, setHeaderMenuContainer] =
+    useState<HTMLElement | null>(null);
   const {
     navigate,
     isArchive,
@@ -53,8 +59,117 @@ function Patients({ patientsNavType }: PatientsProps) {
     patientCard,
   } = usePatients(patientsNavType);
 
+  const handleMobileMenuAction = (action: () => void) => {
+    setIsMobileMenuOpen(false);
+    action();
+  };
+
+  const isPatientListView =
+    patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
+    patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES;
+
+  const getSelectedLabel = () => {
+    if (isArchive) return "ארכיון";
+    if (patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN) return "יומי plan";
+    if (patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT) return "הוספת מטופל";
+    if (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST) return "רשימת מטופלים";
+    if (patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES) return "פרוצדרות";
+    if (patientsNavType === PATIENTS_NAV_TYPES.PATIENT_CASE) return "פרטי מטופל";
+    return "אפשרויות";
+  };
+
+  useEffect(() => {
+    setHeaderMenuContainer(document.getElementById("header-contextual-menu"));
+  }, []);
+
   return (
     <div className="Patients">
+      {headerMenuContainer &&
+        createPortal(
+        <>
+        <div
+          className={`patients-mobile-menu ${
+            patientsNavType === PATIENTS_NAV_TYPES.PATIENT_CASE
+              ? "patients-mobile-menu--with-actions"
+              : ""
+          }`}
+        >
+          <button
+            type="button"
+            className="btn patients-mobile-menu__trigger"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="patients-mobile-menu-panel"
+          >
+            {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+            <span>{getSelectedLabel()}</span>
+          </button>
+          {isMobileMenuOpen && (
+            <div id="patients-mobile-menu-panel" className="patients-mobile-menu__panel">
+              <button
+                type="button"
+                className={
+                  patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "is-active" : ""
+                }
+                onClick={() =>
+                  handleMobileMenuAction(() =>
+                    navigate(AppRoutes.Patients.DailyPlan),
+                  )
+                }
+                disabled={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
+              >
+                יומי plan
+              </button>
+              <button
+                type="button"
+                className={isArchive ? "is-active" : ""}
+                onClick={() =>
+                  handleMobileMenuAction(() => {
+                    resetPatientCards(true);
+                    navigate(AppRoutes.Patients.Archive);
+                  })
+                }
+                disabled={isArchive}
+              >
+                ארכיון
+              </button>
+              <button
+                type="button"
+                className={
+                  patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "is-active" : ""
+                }
+                onClick={() =>
+                  handleMobileMenuAction(() =>
+                    navigate(AppRoutes.Patients.NewPatient),
+                  )
+                }
+                disabled={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
+              >
+                הוספת מטופל
+              </button>
+              <button
+                type="button"
+                className={
+                  patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST
+                    ? "is-active"
+                    : ""
+                }
+                onClick={() =>
+                  handleMobileMenuAction(() => {
+                    resetPatientCards(false);
+                    navigate(AppRoutes.Patients.List);
+                  })
+                }
+                disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
+              >
+                רשימת מטופלים
+              </button>
+            </div>
+          )}
+        </div>
+      </>,
+      headerMenuContainer,
+    )}
       <nav className="navbar patients-navbar">
         <button
           className={getButtonClassName(
@@ -105,34 +220,26 @@ function Patients({ patientsNavType }: PatientsProps) {
           רשימת מטופלים
         </button>
       </nav>
-      {(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
-        patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES) && (
-        <nav className="nav-patients-cards">
+      {isShowOneTable &&
+        (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
+          patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES ||
+          isArchive) && (
+        <div className="patients-list-type-toggle">
           <button
-            className={getButtonClassName(
-              tableType === TABLE_QUERY_KEYS.PROCEDURES,
-            )}
-            title="פרוצדרות"
-            onClick={() => {
-              setTableType(TABLE_QUERY_KEYS.PROCEDURES);
-            }}
-            disabled={tableType === TABLE_QUERY_KEYS.PROCEDURES}
+            type="button"
+            className={tableType === TABLE_QUERY_KEYS.PROCEDURES ? "is-active" : ""}
+            onClick={() => setTableType(TABLE_QUERY_KEYS.PROCEDURES)}
           >
             פרוצדרות
           </button>
           <button
-            className={getButtonClassName(
-              tableType === TABLE_QUERY_KEYS.PATIENTS,
-            )}
-            title="אשפוז"
-            onClick={() => {
-              setTableType(TABLE_QUERY_KEYS.PATIENTS);
-            }}
-            disabled={tableType === TABLE_QUERY_KEYS.PATIENTS}
+            type="button"
+            className={tableType === TABLE_QUERY_KEYS.PATIENTS ? "is-active" : ""}
+            onClick={() => setTableType(TABLE_QUERY_KEYS.PATIENTS)}
           >
             אשפוז
           </button>
-        </nav>
+        </div>
       )}
       <main className="patients-main-section">
         {(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||

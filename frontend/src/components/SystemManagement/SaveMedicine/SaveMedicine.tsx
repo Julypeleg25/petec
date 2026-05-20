@@ -109,6 +109,8 @@ export default function SaveMedicine({
       isPending={saveMutation.isPending}
       submitDisabled={Boolean(systemTypeObj) && !isDirty}
       editorClassName="SaveMedicine"
+      modalClassName="system-management-modal save-medicine-modal"
+      overlayClassName="save-user-modal-overlay"
     >
           <div className="form-group">
             <Controller

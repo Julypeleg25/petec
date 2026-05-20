@@ -10,6 +10,7 @@
   width: 100%;
   min-height: 35px;
   box-sizing: border-box;
+  min-width: 0;
 }
 
 .date-picker-form-input input {
@@ -29,4 +30,11 @@
   padding-top: 0.4em;
   padding-right: 2.5em;
   min-height: 29px;
+  min-width: 0;
+}
+
+@media screen and (max-width: 700px) {
+  .date-picker-form-input {
+    font-size: 1rem;
+  }
 }
