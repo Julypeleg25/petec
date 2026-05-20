@@ -117,10 +117,7 @@ const ensureTodayProcedureDate = (
     flags?: ICase["flags"],
     dates?: ICase["dates"],
 ): ICase["dates"] | undefined => {
-    if (
-        flags?.isProcedure !== true ||
-        toDateInputString(dates?.procedureDate)
-    ) {
+    if (!flags?.isProcedure || toDateInputString(dates?.procedureDate)) {
         return dates;
     }
 
