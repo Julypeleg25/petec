@@ -4,6 +4,10 @@ import type {
   DailyPlanCommentChangeHandler,
   DailyPlanFormData,
 } from "../DailyPlan.types";
+import {
+  DAILY_PLAN_HOSPITALIZATION_LABEL,
+  DAILY_PLAN_PROCEDURE_LABEL,
+} from "../DailyPlan.constants";
 import { formatOwnerPhoneNumber } from "../DailyPlan.utils";
 import { DailyPlanCommentCell } from "./DailyPlanCommentCell";
 import { DailyPlanExaminationsCell } from "./DailyPlanExaminationsCell";
@@ -22,6 +26,13 @@ export function DailyPlanTableRow({
   formData,
   onCommentChange,
 }: DailyPlanTableRowProps) {
+  const caseTypeLabel = dailyPlanDetail.is_procedure
+    ? DAILY_PLAN_PROCEDURE_LABEL
+    : DAILY_PLAN_HOSPITALIZATION_LABEL;
+  const caseTypeClassName = dailyPlanDetail.is_procedure
+    ? "daily-plan-case-type-badge-procedure"
+    : "daily-plan-case-type-badge-hospitalization";
+
   return (
     <div className="daily-plan-table-body-row">
       <div className="daily-plan-table-body-cell">
@@ -35,7 +46,12 @@ export function DailyPlanTableRow({
         {formatOwnerPhoneNumber(dailyPlanDetail.owner_phone_number)}
       </div>
       <div className="daily-plan-table-body-cell">
-        {dailyPlanDetail.hospitalization_reason}
+        <span className={`daily-plan-case-type-badge ${caseTypeClassName}`}>
+          {caseTypeLabel}
+        </span>
+        <span className="daily-plan-hospitalization-reason">
+          {dailyPlanDetail.hospitalization_reason}
+        </span>
       </div>
       <DailyPlanExaminationsCell
         examinations={dailyPlanDetail.caseExaminations}

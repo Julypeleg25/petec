@@ -24,6 +24,17 @@ export const toDailyPlanFormData = (
   return formData;
 };
 
+export const sortDailyPlanDetails = (
+  details: DailyPlanDetailDTO[],
+): DailyPlanDetailDTO[] =>
+  [...details].sort((current, next) => {
+    if (current.is_procedure !== next.is_procedure) {
+      return current.is_procedure ? -1 : 1;
+    }
+
+    return current.master_case_id.localeCompare(next.master_case_id, "he");
+  });
+
 export const formatDailyPlanPrintedAt = (date = new Date()): string =>
   dailyPlanPrintDateFormatter.format(date);
 

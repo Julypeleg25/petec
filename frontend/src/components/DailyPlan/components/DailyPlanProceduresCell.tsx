@@ -9,7 +9,7 @@ export function DailyPlanProceduresCell({
   procedures,
 }: DailyPlanProceduresCellProps) {
   return (
-    <div className="daily-plan-table-body-cell daily-plan-table-body-cell-large">
+    <div className="daily-plan-table-body-cell daily-plan-table-body-cell-large daily-plan-table-body-cell-procedures">
       {procedures.map((caseProcedure, index) => (
         <div
           key={index}

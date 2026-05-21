@@ -6,6 +6,7 @@ import { patientsApi } from "../../../features/patients/patients.api";
 import type { DailyPlanFormData } from "../DailyPlan.types";
 import {
   formatDailyPlanPrintedAt,
+  sortDailyPlanDetails,
   toDailyPlanFormData,
 } from "../DailyPlan.utils";
 
@@ -29,10 +30,11 @@ export const useDailyPlan = () => {
   const getDailyPlanDetails = async () => {
     try {
       const data = await patientsApi.getDailyPlan();
-      const details = toDailyPlanFormData(data);
+      const sortedData = sortDailyPlanDetails(data);
+      const details = toDailyPlanFormData(sortedData);
       setDailyPlanFormData(details);
       setInitialDailyPlanFormData(details);
-      setDailyPlanDetails(data);
+      setDailyPlanDetails(sortedData);
     } catch {
       toast.error("שגיאה בטעינת פרטי התכנון");
     } finally {

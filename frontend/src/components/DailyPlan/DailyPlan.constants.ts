@@ -3,6 +3,8 @@ export const DAILY_PLAN_PRINT_BUTTON = "PDF הדפס";
 export const DAILY_PLAN_PRINT_DATE_LABEL = "תאריך הפקה";
 export const DAILY_PLAN_PATIENT_COUNT_LABEL = "מספר מטופלים";
 export const DAILY_PLAN_EMPTY_VALUE = "-";
+export const DAILY_PLAN_PROCEDURE_LABEL = "פרוצדורה";
+export const DAILY_PLAN_HOSPITALIZATION_LABEL = "אשפוז";
 export const DAILY_PLAN_SAVE_BUTTON = "שמור";
 
 export const DAILY_PLAN_TABLE_HEADERS = [

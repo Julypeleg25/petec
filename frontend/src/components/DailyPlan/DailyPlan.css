@@ -116,6 +116,41 @@
   text-align: right;
 }
 
+.daily-plan-table-body-cell-procedures {
+  padding-top: 0.35em;
+}
+
+.daily-plan-case-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-bottom: 0.35em;
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.daily-plan-case-type-badge-procedure {
+  color: #9b4b10;
+  background: #fff1e5;
+  border: 1px solid #efb26e;
+}
+
+.daily-plan-case-type-badge-hospitalization {
+  color: #16685c;
+  background: #e6f8f4;
+  border: 1px solid #8bd1c5;
+}
+
+.daily-plan-hospitalization-reason {
+  display: block;
+  width: 100%;
+}
+
 .daily-plan-table-body-row>.daily-plan-table-body-cell:first-child {
   border-right: none;
 }
@@ -371,6 +406,13 @@
     align-items: flex-start;
     text-align: right;
     gap: 0.6mm;
+  }
+
+  .daily-plan-case-type-badge {
+    margin-bottom: 0.8mm;
+    padding: 0.35mm 1.2mm;
+    border-radius: 999px;
+    font-size: 5.8pt;
   }
 
   .daily-plan-table-body-cell-examinations,
