@@ -39,9 +39,169 @@
   font-size: 1.5rem;
   text-decoration: underline;
   color: var(--color-main);
-  margin-bottom: 1em;
+  margin-bottom: 0.45em;
   align-self: flex-end;
   margin-right: 1.5em;
+}
+
+.clinica-prefill-search {
+  width: 65%;
+  box-sizing: border-box;
+  border: 2px solid rgba(177, 89, 205, 0.24);
+  border-radius: 16px;
+  padding: 0.65em 0.85em;
+  margin: 0 1.5em 1.05em 0;
+  background: rgba(177, 89, 205, 0.035);
+  align-self: flex-end;
+  direction: rtl;
+  position: relative;
+}
+
+.clinica-prefill-search-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.45em;
+  text-align: right;
+}
+
+.clinica-prefill-search-header h3 {
+  margin: 0;
+  color: var(--color-main);
+  font-size: 0.95rem;
+  line-height: 1.2;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.clinica-prefill-search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.clinica-prefill-search-input {
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+  height: 42px;
+  border: 2px solid rgba(177, 89, 205, 0.72);
+  border-radius: 14px;
+  padding: 0 1em;
+  font-size: 0.95rem;
+  text-align: right;
+  outline: none;
+  background: #fff;
+  color: #222;
+}
+
+.clinica-prefill-search-clear {
+  height: 38px;
+  min-width: 58px;
+  border: 1.5px solid rgba(177, 89, 205, 0.5);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-main);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clinica-prefill-search-clear:hover {
+  background: rgba(177, 89, 205, 0.08);
+}
+
+.clinica-prefill-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(177, 89, 205, 0.14);
+}
+
+.clinica-prefill-search-status {
+  margin-top: 0.55em;
+  text-align: right;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.clinica-prefill-search-status.error {
+  color: #b42318;
+}
+
+.clinica-prefill-search-results {
+  position: absolute;
+  top: calc(100% - 0.45em);
+  right: 0.85em;
+  left: 0.85em;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 0;
+  border: 1.5px solid rgba(177, 89, 205, 0.36);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(83, 42, 98, 0.16);
+}
+
+.clinica-prefill-search-result {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8em;
+  border: 0;
+  border-bottom: 1px solid rgba(177, 89, 205, 0.18);
+  border-radius: 0;
+  background: #fff;
+  color: #222;
+  padding: 0.55em 0.8em;
+  text-align: right;
+  cursor: pointer;
+  font-size: 0.9rem;
+  direction: rtl;
+}
+
+.clinica-prefill-search-result:last-child {
+  border-bottom: 0;
+}
+
+.clinica-prefill-search-result:hover {
+  background: rgba(177, 89, 205, 0.08);
+  box-shadow: none;
+}
+
+.clinica-prefill-search-result-text {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55em;
+  min-width: 0;
+  text-align: right;
+  direction: rtl;
+}
+
+.clinica-prefill-search-result-main {
+  font-weight: 700;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clinica-prefill-search-result-meta {
+  color: #666;
+  font-size: 0.85rem;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  white-space: nowrap;
+}
+
+.clinica-prefill-search-result-action {
+  color: var(--color-main);
+  font-weight: 700;
+  white-space: nowrap;
+  direction: rtl;
 }
 
 .new-patient-form-btn {

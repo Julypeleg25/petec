@@ -195,6 +195,15 @@ function Patients({ patientsNavType }: PatientsProps) {
           ארכיון
         </button>
         <button
+          className={getButtonClassName(false)}
+          title="קליניקה"
+          onClick={() => {
+            navigate(AppRoutes.Clinica);
+          }}
+        >
+          קליניקה
+        </button>
+        <button
           className={getButtonClassName(
             patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT,
           )}

@@ -14,9 +14,11 @@ import {
     type InputChangeEvent,
 } from "../utils/savePatientForm.utils";
 
-export function usePatientFormState() {
+export function usePatientFormState(initialFormData?: NewPatientData) {
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState<NewPatientData>(getEmptyFormData());
+    const [formData, setFormData] = useState<NewPatientData>(
+        () => initialFormData ?? getEmptyFormData(),
+    );
     const [initialStateSnapshot, setInitialStateSnapshot] = useState<string | null>(null);
 
     const [isArchived, setIsArchived] = useState(false);
@@ -115,7 +117,7 @@ export function usePatientFormState() {
         reset: resetPatientForm,
     } = useForm<NewPatientData>({
         resolver: savePatientFormResolver,
-        defaultValues: getEmptyFormData(),
+        defaultValues: initialFormData ?? getEmptyFormData(),
     });
 
     const withDirty = useCallback(
