@@ -55,6 +55,11 @@ class ClinicaScraperService {
   init = async (): Promise<void> => {
     this.browser = await chromium.launch({
       headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ],
     });
   };
 
