@@ -1,5 +1,18 @@
 @import "../SystemTypeForm/SystemTypeForm.css";
 
+.modal.system-management-modal.save-medicine-modal {
+  background: #fff;
+  border: 2px solid var(--color-main);
+  box-shadow: 0 18px 35px rgba(177, 89, 205, 0.12);
+}
+
+.modal.system-management-modal.save-medicine-modal input:focus,
+.modal.system-management-modal.save-medicine-modal select:focus,
+.modal.system-management-modal.save-medicine-modal textarea:focus {
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 2px rgba(177, 89, 205, 0.2);
+}
+
 .SaveMedicine__comments-group {
   grid-column: 1 / -1;
 }

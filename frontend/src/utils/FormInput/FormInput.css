@@ -5,6 +5,8 @@
   align-items: flex-end;
   justify-content: flex-start;
   width: 80%;
+  max-width: 100%;
+  min-width: 0;
   position: relative;
 }
 
@@ -17,6 +19,7 @@
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   text-align: right;
+  min-width: 0;
 }
 
 .form-input-label {
@@ -39,6 +42,7 @@
   outline: none;
   border: none;
   width: 100%;
+  min-width: 0;
   border: 3px solid var(--input-border-color);
   font-size: 1rem;
   padding: 0.5em 0.7em;
@@ -62,4 +66,14 @@
   left: 0;
   margin-left: 1em;
   cursor: pointer;
+}
+
+@media screen and (max-width: 700px) {
+  .form-input-container {
+    width: 100%;
+  }
+
+  .form-input-label {
+    font-size: 1rem;
+  }
 }

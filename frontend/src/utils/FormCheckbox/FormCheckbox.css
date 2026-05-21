@@ -8,10 +8,20 @@
   margin-bottom: 0.5em;
   margin-right: 0.5em;
   font-size: 1.1rem;
+  max-width: 100%;
 }
 
 .form-checkbox-container input {
   width: 20px;
   height: 20px;
   margin-left: 0.8em;
+  flex: 0 0 auto;
+}
+
+@media screen and (max-width: 700px) {
+  .form-checkbox-container {
+    width: 100%;
+    margin-right: 0;
+    font-size: 1rem;
+  }
 }

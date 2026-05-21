@@ -38,16 +38,6 @@ function CalendarDetailsModal({
                 {selectedEntry.patient.patientName}
               </h3>
               <p className="calendar-details-date">{selectedEntry.dateLabel}</p>
-              <div className="calendar-patient-badges">
-                {selectedEntry.patient.badges.map((badge) => (
-                  <span
-                    key={`modal-${selectedEntry.patient.caseId}-${badge}`}
-                    className={`calendar-patient-badge calendar-patient-badge-${badge}`}
-                  >
-                    {BADGE_LABELS[badge]}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -68,12 +58,23 @@ function CalendarDetailsModal({
             </div>
             <div className="calendar-details-field">
               <span>סטטוס</span>
-              <strong>
-                {selectedEntry.patient.badges
-                  .map((badge) => BADGE_LABELS[badge])
-                  .join(" • ")}
-              </strong>
+              <div className="calendar-details-badges">
+                {selectedEntry.patient.badges.map((badge) => (
+                  <span
+                    key={`modal-grid-${selectedEntry.patient.caseId}-${badge}`}
+                    className={`calendar-patient-badge calendar-patient-badge-${badge}`}
+                  >
+                    {BADGE_LABELS[badge]}
+                  </span>
+                ))}
+              </div>
             </div>
+            {selectedEntry.patient.hospitalizationReason ? (
+              <div className="calendar-details-field calendar-details-field-full">
+                <span>סיבת אשפוז</span>
+                <strong>{selectedEntry.patient.hospitalizationReason}</strong>
+              </div>
+            ) : null}
           </div>
 
           {hasAnyFlags(selectedEntry.patient) ? (
@@ -87,7 +88,10 @@ function CalendarDetailsModal({
                 )
                   .filter(([, isActive]) => isActive)
                   .map(([flagKey]) => (
-                    <span key={`flag-${flagKey}`} className="calendar-details-flag">
+                    <span
+                      key={`flag-${flagKey}`}
+                      className={`calendar-details-flag calendar-details-flag-${flagKey}`}
+                    >
                       {FLAG_LABELS[flagKey]}
                     </span>
                   ))}

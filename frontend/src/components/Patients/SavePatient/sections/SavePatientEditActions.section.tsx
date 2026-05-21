@@ -1,4 +1,5 @@
-import { FaArrowRight, FaTrash } from "react-icons/fa";
+import { useState } from "react";
+import { FaArrowRight, FaBars, FaTimes, FaTrash } from "react-icons/fa";
 
 interface SavePatientEditActionsSectionProps {
   isArchived: boolean;
@@ -14,6 +15,7 @@ interface SavePatientEditActionsSectionProps {
   onShowPatientChartsModal: () => void;
   onShowArchiveConfirmationModal: () => void;
   onShowDeletePatientCaseModal: () => void;
+  onSavePatientChanges: () => Promise<boolean>;
 }
 
 function SavePatientEditActionsSection({
@@ -30,66 +32,97 @@ function SavePatientEditActionsSection({
   onShowPatientChartsModal,
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
+  onSavePatientChanges,
 }: SavePatientEditActionsSectionProps) {
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const isSaveDisabled = isSaveButtonsDisabled || !hasChanges || isSaving || isArchived;
+  const handleMenuAction = (action: () => void) => {
+    setIsActionsMenuOpen(false);
+    action();
+  };
+  const saveFromMenu = () => {
+    setIsActionsMenuOpen(false);
+    void onSavePatientChanges();
+  };
+
   return (
-    <div className="edit-patient-btns-container">
-      <button
-        className="btn btn-active btn-round edit-patient-back-btn"
-        onClick={onBack}
-      >
-        <FaArrowRight />
-      </button>
-      <div
-        className="edit-patient-btns-container"
-        style={{ flexWrap: "wrap" }}
-      >
+    <div className="edit-patient-actions-container">
+      <div className="edit-patient-actions-desktop edit-patient-actions-menu-bar">
         <button
-          type="submit"
-          className="btn btn-small save-entity-form-btn"
-          form="save-patient-form"
-          disabled={isSaveButtonsDisabled || !hasChanges || isSaving || isArchived}
+          type="button"
+          className="btn btn-active btn-round edit-patient-back-btn"
+          onClick={onBack}
+          aria-label="חזרה"
         >
-          {isSaving ? "...שומר" : "שמור"}
+          <FaArrowRight />
         </button>
-        <button
-          className="btn btn-small save-entity-form-btn"
-          onClick={onShowReleasePatientModal}
-        >
-          שחרור
-        </button>
-        <button
-          className="btn btn-small save-entity-form-btn export-case-details-btn"
-          onClick={onExportCaseDetails}
-          disabled={isExporting}
-        >
-          {isExporting ? "...מייצא" : "PDF - ייצא ל"}
-        </button>
-        <button
-          className="btn btn-small save-entity-form-btn patient-documents-case-details-btn"
-          onClick={onShowPatientDocumentsModal}
-        >
-          מסמכים
-        </button>
-        <button
-          className="btn btn-small save-entity-form-btn patient-charts-case-details-btn"
-          onClick={onShowPatientChartsModal}
-        >
-          מידע גרפי
-        </button>
-        <button
-          className="btn btn-small save-entity-form-btn patient-archive-case-details-btn"
-          onClick={onShowArchiveConfirmationModal}
-          disabled={isArchiving}
-        >
-          {isArchiving ? "...מעבד" : isArchived ? "הוצא מהארכיון" : "העבר לארכיון"}
-        </button>
+        <div className="edit-patient-actions-menu">
+          <button
+            type="button"
+            className="btn save-entity-form-btn edit-patient-actions-menu__trigger"
+            onClick={() => setIsActionsMenuOpen((prev) => !prev)}
+            aria-expanded={isActionsMenuOpen}
+            aria-controls="edit-patient-actions-menu-panel"
+          >
+            {isActionsMenuOpen ? <FaTimes /> : <FaBars />}
+            <span>פעולות</span>
+          </button>
+          {isActionsMenuOpen && (
+            <div
+              id="edit-patient-actions-menu-panel"
+              className="edit-patient-actions-menu__panel"
+            >
+              <button
+                type="button"
+                disabled={isSaveDisabled}
+                onClick={saveFromMenu}
+              >
+                {isSaving ? "...שומר" : "שמור"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onShowReleasePatientModal)}
+              >
+                שחרור
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onExportCaseDetails)}
+                disabled={isExporting}
+              >
+                {isExporting ? "...מייצא" : "PDF - ייצא ל"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onShowPatientDocumentsModal)}
+              >
+                מסמכים
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onShowPatientChartsModal)}
+              >
+                מידע גרפי
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onShowArchiveConfirmationModal)}
+                disabled={isArchiving}
+              >
+                {isArchiving ? "...מעבד" : isArchived ? "הוצא מהארכיון" : "העבר לארכיון"}
+              </button>
+              <button
+                type="button"
+                className="edit-patient-actions-menu__danger"
+                onClick={() => handleMenuAction(onShowDeletePatientCaseModal)}
+              >
+                <FaTrash aria-hidden="true" />
+                <span>מחיקה</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-      <button
-        className="btn btn-small save-entity-form-btn delete-patient-btn"
-        onClick={onShowDeletePatientCaseModal}
-      >
-        <FaTrash />
-      </button>
     </div>
   );
 }

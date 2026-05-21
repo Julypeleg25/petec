@@ -3,11 +3,15 @@ import { NotFoundError } from "../../../constants/error.constants.js";
 import { caseRepository } from "../../../repositories/patient/index.js";
 import { masterCaseRepository } from "../../../repositories/patient/index.js";
 import { patientRepository } from "../../../repositories/patient/index.js";
+import { storageService } from "../../storage/index.js";
+import { deleteFromCloudinary } from "../../../utils/cloudinary.utils.js";
+import { toDateInputString } from "../../../mappers/common/common.mappers.utils.js";
 import { getCaseSerialPrefix } from "@petec/shared";
 import type { ClientSession } from "mongoose";
 import type { CaseDocument, ICase } from "../../../models/case/index.js";
 
 const MODULE = "patient";
+const CALENDAR_QUERY_BUFFER_DAYS = 1;
 
 const getOrThrow = async <T>(
   finder: () => Promise<T | null>,
@@ -111,4 +115,82 @@ export const resolveMasterCaseBySerialPrefix = async (
   );
 
   return createdMasterCase._id;
+};
+
+export const getTodayProcedureDateFilter = (): { $gte: Date; $lt: Date } | null => {
+  const todayKey = toDateInputString(new Date());
+  const dayMatch = todayKey
+    ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(todayKey)
+    : null;
+
+  if (!dayMatch) {
+    return null;
+  }
+
+  const year = Number(dayMatch[1]);
+  const month = Number(dayMatch[2]);
+  const day = Number(dayMatch[3]);
+  const start = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    start.getUTCFullYear() !== year ||
+    start.getUTCMonth() !== month - 1 ||
+    start.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { $gte: start, $lt: end };
+};
+
+export const shouldPersistManualProcedureUnarchive = (
+  flags?: ICase["flags"],
+  dates?: ICase["dates"],
+): boolean => {
+  if (flags?.isProcedure !== true) {
+    return false;
+  }
+
+  const procedureDateKey = toDateInputString(dates?.procedureDate);
+  if (!procedureDateKey) {
+    return false;
+  }
+
+  const todayKey = toDateInputString(new Date());
+  return procedureDateKey !== todayKey;
+};
+
+export const getCalendarQueryBounds = (
+  year: number,
+  month: number,
+): { queryStart: Date; queryEnd: Date } => {
+  const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const nextMonthStart = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+  const queryStart = new Date(monthStart);
+  const queryEnd = new Date(nextMonthStart);
+
+  queryStart.setUTCDate(queryStart.getUTCDate() - CALENDAR_QUERY_BUFFER_DAYS);
+  queryEnd.setUTCDate(queryEnd.getUTCDate() + CALENDAR_QUERY_BUFFER_DAYS);
+
+  return { queryStart, queryEnd };
+};
+
+export type DeletedCaseDocumentAsset = {
+  _id: string;
+  cloudinaryPublicId?: string;
+  fileName: string;
+  storageKey: string;
+};
+
+export const deleteCaseDocumentAsset = async (
+  document: DeletedCaseDocumentAsset,
+): Promise<void> => {
+  if (document.storageKey.startsWith("http")) {
+    await deleteFromCloudinary(document.cloudinaryPublicId ?? document.storageKey);
+    return;
+  }
+
+  await storageService.delete(document.storageKey);
 };

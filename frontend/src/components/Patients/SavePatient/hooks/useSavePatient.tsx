@@ -372,6 +372,7 @@ export function useSavePatient(
   const handlePaintingModeButtonClick = useCallback(
     (e: React.MouseEvent | React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
+      e.stopPropagation();
       setPaintingMode((prev) => !prev);
       setEditableFieldsMode(false);
     },
@@ -381,6 +382,7 @@ export function useSavePatient(
   const handleSetEditableFieldsButtonClick = useCallback(
     (e: React.MouseEvent | React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
+      e.stopPropagation();
       setEditableFieldsMode((prev) => !prev);
       setPaintingMode(false);
     },
@@ -422,6 +424,7 @@ export function useSavePatient(
         paintingMode &&
         target &&
         !target.closest(".case-details-table-body") &&
+        !target.closest(".daily-details-mobile-actions") &&
         !target.closest(`#${SAVE_PATIENT_ELEMENT_IDS.PAINT_BUTTON}`)
       ) {
         setPaintingMode(false);
@@ -434,6 +437,7 @@ export function useSavePatient(
         editableFieldsMode &&
         target &&
         !target.closest(".case-details-table-body") &&
+        !target.closest(".daily-details-mobile-actions") &&
         !target.closest(".un-editable-cell") &&
         !target.closest(
           `#${SAVE_PATIENT_ELEMENT_IDS.SET_EDITABLE_FIELDS_BUTTON}`,

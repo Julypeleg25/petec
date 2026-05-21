@@ -42,7 +42,7 @@ function Calendar() {
   );
   const [isDayListOpen, setIsDayListOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<SelectedCalendarDay | null>(null);
-  const [todayJumpRequest, setTodayJumpRequest] = useState(0);
+  const [todayJumpRequest, setTodayJumpRequest] = useState(1);
 
   const currentMonthCursor = createCurrentMonthCursor();
   const todayDateKey = getDateKey(new Date());
@@ -78,7 +78,7 @@ function Calendar() {
   }, [isDayListOpen]);
 
   useEffect(() => {
-    if (todayJumpRequest === 0) {
+    if (todayJumpRequest === 0 || isLoading) {
       return;
     }
 
@@ -86,22 +86,22 @@ function Calendar() {
       window.requestAnimationFrame(() => {
         const todayElement = Array.from(
           calendarRef.current?.querySelectorAll<HTMLElement>(
-            `[data-calendar-date-key="${todayDateKey}"]`,
+            `[data-calendar-today="true"]`,
           ) ?? [],
         ).find((element) => element.offsetParent !== null);
 
         todayElement?.scrollIntoView({
           behavior: "smooth",
-          block: "start",
+          block: "center",
           inline: "nearest",
         });
       });
-    }, 0);
+    }, 100);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [todayDateKey, todayJumpRequest, visibleMonth.month, visibleMonth.year]);
+  }, [todayDateKey, todayJumpRequest, visibleMonth.month, visibleMonth.year, isLoading]);
 
   const holidayLookup = hebcalItems ? buildHolidayLookup(hebcalItems) : undefined;
   const calendarDataDays = (data?.days ?? []) as CalendarMonthDataDay[];

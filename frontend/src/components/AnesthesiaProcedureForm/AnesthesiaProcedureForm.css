@@ -1,5 +1,5 @@
 .save-anesthesia-procedure-form-container {
-  overflow-y: scroll;
+  overflow-y: auto;
   height: 80%;
   width: 90%;
   max-width: 90%;
