@@ -1,5 +1,6 @@
 import { Browser, chromium, Page } from "playwright";
 import { ENV } from "../config/config.js";
+import { logger } from "../config/logger.js";
 import {
   ClinicaMedicalRecordDto,
   ImportedClinicaAggregate,
@@ -53,6 +54,11 @@ class ClinicaScraperService {
   private browser: Browser | null = null;
 
   init = async (): Promise<void> => {
+    logger.info("Launching Clinica scraper browser", {
+      module: "clinica",
+      event: "clinica_scraper_browser_launch_started",
+    });
+
     this.browser = await chromium.launch({
       headless: true,
       args: [
@@ -60,6 +66,11 @@ class ClinicaScraperService {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
       ],
+    });
+
+    logger.info("Clinica scraper browser launched", {
+      module: "clinica",
+      event: "clinica_scraper_browser_launch_finished",
     });
   };
 
@@ -158,16 +169,42 @@ class ClinicaScraperService {
     const page = await context.newPage();
 
     try {
+      logger.info("Clinica scraper login started", {
+        module: "clinica",
+        event: "clinica_scraper_login_started",
+      });
+
       await this.login(page, {
         username: ENV.clinicUsername,
         password: ENV.clinicPassword,
       });
 
+      logger.info("Clinica scraper login finished", {
+        module: "clinica",
+        event: "clinica_scraper_login_finished",
+      });
+
       await this.selectClinicCenterIfNeeded(page);
+
+      logger.info("Clinica scraper opening clients page", {
+        module: "clinica",
+        event: "clinica_scraper_open_clients_page_started",
+      });
 
       await this.openClientsPage(page);
 
+      logger.info("Clinica scraper extracting client rows", {
+        module: "clinica",
+        event: "clinica_scraper_extract_rows_started",
+      });
+
       const rows = await this.extractClientRows(page);
+
+      logger.info("Clinica scraper extracted client rows", {
+        module: "clinica",
+        event: "clinica_scraper_extract_rows_finished",
+        rowsCount: rows.length,
+      });
 
       const results: ImportedClinicaAggregate[] = [];
 
