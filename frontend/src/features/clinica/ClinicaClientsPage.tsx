@@ -3,22 +3,12 @@ import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  InputAdornment,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
-import SyncIcon from "@mui/icons-material/Sync";
-import SearchIcon from "@mui/icons-material/Search";
 
 import { AppRoutes } from "../../config/appRoutes";
 import { MuiRtlProvider } from "../../theme/MuiRtlProvider";
@@ -26,7 +16,9 @@ import {
   CLINICA_COLORS,
   CLINICA_TEXTS,
 } from "./constants/clinica.constants";
+import { ClinicaClientsControls } from "./components/ClinicaClientsControls";
 import { ClinicaClientsTable } from "./components/ClinicaClientsTable";
+import { ClinicaPetSelectionDialog } from "./components/ClinicaPetSelectionDialog";
 import { useClinicaClients } from "./hooks/useClinicaClients";
 import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
@@ -126,102 +118,12 @@ const ClinicaClientsPageContent = () => {
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-        <Card
-          variant="outlined"
-          sx={{
-            bgcolor: CLINICA_COLORS.primaryFaint,
-            borderColor: CLINICA_COLORS.border,
-          }}
-        >
-          <CardContent
-            sx={{
-              p: { xs: 2, md: 3 },
-              "&:last-child": {
-                pb: { xs: 2, md: 3 },
-              },
-            }}
-          >
-            <Stack
-              direction={{
-                xs: "column",
-                md: "row",
-              }}
-              sx={{
-                alignItems: {
-                  xs: "stretch",
-                  md: "center",
-                },
-                justifyContent: "space-between",
-                gap: {
-                  xs: 1.5,
-                  md: 3,
-                },
-              }}
-            >
-              <TextField
-                fullWidth
-                sx={{ flex: 1 }}
-                value={search}
-                onChange={(event) => {
-                  handleSearchChange(event.target.value);
-                }}
-                placeholder={CLINICA_TEXTS.searchPlaceholder}
-                size="small"
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <SearchIcon color="primary" />
-                      </InputAdornment>
-                    ),
-                  },
-                  htmlInput: {
-                    dir: "rtl",
-                  },
-                }}
-              />
-
-              <Button
-                variant="contained"
-                disabled={isSyncing}
-                onClick={handleSync}
-                sx={{
-                  minWidth: {
-                    xs: "100%",
-                    md: 220,
-                  },
-                  height: 44,
-                  borderRadius: 999,
-                  boxShadow: CLINICA_COLORS.shadow,
-                  alignSelf: {
-                    xs: "stretch",
-                    md: "center",
-                  },
-                }}
-              >
-                <Stack
-                  component="span"
-                  direction="row"
-                  spacing={1}
-                  sx={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {isSyncing ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
-                    <SyncIcon fontSize="small" />
-                  )}
-                  <span>
-                    {isSyncing ? CLINICA_TEXTS.syncing : CLINICA_TEXTS.manualSync}
-                  </span>
-                </Stack>
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
+        <ClinicaClientsControls
+          search={search}
+          isSyncing={isSyncing}
+          onSearchChange={handleSearchChange}
+          onSync={handleSync}
+        />
 
         <Card
           variant="outlined"
@@ -269,40 +171,11 @@ const ClinicaClientsPageContent = () => {
         </Card>
       </Stack>
 
-      <Dialog
-        open={Boolean(clientForPetSelection)}
+      <ClinicaPetSelectionDialog
+        client={clientForPetSelection}
         onClose={() => setClientForPetSelection(null)}
-        fullWidth
-        maxWidth="xs"
-        dir="rtl"
-      >
-        <DialogTitle>{CLINICA_TEXTS.choosePetTitle}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={1.5}>
-            <Typography color="text.secondary">
-              {CLINICA_TEXTS.choosePetDescription}
-            </Typography>
-            {clientForPetSelection?.pets.map((pet) => (
-              <Button
-                key={pet.name}
-                variant="outlined"
-                onClick={() => handlePetSelected(pet)}
-                sx={{
-                  justifyContent: "flex-start",
-                  borderRadius: 999,
-                }}
-              >
-                {pet.name}
-              </Button>
-            ))}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setClientForPetSelection(null)}>
-            {CLINICA_TEXTS.cancel}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onPetSelected={handlePetSelected}
+      />
     </Box>
   );
 };
