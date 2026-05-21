@@ -232,9 +232,26 @@ class ClinicaClientService {
         event: "clinica_clients_sync_started",
       });
 
+      logger.info("Clinica scraper init started", {
+        module: MODULE,
+        event: "clinica_scraper_init_started",
+      });
+
       await clinicaScraperService.init();
 
+      logger.info("Clinica scraper init finished", {
+        module: MODULE,
+        event: "clinica_scraper_init_finished",
+      });
+
       const aggregates = await clinicaScraperService.scrapeClients();
+
+      logger.info("Clinica scraper returned aggregates", {
+        module: MODULE,
+        event: "clinica_scraper_returned_aggregates",
+        aggregatesCount: aggregates.length,
+      });
+
       const clients = mapAggregatesToClients(aggregates);
 
       if (clients.length === 0) {
