@@ -47,8 +47,7 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
       const result = await syncClinicaClients();
       setSuccessMessage(CLINICA_TEXTS.syncSuccess(result.created, result.updated));
       await onSyncCompleted();
-    } catch (error) {
-      console.error("Clinica sync failed", error);
+    } catch {
       setErrorMessage(CLINICA_TEXTS.syncError);
     } finally {
       await loadSyncStatus();
