@@ -292,12 +292,6 @@ class ClinicaClientService {
       let updated = 0;
       let skipped = 0;
 
-      logger.info("Clinica DB write started", {
-        module: MODULE,
-        event: "clinica_db_write_started",
-        clientsCount: clients.length,
-      });
-
       for (const client of clients) {
         const query = client.externalPatientId
           ? { externalPatientId: client.externalPatientId }
@@ -348,12 +342,6 @@ class ClinicaClientService {
         skipped,
         syncedAt: new Date(),
       };
-
-      logger.info("Clinica DB write finished", {
-        module: MODULE,
-        event: "clinica_db_write_finished",
-        ...result,
-      });
 
       logger.info("Clinica clients sync finished", {
         module: MODULE,

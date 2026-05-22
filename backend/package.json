@@ -8,7 +8,7 @@
     "clean": "rimraf dist",
     "dev": "tsx watch src/server.ts",
     "build": "npm run clean && tsc -p tsconfig.json",
-    "postinstall": "npx playwright install --with-deps chromium",
+    "postinstall": "playwright install --with-deps chromium",
     "start": "node dist/src/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand",
