@@ -50,6 +50,11 @@ const ClinicaClientsResponseSchema = z.object({
 
 const ClinicaSyncStatusResponseSchema = z.object({
   isSyncRunning: z.boolean(),
+  lastSyncError: z.object({
+    name: z.string(),
+    message: z.string(),
+    occurredAt: z.string(),
+  }).nullable().optional(),
 });
 
 const ClinicaSyncResultSchema = z.object({

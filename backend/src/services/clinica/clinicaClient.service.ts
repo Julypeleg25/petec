@@ -27,7 +27,14 @@ type SyncClinicaClientsResult = {
   syncedAt: Date;
 };
 
+type SyncErrorStatus = {
+  name: string;
+  message: string;
+  occurredAt: Date;
+};
+
 let isSyncRunning = false;
+let lastSyncError: SyncErrorStatus | null = null;
 
 const validateClinicaSyncEnv = (): void => {
   const missingEnvNames = [
@@ -231,6 +238,7 @@ class ClinicaClientService {
   getSyncStatus() {
     return {
       isSyncRunning,
+      lastSyncError,
     };
   }
 
@@ -240,6 +248,7 @@ class ClinicaClientService {
     }
 
     isSyncRunning = true;
+    lastSyncError = null;
 
     try {
       logger.info("Clinica clients sync started", {
@@ -352,6 +361,11 @@ class ClinicaClientService {
       return result;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
+      lastSyncError = {
+        name: err.name,
+        message: err.message,
+        occurredAt: new Date(),
+      };
 
       logger.error("Clinica clients sync failed", {
         module: MODULE,

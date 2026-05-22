@@ -21,6 +21,9 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
     try {
       const status = await getClinicaSyncStatus();
       setIsSyncing(status.isSyncRunning);
+      if (!status.isSyncRunning && status.lastSyncError?.message) {
+        setErrorMessage(status.lastSyncError.message);
+      }
     } catch {}
   }, []);
 
@@ -47,8 +50,10 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
       const result = await syncClinicaClients();
       setSuccessMessage(CLINICA_TEXTS.syncSuccess(result.created, result.updated));
       await onSyncCompleted();
-    } catch {
-      setErrorMessage(CLINICA_TEXTS.syncError);
+    } catch (error) {
+      console.error("Clinica manual sync failed", error);
+      await loadSyncStatus();
+      setErrorMessage((currentMessage) => currentMessage || CLINICA_TEXTS.syncError);
     } finally {
       await loadSyncStatus();
     }
