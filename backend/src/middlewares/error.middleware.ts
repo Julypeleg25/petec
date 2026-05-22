@@ -157,7 +157,7 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
         ...(validationIssuePaths ? { validation_issue_paths: validationIssuePaths } : {}),
         ...(validationIssues ? { validation_issues: validationIssues as ValidationIssueLog[] } : {}),
         ...(error.cause instanceof Error ? { cause: error.cause.message } : {}),
-        ...(!ENV.isProduction ? { stack: error.stack } : {}),
+        ...(error instanceof Error ? { error_stack: error.stack } : {}),
     };
 
     const logMessage = `[${route}] request failed`;
