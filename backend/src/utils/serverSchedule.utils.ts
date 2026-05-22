@@ -36,10 +36,14 @@ export const initializeScheduledJobs = (isProduction: boolean): (() => void) => 
           result,
         });
       } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+
         logger.error("Clinica daily sync failed", {
           module: "clinica",
           event: "clinica_daily_sync_failed",
-          error,
+          error_name: err.name,
+          error_message: err.message,
+          error_stack: err.stack,
         });
       }
     },
