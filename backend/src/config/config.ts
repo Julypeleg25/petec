@@ -28,15 +28,14 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().optional().default(""),
   CLOUDINARY_API_SECRET: z.string().trim().optional().default(""),
   UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
-  CLINICA_URL: z.string().url().optional(),
-  CLINICA_BASE_URL: z.string().url().optional(),
+  CLINICA_URL: z.string().url(),
   CLINIC_USERNAME: z.string().optional(),
   CLINIC_PASSWORD: z.string().optional(),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse({ ...configFile, ...process.env });
+const parsed = envSchema.safeParse({ ...process.env, ...configFile });
 
 if (!parsed.success) {
   const formatted = z.treeifyError(parsed.error);
@@ -57,7 +56,6 @@ const accessTokenExpiresInMs =
 const refreshTokenExpiresInMs = parseDurationToMilliseconds(
   refreshTokenExpiresIn,
 );
-const clinicaBaseUrl = envs.CLINICA_BASE_URL ?? envs.CLINICA_URL ?? "";
 
 export const ENV = {
   port: envs.PORT,
@@ -82,19 +80,7 @@ export const ENV = {
   accessTokenExpiresInMs,
   refreshTokenExpiresIn,
   refreshTokenExpiresInMs,
-  clinicaBaseUrl,
+  clinicaBaseUrl: envs.CLINICA_URL,
   clinicUsername: envs.CLINIC_USERNAME ?? "",
   clinicPassword: envs.CLINIC_PASSWORD ?? "",
 } as const;
-
-const missingClinicaEnvNames = [
-  !ENV.clinicaBaseUrl ? "CLINICA_URL or CLINICA_BASE_URL" : undefined,
-  !ENV.clinicUsername ? "CLINIC_USERNAME" : undefined,
-  !ENV.clinicPassword ? "CLINIC_PASSWORD" : undefined,
-].filter(Boolean);
-
-if (missingClinicaEnvNames.length > 0) {
-  console.warn("Clinica sync env is incomplete", {
-    missing: missingClinicaEnvNames,
-  });
-}

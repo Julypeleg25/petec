@@ -24,12 +24,6 @@ router.get(
 );
 
 router.get(
-  CLINICA_ROUTE_PATHS.debugConfig,
-  requirePermission(Permission.WILDCARD),
-  clinicaController.getDebugConfig,
-);
-
-router.get(
   CLINICA_ROUTE_PATHS.syncStatus,
   requirePermission(Permission.READ_PATIENT),
   clinicaController.getSyncStatus,

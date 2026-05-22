@@ -6,7 +6,6 @@ import type {
   IClinicaClient,
 } from "../../models/clinicaClient/index.js";
 import { clinicaScraperService } from "../clinicaScraper.service.js";
-import { ENV } from "../../config/config.js";
 import { logger } from "../../config/logger.js";
 import { BadRequestError, NotFoundError } from "../../constants/error.constants.js";
 import type { ImportedClinicaAggregate } from "../../utils/clinica-query.types.js";
@@ -28,26 +27,6 @@ type SyncClinicaClientsResult = {
 };
 
 let isSyncRunning = false;
-
-const validateClinicaSyncEnv = (): void => {
-  const missingEnvNames = [
-    !ENV.clinicaBaseUrl ? "CLINICA_URL or CLINICA_BASE_URL" : undefined,
-    !ENV.clinicUsername ? "CLINIC_USERNAME" : undefined,
-    !ENV.clinicPassword ? "CLINIC_PASSWORD" : undefined,
-  ].filter(Boolean);
-
-  console.log({
-    hasBaseUrl: Boolean(ENV.clinicaBaseUrl),
-    hasUsername: Boolean(ENV.clinicUsername),
-    hasPassword: Boolean(ENV.clinicPassword),
-  });
-
-  if (missingEnvNames.length > 0) {
-    throw new BadRequestError(
-      `Missing Clinica env vars: ${missingEnvNames.join(", ")}`,
-    );
-  }
-};
 
 const normalizeValue = (value?: string): string =>
   value?.trim().replace(/\s+/g, " ") ?? "";
@@ -253,21 +232,6 @@ class ClinicaClientService {
         event: "clinica_clients_sync_started",
       });
 
-      logger.info("Clinica sync env validation started", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_started",
-      });
-
-      validateClinicaSyncEnv();
-
-      logger.info("Clinica sync env validation finished", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_finished",
-        hasClinicaBaseUrl: Boolean(ENV.clinicaBaseUrl),
-        hasClinicUsername: Boolean(ENV.clinicUsername),
-        hasClinicPassword: Boolean(ENV.clinicPassword),
-      });
-
       logger.info("Clinica scraper init started", {
         module: MODULE,
         event: "clinica_scraper_init_started",
@@ -297,12 +261,6 @@ class ClinicaClientService {
       let created = 0;
       let updated = 0;
       let skipped = 0;
-
-      logger.info("Clinica DB write started", {
-        module: MODULE,
-        event: "clinica_db_write_started",
-        clientsCount: clients.length,
-      });
 
       for (const client of clients) {
         const query = client.externalPatientId
@@ -355,12 +313,6 @@ class ClinicaClientService {
         syncedAt: new Date(),
       };
 
-      logger.info("Clinica DB write finished", {
-        module: MODULE,
-        event: "clinica_db_write_finished",
-        ...result,
-      });
-
       logger.info("Clinica clients sync finished", {
         module: MODULE,
         event: "clinica_clients_sync_finished",
@@ -368,32 +320,9 @@ class ClinicaClientService {
       });
 
       return result;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-
-      logger.error("Clinica clients sync failed", {
-        module: MODULE,
-        event: "clinica_clients_sync_failed",
-        error_name: err.name,
-        error_message: err.message,
-        error_stack: err.stack,
-      });
-
-      throw error;
     } finally {
-      logger.info("Clinica scraper close started", {
-        module: MODULE,
-        event: "clinica_scraper_close_started",
-      });
-
       await clinicaScraperService.close().catch(() => undefined);
       isSyncRunning = false;
-
-      logger.info("Clinica scraper close finished", {
-        module: MODULE,
-        event: "clinica_scraper_close_finished",
-        isSyncRunning,
-      });
     }
   }
 
