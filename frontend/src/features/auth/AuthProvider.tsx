@@ -14,7 +14,10 @@ import {
   type Role,
   type TokenPayload,
 } from "@petec/shared";
-import { clearAuth, setAccessToken } from "../../lib/apiClient";
+import {
+  clearAuth,
+  setAccessToken,
+} from "../../lib/apiClient";
 import type { AuthUser } from "../../types";
 import type { LoginResponseDTO } from "@petec/shared";
 import { authApi } from "./auth.api";
@@ -55,7 +58,7 @@ const readAuthUserFromStorage = (): AuthUser | null => {
   if (raw) {
     const parsed = parseStoredUser(raw);
     if (parsed) return parsed;
-    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
+    clearAuth();
   }
 
   return null;
@@ -106,6 +109,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readAuthUserFromStorage());
   const [isLoading, setIsLoading] = useState(true);
 
+  const persistUser = useCallback((nextUser: AuthUser) => {
+    const normalized = normalizeAuthUser(nextUser);
+    setUser(normalized);
+    writeAuthUserToStorage(normalized);
+  }, []);
+
+  const clearUser = useCallback(() => {
+    clearAuth();
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -118,13 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = refresh.accessToken;
 
         if (!token) {
-          if (!cancelled) {
-            if (!stored) {
-              clearAuth();
-              setUser(null);
-              writeAuthUserToStorage(null);
-            }
-          }
+          if (!cancelled && !stored) clearUser();
           return;
         }
 
@@ -133,12 +141,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!cancelled) {
           if (nextUser) {
-            setUser(nextUser);
-            writeAuthUserToStorage(nextUser);
+            persistUser(nextUser);
           } else if (!stored) {
-            clearAuth();
-            setUser(null);
-            writeAuthUserToStorage(null);
+            clearUser();
           }
         }
       } catch (error) {
@@ -149,9 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             status === HttpStatus.UNAUTHORIZED ||
             status === HttpStatus.FORBIDDEN
           ) {
-            clearAuth();
-            setUser(null);
-            writeAuthUserToStorage(null);
+            clearUser();
           } else {
             setUser(stored ?? null);
             writeAuthUserToStorage(stored ?? null);
@@ -169,7 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [clearUser, persistUser]);
 
   const login = useCallback((response: LoginResponseDTO) => {
     const { accessToken, user: responseUser } = response;
@@ -185,21 +188,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     const next = fromToken ?? fallback;
-    setUser(next);
-    writeAuthUserToStorage(next);
-  }, []);
+    persistUser(next);
+  }, [persistUser]);
 
   const logout = useCallback(() => {
-    clearAuth();
-    setUser(null);
-    writeAuthUserToStorage(null);
-  }, []);
+    clearUser();
+  }, [clearUser]);
 
   const updateUser = useCallback((updated: AuthUser) => {
-    const normalized = normalizeAuthUser(updated);
-    setUser(normalized);
-    writeAuthUserToStorage(normalized);
-  }, []);
+    persistUser(updated);
+  }, [persistUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

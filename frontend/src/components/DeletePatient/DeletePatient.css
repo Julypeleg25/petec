@@ -8,7 +8,7 @@
 }
 
 .delete-patient-details-container {
-  overflow-y: scroll;
+  overflow-y: auto;
   max-height: 500px;
   display: flex;
   display: -webkit-flex; 

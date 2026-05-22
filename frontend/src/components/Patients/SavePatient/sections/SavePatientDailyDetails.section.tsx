@@ -31,6 +31,7 @@ interface SavePatientDailyDetailsSectionProps {
   handleSetEditableFieldsButtonClick: (e: SavePatientActionEvent) => void;
   addNewCaseDailyDetails: (e: SavePatientActionEvent) => void;
   deleteSelectedCaseDailyDetails: (e: SavePatientActionEvent) => void;
+  onSavePatientChanges: () => Promise<boolean>;
 }
 
 function SavePatientDailyDetailsSection({
@@ -52,6 +53,7 @@ function SavePatientDailyDetailsSection({
   handleSetEditableFieldsButtonClick,
   addNewCaseDailyDetails,
   deleteSelectedCaseDailyDetails,
+  onSavePatientChanges,
 }: SavePatientDailyDetailsSectionProps) {
   const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
   const caseDateOptions = buildCaseDetailsDateOptions(caseDetailsList);
@@ -63,9 +65,15 @@ function SavePatientDailyDetailsSection({
 
   const runMobileAction = (action: (e: SavePatientActionEvent) => void) =>
     (event: SavePatientActionEvent) => {
-      setIsMobileActionsOpen(false);
       action(event);
+      setIsMobileActionsOpen(false);
     };
+  const saveFromMobileMenu = (event: SavePatientActionEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsMobileActionsOpen(false);
+    void onSavePatientChanges();
+  };
 
   return (
     <div className="above-daily-details-table-section">
@@ -177,6 +185,14 @@ function SavePatientDailyDetailsSection({
         </div>
         <div className="daily-details-mobile-actions">
           <button
+            type="submit"
+            className="btn btn-small daily-details-save-btn"
+            form="save-patient-form"
+            disabled={isSaveDisabled}
+          >
+            שמור
+          </button>
+          <button
             type="button"
             className="btn daily-details-mobile-actions__trigger"
             onClick={() => setIsMobileActionsOpen((prev) => !prev)}
@@ -192,18 +208,17 @@ function SavePatientDailyDetailsSection({
               className="daily-details-mobile-actions__panel"
             >
               <button
-                type="submit"
-                form="save-patient-form"
-                disabled={isSaveDisabled}
-                onClick={() => setIsMobileActionsOpen(false)}
+                type="button"
+                className={paintingMode ? "daily-details-mobile-actions__mode-active" : ""}
+                aria-pressed={paintingMode}
+                onClick={runMobileAction(handlePaintingModeButtonClick)}
               >
-                שמור
-              </button>
-              <button type="button" onClick={runMobileAction(handlePaintingModeButtonClick)}>
                 {paintingMode ? "עצור סימון" : "סימון שדות חובה"}
               </button>
               <button
                 type="button"
+                className={editableFieldsMode ? "daily-details-mobile-actions__mode-active" : ""}
+                aria-pressed={editableFieldsMode}
                 onClick={runMobileAction(handleSetEditableFieldsButtonClick)}
               >
                 {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}

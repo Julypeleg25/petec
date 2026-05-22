@@ -2,6 +2,7 @@ import Header from "../Header/Header";
 import Calendar from "../Patients/Calendar/Calendar";
 import Patients from "../Patients/Patients";
 import SystemManagement from "../SystemManagement/SystemManagement";
+import { ClinicaClientsPage } from "../../features/clinica";
 import type {
   MainPageType,
   SystemManagementTabType,
@@ -19,11 +20,16 @@ function MainPage({
   systemManagementType,
   patientsNavType,
 }: MainPageProps) {
+  const mainClassName = `main-page-main ${
+    type === "clinica" ? "main-page-main--scrollable" : ""
+  }`;
+
   return (
     <div className="main-page">
       <Header type={type} patientsNavType={patientsNavType} />
-      <main className="main-page-main">
+      <main className={mainClassName}>
         {type === "calendar" && <Calendar />}
+        {type === "clinica" && <ClinicaClientsPage />}
         {type === "patients" && <Patients patientsNavType={patientsNavType} />}
         {type === "system-management" && (
           <SystemManagement type={systemManagementType} />

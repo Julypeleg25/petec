@@ -24,12 +24,15 @@ function FormUploadImage({
   selectedFile,
   setSelectedFile,
   disabled = false,
+  imageClickAction = "file",
 }: FormUploadImageProps) {
   const webcamRef = useRef<Webcam>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showWebcam, setShowWebcam] = useState(false);
   const [facingMode, setFacingMode] = useState(FACING_MODE_ENVIRONMENT);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [localPreviewSrc, setLocalPreviewSrc] = useState<string | null>(null);
+  const [isImageActionMenuOpen, setIsImageActionMenuOpen] = useState(false);
   const hasServerImage = currentImage !== "#" && currentImage !== "";
 
   useEffect(() => {
@@ -103,6 +106,7 @@ function FormUploadImage({
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+    setIsImageActionMenuOpen(false);
   }, [isValidImageFile, setSelectedFile]);
 
   const swapCameras = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -115,8 +119,23 @@ function FormUploadImage({
 
   const handleOpenCamera = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+    setIsImageActionMenuOpen(false);
     setIsCameraReady(false);
     setShowWebcam(true);
+  }, []);
+
+  const handleImageActionTrigger = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsImageActionMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleChooseFile = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsImageActionMenuOpen(false);
+    fileInputRef.current?.click();
   }, []);
 
   const handleUserMediaError = useCallback(() => {
@@ -129,9 +148,13 @@ function FormUploadImage({
   }, [facingMode]);
 
   const displaySrc = localPreviewSrc || (hasServerImage ? currentImage : null);
+  const shouldOpenCameraFromImage = imageClickAction === "camera";
+  const shouldShowImageActionChoice = imageClickAction === "choice";
 
   return (
-    <div className="FormUploadImage">
+    <div
+      className={`FormUploadImage ${showWebcam ? "FormUploadImage--webcam-active" : ""} ${shouldOpenCameraFromImage ? "FormUploadImage--image-opens-camera" : ""} ${shouldShowImageActionChoice ? "FormUploadImage--image-choice" : ""}`}
+    >
       <div className={`upload-image-container ${isLarge ? "upload-image-container-large" : ""}`}>
         {showWebcam ? (
           <div className="upload-image-webcam">
@@ -170,13 +193,53 @@ function FormUploadImage({
                 {!isDefault && <FaImage size={80} />}
               </div>
             )}
-            <input
-              className="upload-image-input"
-              type="file"
-              accept={ACCEPTED_IMAGE_MIME_TYPES}
-              disabled={disabled}
-              onChange={handleFileChange}
-            />
+            {shouldOpenCameraFromImage ? (
+              <button
+                type="button"
+                className="upload-image-camera-hit-area"
+                aria-label={displaySrc ? "צלם תמונה שוב" : "צלם תמונה"}
+                disabled={disabled}
+                onClick={handleOpenCamera}
+              />
+            ) : shouldShowImageActionChoice ? (
+              <Fragment>
+                <button
+                  type="button"
+                  className="upload-image-camera-hit-area upload-image-choice-hit-area"
+                  aria-label="אפשרויות תמונה"
+                  aria-expanded={isImageActionMenuOpen}
+                  disabled={disabled}
+                  onClick={handleImageActionTrigger}
+                />
+                <input
+                  ref={fileInputRef}
+                  className="upload-image-choice-file-input"
+                  type="file"
+                  accept={ACCEPTED_IMAGE_MIME_TYPES}
+                  disabled={disabled}
+                  onChange={handleFileChange}
+                />
+                {isImageActionMenuOpen && (
+                  <div className="upload-image-action-menu" role="menu" aria-label="אפשרויות תמונה">
+                    <button type="button" role="menuitem" onClick={handleOpenCamera}>
+                      צלם
+                    </button>
+                    <button type="button" role="menuitem" onClick={handleChooseFile}>
+                      העלה
+                    </button>
+                  </div>
+                )}
+              </Fragment>
+            ) : (
+              <input
+                ref={fileInputRef}
+                className="upload-image-input"
+                type="file"
+                accept={ACCEPTED_IMAGE_MIME_TYPES}
+                disabled={disabled}
+                onChange={handleFileChange}
+              />
+            )}
           </Fragment>
         )}
       </div>

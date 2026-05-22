@@ -195,6 +195,15 @@ function Patients({ patientsNavType }: PatientsProps) {
           ארכיון
         </button>
         <button
+          className={getButtonClassName(false)}
+          title="קליניקה"
+          onClick={() => {
+            navigate(AppRoutes.Clinica);
+          }}
+        >
+          קליניקה
+        </button>
+        <button
           className={getButtonClassName(
             patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT,
           )}
@@ -220,9 +229,10 @@ function Patients({ patientsNavType }: PatientsProps) {
           רשימת מטופלים
         </button>
       </nav>
-      {(patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
-        patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES ||
-        isArchive) && (
+      {isShowOneTable &&
+        (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
+          patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES ||
+          isArchive) && (
         <div className="patients-list-type-toggle">
           <button
             type="button"

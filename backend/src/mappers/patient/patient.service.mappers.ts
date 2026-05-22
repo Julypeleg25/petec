@@ -55,6 +55,7 @@ type DailyPlanCase = Pick<
   | "admission"
   | "dailyPlan"
   | "caseDetailsGrid"
+  | "flags"
   | "patientId"
 > & {
   patientId?: ICase["patientId"] | DailyPlanPopulatedPatient;
@@ -199,7 +200,7 @@ const isCurrentOrFutureDailyPlanRow = (
   currentJerusalemDateKey: string,
 ): boolean => {
   const dateKey = toNormalizedDate(row.date, row.dateTime);
-  return dateKey.length > 0 && dateKey === currentJerusalemDateKey;
+  return dateKey.length > 0 && dateKey >= currentJerusalemDateKey;
 };
 
 export const compareDailyPlanRowsDesc = (
@@ -315,6 +316,7 @@ export const mapCaseToDailyPlanDetail = (
     name: patient?.name ?? "",
     owner_name: patient?.owner?.name ?? "",
     owner_phone_number: patient?.owner?.phone ?? "",
+    is_procedure: caseDoc.flags?.isProcedure ?? false,
     hospitalization_reason: caseDoc.admission?.hospitalizationReason ?? "",
     daily_plan_comments:
       dailyPlanCommentsUpdatedDateKey === currentJerusalemDateKey

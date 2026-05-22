@@ -17,6 +17,9 @@ import {
   resolveSelectedCaseDate,
 } from "./sections/utils/savePatientSections.utils";
 import { resolveChildCaseRoute } from "./utils/savePatientNavigation.utils";
+import type { ClinicaNewPatientState } from "../../../features/clinica/types/clinicaNewPatient.types";
+import { mapClinicaStateToNewPatientFormData } from "../../../features/clinica/mappers/clinicaClientToNewPatient.mapper";
+import { ClinicaPatientSearchPrefill } from "../../../features/clinica/components/ClinicaPatientSearchPrefill";
 
 interface SavePatientProps {
   beforeNavigation?: () => void;
@@ -26,6 +29,11 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
   const location = useLocation();
   const { masterCaseId, caseId } = useParams();
   const isEdit = location.pathname !== AppRoutes.Patients.NewPatient;
+  const clinicaState = location.state as ClinicaNewPatientState | null;
+  const initialFormData =
+    !isEdit && clinicaState?.source === "clinica"
+      ? mapClinicaStateToNewPatientFormData(clinicaState)
+      : undefined;
   const caseIdString = caseId ?? "";
   const allowNavigationRef = useRef(false);
 
@@ -47,6 +55,8 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     loading,
     formData,
     handleInputChange,
+    applyClinicaPrefill,
+    clearClinicaPrefill,
     isArchived,
     selectedFile,
     setSelectedFile,
@@ -137,12 +147,23 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     masterCaseId,
     isEdit,
     handleBeforeNavigation,
+    initialFormData,
+    !isEdit && clinicaState?.source === "clinica" ? clinicaState : undefined,
   );
+  const hasPendingSave = hasChanges || Boolean(selectedFile);
   const handleSaveAndExit = useCallback(
     () =>
       savePatientChanges({
         navigateOnCreate: false,
         reloadAfterEdit: false,
+      }),
+    [savePatientChanges],
+  );
+  const handleSaveFromMenu = useCallback(
+    () =>
+      savePatientChanges({
+        navigateOnCreate: false,
+        reloadAfterEdit: true,
       }),
     [savePatientChanges],
   );
@@ -155,7 +176,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     saveAndExit,
   } = useSavePatientExitGuard({
     allowNavigationRef,
-    hasChanges,
+    hasChanges: hasPendingSave,
     isSaving,
     onSaveAndExit: handleSaveAndExit,
   });
@@ -187,7 +208,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
             <SavePatientEditActionsSection
               isArchived={isArchived}
               isSaveButtonsDisabled={isSaveButtonsDisabled}
-              hasChanges={hasChanges}
+              hasChanges={hasPendingSave}
               isSaving={isSaving}
               isExporting={isExporting}
               isArchiving={isArchiving}
@@ -200,9 +221,16 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 setShowArchiveConfirmationModal(true)
               }
               onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onSavePatientChanges={handleSaveFromMenu}
             />
           )}
           {!isEdit && <h2 className="new-patient-form-title">מטופל חדש</h2>}
+          {!isEdit && clinicaState?.source !== "clinica" && (
+            <ClinicaPatientSearchPrefill
+              onClear={clearClinicaPrefill}
+              onSelect={applyClinicaPrefill}
+            />
+          )}
           <SavePatientChildCasesSection
             childCases={childCases}
             currentCaseId={caseId}
@@ -268,7 +296,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               setIsProcedure={setIsProcedure}
               isArchived={isArchived}
               isSaveButtonsDisabled={isSaveButtonsDisabled}
-              hasChanges={hasChanges}
+              hasChanges={hasPendingSave}
               isSaving={isSaving}
               isExporting={isExporting}
               isArchiving={isArchiving}
@@ -281,6 +309,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 setShowArchiveConfirmationModal(true)
               }
               onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onSavePatientChanges={handleSaveFromMenu}
             />
             {!isEdit && (
               <button
@@ -301,7 +330,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 onCaseDateChange={handleCaseDateChange}
                 handleInputChange={handleInputChange}
                 isSaveButtonsDisabled={isSaveButtonsDisabled}
-                hasChanges={hasChanges}
+                hasChanges={hasPendingSave}
                 isArchived={isArchived}
                 paintingMode={paintingMode}
                 editableFieldsMode={editableFieldsMode}
@@ -311,6 +340,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 }
                 addNewCaseDailyDetails={addNewCaseDailyDetails}
                 deleteSelectedCaseDailyDetails={deleteSelectedCaseDailyDetails}
+                onSavePatientChanges={handleSaveFromMenu}
               />
             )}
             {isEdit && (

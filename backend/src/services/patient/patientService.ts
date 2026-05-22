@@ -47,10 +47,7 @@ import type { ReadStream } from "node:fs";
 
 import { toObjectId } from "../../utils/objectId.utils.js";
 import { toPatientPhotoUrl } from "../../utils/patientPhoto.utils.js";
-import {
-  toCanonicalJerusalemDate,
-  toDateInputString,
-} from "../../mappers/common/common.mappers.utils.js";
+import { toCanonicalJerusalemDate } from "../../mappers/common/common.mappers.utils.js";
 import {
   mapNewPatientDtoToPatientData,
   mapEditDtoToPatientUpdate,
@@ -70,11 +67,16 @@ import type {
   MedWithPopulatedName,
 } from "../../types/patient.types.js";
 import {
+  deleteCaseDocumentAsset,
+  type DeletedCaseDocumentAsset,
   ensureDedicatedPatientForCase,
   getCaseByIdOrThrow,
   getCaseByIdPopulatedOrThrow,
+  getCalendarQueryBounds,
   getCaseBySerialIdOrThrow,
+  getTodayProcedureDateFilter,
   resolveMasterCaseBySerialPrefix,
+  shouldPersistManualProcedureUnarchive,
 } from "./utils/patientService.utils.js";
 import {
   hasCaseWeightChanged,
@@ -89,57 +91,6 @@ const MODULE = "patient";
 const ENTITY_TYPE_PATIENT = "Patient";
 const ENTITY_TYPE_CASE = "Case";
 const AUDIT_SUBJECT_PATIENT = "Patient Management";
-const CALENDAR_QUERY_BUFFER_DAYS = 1;
-
-const shouldPersistManualProcedureUnarchive = (
-  flags?: ICase["flags"],
-  dates?: ICase["dates"],
-): boolean => {
-  if (flags?.isProcedure !== true) {
-    return false;
-  }
-
-  const procedureDateKey = toDateInputString(dates?.procedureDate);
-  if (!procedureDateKey) {
-    return false;
-  }
-
-  const todayKey = toDateInputString(new Date());
-  return procedureDateKey !== todayKey;
-};
-
-const getCalendarQueryBounds = (
-  year: number,
-  month: number,
-): { queryStart: Date; queryEnd: Date } => {
-  const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
-  const nextMonthStart = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-  const queryStart = new Date(monthStart);
-  const queryEnd = new Date(nextMonthStart);
-
-  queryStart.setUTCDate(queryStart.getUTCDate() - CALENDAR_QUERY_BUFFER_DAYS);
-  queryEnd.setUTCDate(queryEnd.getUTCDate() + CALENDAR_QUERY_BUFFER_DAYS);
-
-  return { queryStart, queryEnd };
-};
-
-type DeletedCaseDocumentAsset = {
-  _id: string;
-  cloudinaryPublicId?: string;
-  fileName: string;
-  storageKey: string;
-};
-
-const deleteCaseDocumentAsset = async (
-  document: DeletedCaseDocumentAsset,
-): Promise<void> => {
-  if (document.storageKey.startsWith("http")) {
-    await deleteFromCloudinary(document.cloudinaryPublicId ?? document.storageKey);
-    return;
-  }
-
-  await storageService.delete(document.storageKey);
-};
 
 export class PatientService {
   async createPatientAndCase(
@@ -838,8 +789,28 @@ export class PatientService {
   }
 
   async getDailyPlan(): Promise<DailyPlanDetailDTO[]> {
+    const todayProcedureDateFilter = getTodayProcedureDateFilter();
+    const dailyPlanFilter = todayProcedureDateFilter
+      ? {
+        isDeleted: false,
+        isArchived: false,
+        $or: [
+          { "flags.isProcedure": { $ne: true } },
+          {
+            "flags.isProcedure": true,
+            $or: [
+              { "dates.procedureDate": todayProcedureDateFilter },
+              { isManuallyUnarchived: true },
+            ],
+          },
+        ],
+      }
+      : {
+        isDeleted: false,
+        isArchived: false,
+      };
     const cases = await caseRepository.findMany(
-      { isDeleted: false, isArchived: false },
+      dailyPlanFilter,
       {
         sort: { createdAt: -1 },
         populate: [
