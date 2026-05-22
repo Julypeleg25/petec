@@ -50,9 +50,6 @@ const syncClients = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  console.log("SYNC ROUTE HIT");
-  console.log("Manual Clinica sync started");
-
   try {
     logger.info("Manual Clinica sync started", {
       module: "clinica",
@@ -62,7 +59,6 @@ const syncClients = async (
 
     const result = await clinicaClientService.syncClients();
 
-    console.log("Manual Clinica sync finished", result);
     logger.info("Manual Clinica sync finished", {
       module: "clinica",
       event: "manual_clinica_sync_finished",
@@ -77,7 +73,6 @@ const syncClients = async (
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
 
-    console.error("Manual Clinica sync failed:", err);
     logger.error("Manual Clinica sync failed", {
       module: "clinica",
       event: "manual_clinica_sync_failed",

@@ -31,16 +31,10 @@ let isSyncRunning = false;
 
 const validateClinicaSyncEnv = (): void => {
   const missingEnvNames = [
-    !ENV.clinicaBaseUrl ? "CLINICA_URL or CLINICA_BASE_URL" : undefined,
+    !ENV.clinicaBaseUrl ? "CLINICA_URL" : undefined,
     !ENV.clinicUsername ? "CLINIC_USERNAME" : undefined,
     !ENV.clinicPassword ? "CLINIC_PASSWORD" : undefined,
   ].filter(Boolean);
-
-  console.log({
-    hasBaseUrl: Boolean(ENV.clinicaBaseUrl),
-    hasUsername: Boolean(ENV.clinicUsername),
-    hasPassword: Boolean(ENV.clinicPassword),
-  });
 
   if (missingEnvNames.length > 0) {
     throw new BadRequestError(
