@@ -59,24 +59,10 @@ function Patients({ patientsNavType }: PatientsProps) {
     patientCard,
   } = usePatients(patientsNavType);
 
-  const handleMobileMenuAction = (action: () => void) => {
-    setIsMobileMenuOpen(false);
-    action();
-  };
-
   const isPatientListView =
     patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
     patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES;
 
-  const getSelectedLabel = () => {
-    if (isArchive) return "ארכיון";
-    if (patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN) return "יומי plan";
-    if (patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT) return "הוספת מטופל";
-    if (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST) return "רשימת מטופלים";
-    if (patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES) return "פרוצדרות";
-    if (patientsNavType === PATIENTS_NAV_TYPES.PATIENT_CASE) return "פרטי מטופל";
-    return "אפשרויות";
-  };
 
   useEffect(() => {
     setHeaderMenuContainer(document.getElementById("header-contextual-menu"));
@@ -87,13 +73,65 @@ function Patients({ patientsNavType }: PatientsProps) {
       {headerMenuContainer &&
         createPortal(
         <>
-        <div
-          className={`patients-mobile-menu ${
-            patientsNavType === PATIENTS_NAV_TYPES.PATIENT_CASE
-              ? "patients-mobile-menu--with-actions"
-              : ""
-          }`}
-        >
+        <div className="patients-mobile-nav">
+          <button
+            type="button"
+            className={`btn btn-small patients-mobile-nav__btn ${
+              patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "patients-mobile-nav__btn--active" : ""
+            }`}
+            onClick={() => navigate(AppRoutes.Patients.DailyPlan)}
+            disabled={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
+          >
+            יומי plan
+          </button>
+          <button
+            type="button"
+            className={`btn btn-small patients-mobile-nav__btn ${
+              isArchive ? "patients-mobile-nav__btn--active" : ""
+            }`}
+            onClick={() => {
+              resetPatientCards(true);
+              navigate(AppRoutes.Patients.Archive);
+            }}
+            disabled={isArchive}
+          >
+            ארכיון
+          </button>
+          <button
+            type="button"
+            className={`btn btn-small patients-mobile-nav__btn ${
+              patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "patients-mobile-nav__btn--active" : ""
+            }`}
+            onClick={() => navigate(AppRoutes.Patients.NewPatient)}
+            disabled={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
+          >
+            הוספת מטופל
+          </button>
+          <button
+            type="button"
+            className={`btn btn-small patients-mobile-nav__btn ${
+              patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "patients-mobile-nav__btn--active" : ""
+            }`}
+            onClick={() => {
+              resetPatientCards(false);
+              navigate(AppRoutes.Patients.List);
+            }}
+            disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
+          >
+            רשימת מטופלים
+          </button>
+        </div>
+        <div className="patients-mobile-menu">
+          <button
+            type="button"
+            className={`btn btn-small patients-mobile-home-btn ${
+              patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "patients-mobile-home-btn--active" : ""
+            }`}
+            onClick={() => { resetPatientCards(false); navigate(AppRoutes.Patients.List); }}
+            disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
+          >
+            רשימת מטופלים
+          </button>
           <button
             type="button"
             className="btn patients-mobile-menu__trigger"
@@ -102,20 +140,13 @@ function Patients({ patientsNavType }: PatientsProps) {
             aria-controls="patients-mobile-menu-panel"
           >
             {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-            <span>{getSelectedLabel()}</span>
           </button>
           {isMobileMenuOpen && (
             <div id="patients-mobile-menu-panel" className="patients-mobile-menu__panel">
               <button
                 type="button"
-                className={
-                  patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "is-active" : ""
-                }
-                onClick={() =>
-                  handleMobileMenuAction(() =>
-                    navigate(AppRoutes.Patients.DailyPlan),
-                  )
-                }
+                className={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "is-active" : ""}
+                onClick={() => { setIsMobileMenuOpen(false); navigate(AppRoutes.Patients.DailyPlan); }}
                 disabled={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
               >
                 יומי plan
@@ -123,43 +154,23 @@ function Patients({ patientsNavType }: PatientsProps) {
               <button
                 type="button"
                 className={isArchive ? "is-active" : ""}
-                onClick={() =>
-                  handleMobileMenuAction(() => {
-                    resetPatientCards(true);
-                    navigate(AppRoutes.Patients.Archive);
-                  })
-                }
+                onClick={() => { setIsMobileMenuOpen(false); resetPatientCards(true); navigate(AppRoutes.Patients.Archive); }}
                 disabled={isArchive}
               >
                 ארכיון
               </button>
               <button
                 type="button"
-                className={
-                  patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "is-active" : ""
-                }
-                onClick={() =>
-                  handleMobileMenuAction(() =>
-                    navigate(AppRoutes.Patients.NewPatient),
-                  )
-                }
+                className={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "is-active" : ""}
+                onClick={() => { setIsMobileMenuOpen(false); navigate(AppRoutes.Patients.NewPatient); }}
                 disabled={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
               >
                 הוספת מטופל
               </button>
               <button
                 type="button"
-                className={
-                  patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST
-                    ? "is-active"
-                    : ""
-                }
-                onClick={() =>
-                  handleMobileMenuAction(() => {
-                    resetPatientCards(false);
-                    navigate(AppRoutes.Patients.List);
-                  })
-                }
+                className={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "is-active" : ""}
+                onClick={() => { setIsMobileMenuOpen(false); resetPatientCards(false); navigate(AppRoutes.Patients.List); }}
                 disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
               >
                 רשימת מטופלים
