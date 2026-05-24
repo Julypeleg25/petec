@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@mui/material";
 
-import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
+import { MdPersonAddAlt } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 import { ClinicaClient } from "../types/clinicaClient.types";
@@ -63,7 +63,7 @@ const CreateCaseButton = ({
         whiteSpace: "nowrap",
       }}
     >
-      <PersonAddAltIcon fontSize="small" />
+      <MdPersonAddAlt fontSize="small" />
       <span>{CLINICA_TEXTS.createCase}</span>
     </Box>
   </Button>
