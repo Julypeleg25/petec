@@ -7,8 +7,7 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import SyncIcon from "@mui/icons-material/Sync";
+import { MdSearch, MdSync } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 
@@ -70,7 +69,7 @@ export const ClinicaClientsControls = ({
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <SearchIcon color="primary" />
+                  <MdSearch color="primary" />
                 </InputAdornment>
               ),
             },
@@ -111,7 +110,7 @@ export const ClinicaClientsControls = ({
             {isSyncing ? (
               <CircularProgress size={18} color="inherit" />
             ) : (
-              <SyncIcon fontSize="small" />
+              <MdSync fontSize="small" />
             )}
             <span>
               {isSyncing ? CLINICA_TEXTS.syncing : CLINICA_TEXTS.manualSync}
