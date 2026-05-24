@@ -1,6 +1,5 @@
 {
   "PORT": 5000,
-  "MONGODB_URI": "mongodb+srv://petecdrive_db_user:n4iVVPGwCP3MTLAz@petec-prod.fvaqct9.mongodb.net/",
   "CLINICA_URL": "https://ww2.clinicaonline.co.il",
   "ACCESS_TOKEN_EXPIRES_IN": "1h",
   "REFRESH_TOKEN_EXPIRES_IN": "1d",
