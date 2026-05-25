@@ -30,29 +30,7 @@ export const CaseDetailsTableHeader = ({
           <div
             key={columnIndex}
             className="case-details-table-header-cell case-details-table-header-cell-title"
-          >
-            <FormSelect
-              elements={Array.from(
-                { length: DAILY_CASE_TABLE_COLUMN_COUNT - 1 },
-                (_, optionIndex) => {
-                  const hour24Format =
-                    ((optionIndex + START_HOUR_OPTIONS_OFFSET) * CASE_GRID_HOUR_STEP) %
-                    24;
-                  return {
-                    value: String(hour24Format),
-                    text: `${hour24Format}:00`,
-                  };
-                },
-              )}
-              selectId="table-hour-select"
-              optionState={selectedStartHour}
-              setOptionState={setSelectedStartHour}
-              afterSelect={onStartHourSelect}
-              width="100%"
-              isRequired={true}
-              isOrdered={false}
-            />
-          </div>
+          />
         );
       }
 

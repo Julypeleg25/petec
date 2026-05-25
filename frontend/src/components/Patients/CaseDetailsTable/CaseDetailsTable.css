@@ -9,8 +9,8 @@
   width: 100%;
   margin-top: 1em;
   max-width: 100%;
-  overflow: auto;
-  direction: ltr;
+  overflow: scroll;
+  direction: rtl;
   margin-bottom: 1em;
   max-height: 805px;
   padding-left: 0.5em;
@@ -64,7 +64,9 @@
 
 .case-details-table-header-cell-title,
 .case-details-table-body-row-cell-title {
-  min-width: 200px;
+  min-width: var(--case-details-table-row-title-cell-max-width);
+  max-width: var(--case-details-table-row-title-cell-max-width);
+  width: var(--case-details-table-row-title-cell-max-width);
 }
 
 .case-details-table-body-row-cell-title-clickable {
@@ -378,4 +380,19 @@
   height: auto !important;
   padding: 0.55em 0.7em;
   line-height: 1.2;
+}
+
+@media screen and (max-width: 700px) {
+  :root {
+    --case-details-table-row-title-cell-max-width: 90px;
+  }
+
+  .case-details-table-header-cell-title,
+  .case-details-table-body-row-cell-title {
+    min-width: 90px;
+    font-size: 0.72rem;
+    padding: 0.3em;
+    line-height: 1.2;
+    word-break: break-word;
+  }
 }
