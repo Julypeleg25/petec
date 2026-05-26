@@ -15,6 +15,7 @@ import { systemTypesApi } from "../../../../features/system-management/systemTyp
 import { AppRoutes } from "../../../../config/appRoutes";
 import { getCaseDayPrimaryDataRow } from "../../CaseDetailsTable/caseGrid.utils";
 import { CASE_GRID_DEFAULT_START_HOUR } from "../../CaseDetailsTable/CaseDetailsTable.constants";
+import { applySelectedStartHourToDay } from "../../CaseDetailsTable/utils/caseDetailsTableState.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
 import { mapCaseDetailsGridToDto } from "../utils/savePatient.utils";
 import {
@@ -354,8 +355,10 @@ export function useSavePatientActions(
                 state.caseDetailsList.length === 1 &&
                 !getCaseDayPrimaryDataRow(state.caseDetailsList[0])?.date;
 
-            const defaultCaseDailyData =
-                buildNewCaseDailyDetailsTemplate(state.caseDetailsList);
+            const defaultCaseDailyData = applySelectedStartHourToDay(
+                buildNewCaseDailyDetailsTemplate(state.caseDetailsList),
+                CASE_GRID_DEFAULT_START_HOUR,
+            );
 
             const nextList = hasOnlyEmptyPlaceholder
                 ? [defaultCaseDailyData]

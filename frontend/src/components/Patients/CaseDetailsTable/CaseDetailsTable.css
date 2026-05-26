@@ -23,7 +23,7 @@
 
 .case-details-table-header {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   width: 100%;
   min-width: min-content;
   max-height: 300px;
@@ -34,7 +34,7 @@
 
 .case-details-table-titles-column {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   flex-direction: column;
   position: sticky;
   z-index: 3;
@@ -89,7 +89,7 @@
 
 .case-details-table-body .case-details-table-body-row {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   width: 100%;
   text-align: center;
   position: relative;
@@ -196,7 +196,7 @@
 
 .case-details-pop-up-parent:hover .case-details-pop-up {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   opacity: 1;
 }
 
@@ -232,7 +232,7 @@
 
 .medicine-cell-component {
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   align-items: center;
   justify-content: center;
   row-gap: 0.2em;
@@ -261,7 +261,7 @@
 .case-details-select-pop-up-comment {
   width: 100%;
   display: flex;
-  display: -webkit-flex; 
+  display: -webkit-flex;
   align-items: center;
   justify-content: center;
 }
@@ -290,8 +290,6 @@
 .case-details-table .medicine-inputs-container {
   flex-direction: row;
 }
-
-
 
 .required-cell {
   background-color: red;
@@ -346,7 +344,9 @@
   font-size: 1.22rem;
 }
 
-.case-details-medicine-modal .medicine-picker-selected-medicines-text .selected-medicine-name {
+.case-details-medicine-modal
+  .medicine-picker-selected-medicines-text
+  .selected-medicine-name {
   font-size: 1.24rem;
 }
 
@@ -394,5 +394,22 @@
     padding: 0.3em;
     line-height: 1.2;
     word-break: break-word;
+  }
+
+  .case-details-table-body-row-cell-title-clickable {
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    overflow: hidden;
+  }
+
+  .case-details-table-body-row-cell-title-clickable button {
+    position: static;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    min-height: 16px;
+    padding: 0;
+    font-size: 0.55rem;
   }
 }
