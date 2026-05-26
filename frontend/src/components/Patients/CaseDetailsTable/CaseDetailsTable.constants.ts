@@ -2,6 +2,7 @@ import { SYSTEM_TYPE_NAMES } from "@petec/shared";
 
 export const DAILY_CASE_TABLE_COLUMN_COUNT = 14;
 export const START_HOUR_OPTIONS_OFFSET = 4;
+export const CASE_GRID_DEFAULT_START_HOUR = 8;
 
 export type MedicineSectionType = "fluids" | "medicines";
 export type OptionSectionType = "examinations" | "procedures" | "foodExtras";

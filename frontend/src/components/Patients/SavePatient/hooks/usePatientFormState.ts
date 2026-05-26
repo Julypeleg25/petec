@@ -5,6 +5,7 @@ import type { NewPatientData, ChildCaseData } from "../types/savePatient.types";
 import type { CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
 import { getDateForInput } from "../../../../utils/DateFormattingUtil";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
+import { CASE_GRID_DEFAULT_START_HOUR } from "../../CaseDetailsTable/CaseDetailsTable.constants";
 import { buildEmptyCaseDailyDetailsTemplate } from "../utils/savePatientCaseDetails.utils";
 import {
     getEmptyFormData,
@@ -80,7 +81,7 @@ export function usePatientFormState(initialFormData?: NewPatientData) {
         getDateForInput(new Date()),
     );
     const [selectedStartHour, setSelectedStartHour] = useState<string>(
-        SAVE_PATIENT_DEFAULTS.EMPTY_VALUE,
+        String(CASE_GRID_DEFAULT_START_HOUR),
     );
     const [showCaseDetailsDaysOptions, setShowCaseDetailsDaysOptions] =
         useState(false);
@@ -171,7 +172,7 @@ export function usePatientFormState(initialFormData?: NewPatientData) {
 
     const setTimeSelectionValue = useCallback((value: string) => {
         if (!value) {
-            setSelectedStartHour(SAVE_PATIENT_DEFAULTS.EMPTY_VALUE);
+            setSelectedStartHour(String(CASE_GRID_DEFAULT_START_HOUR));
             return;
         }
         setSelectedStartHour(String(Number(value)));
