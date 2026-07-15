@@ -575,6 +575,25 @@ const combineCaseFilterClauses = (
   return { $and: [baseFilter, ...clauses] };
 };
 
+const buildActiveProcedureDateClause = (): MongoFilter | null => {
+  const todayJerusalemDate = toDateInputString(new Date());
+  const todayDateFilter = todayJerusalemDate
+    ? toDateRangeFilter(todayJerusalemDate)
+    : null;
+
+  if (!todayDateFilter) {
+    return null;
+  }
+
+  return {
+    $or: [
+      { "dates.procedureDate": todayDateFilter },
+      { "caseDetailsGrid.dateTime": todayDateFilter },
+      { isManuallyUnarchived: true },
+    ],
+  };
+};
+
 export const buildCasesFilter = async (
   filter: MongoFilter,
   options: BuildCasesFilterOptions = {},
@@ -619,18 +638,9 @@ export const buildCasesFilter = async (
 
   const extraClauses: MongoFilter[] = [];
   if (procedureDateIsToday) {
-    const todayJerusalemDate = toDateInputString(new Date());
-    const todayDateFilter = todayJerusalemDate
-      ? toDateRangeFilter(todayJerusalemDate)
-      : null;
-
-    if (todayDateFilter) {
-      extraClauses.push({
-        $or: [
-          { "dates.procedureDate": todayDateFilter },
-          { isManuallyUnarchived: true },
-        ],
-      });
+    const activeProcedureDateClause = buildActiveProcedureDateClause();
+    if (activeProcedureDateClause) {
+      extraClauses.push(activeProcedureDateClause);
     }
   }
 

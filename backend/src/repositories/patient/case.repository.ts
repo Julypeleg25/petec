@@ -8,6 +8,53 @@ import type { Types, UpdateQuery, ClientSession } from "mongoose";
 const buildSerialPrefixRegex = (serialPrefix: string): RegExp =>
   new RegExp(`^${escapeRegex(serialPrefix)}(?:-[\\d-]+)?$`);
 const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
+const DATE_KEY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const ACTIVE_CASE_FILTER = { isDeleted: false } as const;
+const PROCEDURE_CASE_FILTER = { "flags.isProcedure": true } as const;
+const UNARCHIVE_CASE_UPDATE = {
+  $set: { isArchived: false, isManuallyUnarchived: false },
+} as const;
+const ARCHIVE_CASE_UPDATE = {
+  $set: { isArchived: true, isManuallyUnarchived: false },
+} as const;
+
+const toUtcStartOfDateKey = (dateKey: string): Date | null => {
+  const match = DATE_KEY_PATTERN.exec(dateKey);
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const start = new Date(Date.UTC(year, month - 1, day));
+  if (
+    start.getUTCFullYear() !== year ||
+    start.getUTCMonth() !== month - 1 ||
+    start.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return start;
+};
+
+const buildProcedureDateExpression = () => ({
+  $dateToString: {
+    date: "$dates.procedureDate",
+    format: "%Y-%m-%d",
+    timezone: JERUSALEM_TIME_ZONE,
+  },
+});
+
+const buildProcedureDateComparison = (
+  operator: "$eq" | "$lt",
+  targetDateKey: string,
+) => ({
+  $expr: {
+    [operator]: [buildProcedureDateExpression(), targetDateKey],
+  },
+});
 
 export class CaseRepository extends BaseRepository<ICase> {
   constructor() {
@@ -179,23 +226,62 @@ export class CaseRepository extends BaseRepository<ICase> {
       .updateMany(
         {
           isArchived: true,
-          isDeleted: false,
-          "flags.isProcedure": true,
+          ...ACTIVE_CASE_FILTER,
+          ...PROCEDURE_CASE_FILTER,
           "dates.procedureDate": { $type: "date" },
-          $expr: {
-            $eq: [
-              {
-                $dateToString: {
-                  date: "$dates.procedureDate",
-                  format: "%Y-%m-%d",
-                  timezone: JERUSALEM_TIME_ZONE,
-                },
-              },
-              targetDateKey,
-            ],
-          },
+          ...buildProcedureDateComparison("$eq", targetDateKey),
         },
-        { $set: { isArchived: false, isManuallyUnarchived: false } },
+        UNARCHIVE_CASE_UPDATE,
+      )
+      .exec();
+
+    return result.modifiedCount ?? 0;
+  }
+
+  async archiveProceduresScheduledBeforeDate(targetDate: Date): Promise<number> {
+    const targetDateKey = toDateInputString(targetDate);
+    const targetDateStart = targetDateKey
+      ? toUtcStartOfDateKey(targetDateKey)
+      : null;
+    if (!targetDateKey || !targetDateStart) {
+      return 0;
+    }
+
+    const result = await this.model
+      .updateMany(
+        {
+          isArchived: false,
+          ...ACTIVE_CASE_FILTER,
+          ...PROCEDURE_CASE_FILTER,
+          "dates.procedureDate": { $type: "date" },
+          "caseDetailsGrid.dateTime": { $not: { $gte: targetDateStart } },
+          ...buildProcedureDateComparison("$lt", targetDateKey),
+        },
+        ARCHIVE_CASE_UPDATE,
+      )
+      .exec();
+
+    return result.modifiedCount ?? 0;
+  }
+
+  async unarchiveProceduresWithCaseDetailsOnOrAfterDate(targetDate: Date): Promise<number> {
+    const targetDateKey = toDateInputString(targetDate);
+    const targetDateStart = targetDateKey
+      ? toUtcStartOfDateKey(targetDateKey)
+      : null;
+    if (!targetDateStart) {
+      return 0;
+    }
+
+    const result = await this.model
+      .updateMany(
+        {
+          isArchived: true,
+          ...ACTIVE_CASE_FILTER,
+          ...PROCEDURE_CASE_FILTER,
+          "caseDetailsGrid.dateTime": { $gte: targetDateStart },
+        },
+        UNARCHIVE_CASE_UPDATE,
       )
       .exec();
 
