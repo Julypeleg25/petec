@@ -37,11 +37,15 @@ const setAccessToken = (token: string): void => {
   memoryAccessToken = token;
 };
 
-const clearAuth = (): void => {
-  memoryAccessToken = null;
+const clearStoredAuth = (): void => {
   localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
   localStorage.removeItem(STORAGE_KEYS.USER_ID);
   localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+};
+
+const clearAuth = (): void => {
+  memoryAccessToken = null;
+  clearStoredAuth();
 };
 
 const redirectToLogin = (): void => {

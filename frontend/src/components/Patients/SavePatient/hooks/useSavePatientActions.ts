@@ -13,9 +13,10 @@ import { usePatientApi } from "../../../../features/patients/hooks/usePatientApi
 import { patientsApi } from "../../../../features/patients/patients.api";
 import { systemTypesApi } from "../../../../features/system-management/systemTypes.api";
 import { AppRoutes } from "../../../../config/appRoutes";
-import { getCaseDayPrimaryDataRow, resolveCaseDayStartHour } from "../../CaseDetailsTable/caseGrid.utils";
+import { getCaseDayPrimaryDataRow } from "../../CaseDetailsTable/caseGrid.utils";
+import { CASE_GRID_DEFAULT_START_HOUR } from "../../CaseDetailsTable/CaseDetailsTable.constants";
+import { applySelectedStartHourToDay } from "../../CaseDetailsTable/utils/caseDetailsTableState.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
-import { getClosestStartHour } from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
 import { mapCaseDetailsGridToDto } from "../utils/savePatient.utils";
 import {
     buildEmptyCaseDailyDetailsTemplate,
@@ -211,6 +212,11 @@ export function useSavePatientActions(
 
             state.disableSaveBtns(true);
 
+            const resolvedProcedureDate =
+                state.isProcedure && !state.formData.dates?.procedureDate
+                    ? new Date()
+                    : state.formData.dates?.procedureDate;
+
             const baseBody: Omit<NewPatientDTO, "caseId"> = {
                 name: state.formData.name,
                 owner: {
@@ -248,9 +254,7 @@ export function useSavePatientActions(
                     catheterDate: toRequestDateValue(
                         state.formData.dates?.catheterDate,
                     ),
-                    procedureDate: toRequestDateValue(
-                        state.formData.dates?.procedureDate,
-                    ),
+                    procedureDate: toRequestDateValue(resolvedProcedureDate),
                 },
                 refs: {
                     animalTypeId: state.selectedAnimalType || undefined,
@@ -351,8 +355,10 @@ export function useSavePatientActions(
                 state.caseDetailsList.length === 1 &&
                 !getCaseDayPrimaryDataRow(state.caseDetailsList[0])?.date;
 
-            const defaultCaseDailyData =
-                buildNewCaseDailyDetailsTemplate(state.caseDetailsList);
+            const defaultCaseDailyData = applySelectedStartHourToDay(
+                buildNewCaseDailyDetailsTemplate(state.caseDetailsList),
+                CASE_GRID_DEFAULT_START_HOUR,
+            );
 
             const nextList = hasOnlyEmptyPlaceholder
                 ? [defaultCaseDailyData]
@@ -362,7 +368,7 @@ export function useSavePatientActions(
             state.setCaseDetailsDataIndex(0);
             state.setShowCaseDetailsDaysOptions(true);
 
-            state.setTimeSelectionValue(getClosestStartHour());
+            state.setTimeSelectionValue(String(CASE_GRID_DEFAULT_START_HOUR));
 
             const firstDataRow = getCaseDayPrimaryDataRow(defaultCaseDailyData);
             state.setSelectedCaseDate(
@@ -386,7 +392,7 @@ export function useSavePatientActions(
                 state.setCaseDetailsList([emptyCaseDay]);
                 state.setCaseDetailsDataIndex(0);
                 state.setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
-                state.setTimeSelectionValue(getClosestStartHour());
+                state.setTimeSelectionValue(String(CASE_GRID_DEFAULT_START_HOUR));
                 state.setShowCaseDetailsDaysOptions(false);
                 return;
             }
@@ -395,16 +401,11 @@ export function useSavePatientActions(
                 (_caseDay, index) => index !== currentIndex,
             );
             const nextIndex = Math.min(currentIndex, nextList.length - 1);
-            const nextStartHour = resolveCaseDayStartHour(nextList[nextIndex] ?? []);
 
             state.setCaseDetailsList(nextList);
             state.setCaseDetailsDataIndex(nextIndex);
             state.setSelectedCaseDate(resolveSelectedCaseDate(nextList, nextIndex));
-            state.setTimeSelectionValue(
-                nextStartHour !== null
-                    ? String(nextStartHour)
-                    : getClosestStartHour(),
-            );
+            state.setTimeSelectionValue(String(CASE_GRID_DEFAULT_START_HOUR));
             state.setShowCaseDetailsDaysOptions(
                 nextList.some((caseDay) => Boolean(getCaseDayPrimaryDataRow(caseDay)?.date)),
             );

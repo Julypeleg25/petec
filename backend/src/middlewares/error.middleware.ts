@@ -145,6 +145,7 @@ export const errorHandler: ErrorRequestHandler = (error, req, res, next): void =
         module: "http",
         request_id: requestId,
         error_name: error.name,
+        error_message: error instanceof Error ? error.message : String(error),
         error_code: errorCode,
         http_status: statusCode,
         route,

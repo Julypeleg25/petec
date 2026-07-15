@@ -28,6 +28,9 @@ const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string().trim().optional().default(""),
   CLOUDINARY_API_SECRET: z.string().trim().optional().default(""),
   UPLOAD_DIR: z.string().default(UPLOAD.ROOT_DIR_NAME),
+  CLINICA_URL: z.string().url(),
+  CLINIC_USERNAME: z.string().optional(),
+  CLINIC_PASSWORD: z.string().optional(),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
@@ -77,4 +80,7 @@ export const ENV = {
   accessTokenExpiresInMs,
   refreshTokenExpiresIn,
   refreshTokenExpiresInMs,
+  clinicaBaseUrl: envs.CLINICA_URL,
+  clinicUsername: envs.CLINIC_USERNAME ?? "",
+  clinicPassword: envs.CLINIC_PASSWORD ?? "",
 } as const;

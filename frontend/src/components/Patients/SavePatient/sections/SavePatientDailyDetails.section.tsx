@@ -185,6 +185,14 @@ function SavePatientDailyDetailsSection({
         </div>
         <div className="daily-details-mobile-actions">
           <button
+            type="submit"
+            className="btn btn-small daily-details-save-btn"
+            form="save-patient-form"
+            disabled={isSaveDisabled}
+          >
+            שמור
+          </button>
+          <button
             type="button"
             className="btn daily-details-mobile-actions__trigger"
             onClick={() => setIsMobileActionsOpen((prev) => !prev)}
@@ -199,13 +207,6 @@ function SavePatientDailyDetailsSection({
               id="daily-details-mobile-actions-panel"
               className="daily-details-mobile-actions__panel"
             >
-              <button
-                type="button"
-                disabled={isSaveDisabled}
-                onClick={saveFromMobileMenu}
-              >
-                שמור
-              </button>
               <button
                 type="button"
                 className={paintingMode ? "daily-details-mobile-actions__mode-active" : ""}

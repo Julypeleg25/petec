@@ -4,8 +4,8 @@ import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.ty
 import type { NewPatientData, ChildCaseData } from "../types/savePatient.types";
 import type { CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
 import { getDateForInput } from "../../../../utils/DateFormattingUtil";
-import { getClosestStartHour } from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
+import { CASE_GRID_DEFAULT_START_HOUR } from "../../CaseDetailsTable/CaseDetailsTable.constants";
 import { buildEmptyCaseDailyDetailsTemplate } from "../utils/savePatientCaseDetails.utils";
 import {
     getEmptyFormData,
@@ -15,9 +15,11 @@ import {
     type InputChangeEvent,
 } from "../utils/savePatientForm.utils";
 
-export function usePatientFormState() {
+export function usePatientFormState(initialFormData?: NewPatientData) {
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState<NewPatientData>(getEmptyFormData());
+    const [formData, setFormData] = useState<NewPatientData>(
+        () => initialFormData ?? getEmptyFormData(),
+    );
     const [initialStateSnapshot, setInitialStateSnapshot] = useState<string | null>(null);
 
     const [isArchived, setIsArchived] = useState(false);
@@ -79,7 +81,7 @@ export function usePatientFormState() {
         getDateForInput(new Date()),
     );
     const [selectedStartHour, setSelectedStartHour] = useState<string>(
-        getClosestStartHour(),
+        String(CASE_GRID_DEFAULT_START_HOUR),
     );
     const [showCaseDetailsDaysOptions, setShowCaseDetailsDaysOptions] =
         useState(false);
@@ -116,7 +118,7 @@ export function usePatientFormState() {
         reset: resetPatientForm,
     } = useForm<NewPatientData>({
         resolver: savePatientFormResolver,
-        defaultValues: getEmptyFormData(),
+        defaultValues: initialFormData ?? getEmptyFormData(),
     });
 
     const withDirty = useCallback(
@@ -170,7 +172,7 @@ export function usePatientFormState() {
 
     const setTimeSelectionValue = useCallback((value: string) => {
         if (!value) {
-            setSelectedStartHour(getClosestStartHour());
+            setSelectedStartHour(String(CASE_GRID_DEFAULT_START_HOUR));
             return;
         }
         setSelectedStartHour(String(Number(value)));

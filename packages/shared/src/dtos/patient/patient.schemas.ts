@@ -486,6 +486,7 @@ export const DailyPlanDetailDTOSchema = z.object({
     name: z.string(),
     owner_name: z.string(),
     owner_phone_number: z.string(),
+    is_procedure: z.boolean().default(false),
     hospitalization_reason: z.string(),
     daily_plan_comments: z.string().nullable(),
     caseExaminations: z.array(z.object({ name: z.string(), value: z.string(), date: z.string() })),

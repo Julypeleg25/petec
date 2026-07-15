@@ -2,9 +2,7 @@ import { useCallback } from "react";
 import type { CaseDetailsResponseDTO } from "@petec/shared";
 import { patientsApi } from "../../../../features/patients/patients.api";
 import { getCaseDayPrimaryDataRow } from "../../CaseDetailsTable/caseGrid.utils";
-import {
-    getClosestStartHour,
-} from "../../CaseDetailsTable/utils/CaseDetailsTable.utils";
+import { CASE_GRID_DEFAULT_START_HOUR } from "../../CaseDetailsTable/CaseDetailsTable.constants";
 import { applySelectedStartHourToDay } from "../../CaseDetailsTable/utils/caseDetailsTableState.utils";
 import type { NewPatientData } from "../types/savePatient.types";
 import { SAVE_PATIENT_DEFAULTS } from "../constants/savePatient.constants";
@@ -151,36 +149,30 @@ export function useCaseDetailsState(
             if (cd.animal_type_id) getRaceTypes(cd.animal_type_id);
 
             const grid = mapCaseDetailsApiGridToUi(response.caseDailyDetails);
-            const closestStartHour = getClosestStartHour();
-            const closestStartHourNumber = Number(closestStartHour);
+            const defaultHour = String(CASE_GRID_DEFAULT_START_HOUR);
 
             if (grid === null) {
                 setCaseDetailsList([
                     applySelectedStartHourToDay(
                         buildEmptyCaseDailyDetailsTemplate(),
-                        closestStartHourNumber,
+                        CASE_GRID_DEFAULT_START_HOUR,
                     ),
                 ]);
                 setShowCaseDetailsDaysOptions(false);
                 setSelectedCaseDate(SAVE_PATIENT_DEFAULTS.CASE_DATE_FALLBACK);
-                setSelectedStartHour(closestStartHour);
+                setSelectedStartHour(defaultHour);
                 setChildCases(toChildCases(response.masterCaseDetails));
                 return;
             }
 
-            const ordered = grid.map((caseDetails, index) =>
-                index === 0
-                    ? applySelectedStartHourToDay(caseDetails, closestStartHourNumber)
-                    : caseDetails,
-            );
-            const currentDay = ordered[0] ?? [];
+            const ordered = grid;
             const hasExistingDates = ordered.some((caseDetails) =>
                 hasCaseDetailsDate(caseDetails),
             );
             setCaseDetailsList(ordered);
             setShowCaseDetailsDaysOptions(hasExistingDates);
             setSelectedCaseDate(resolveSelectedCaseDate(ordered, 0));
-            setSelectedStartHour(closestStartHour);
+            setSelectedStartHour(defaultHour);
             setChildCases(toChildCases(response.masterCaseDetails));
         },
         [

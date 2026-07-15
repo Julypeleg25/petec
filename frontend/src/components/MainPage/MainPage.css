@@ -15,6 +15,11 @@
   background: var(--color-white);
 }
 
+.main-page-main--scrollable {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 @media screen and (max-width: 760px) {
   .main-page {
     height: auto;
