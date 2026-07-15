@@ -321,6 +321,71 @@ describe("CaseRepository", () => {
     expect(result).toBe(3);
   });
 
+  it("archives active procedure cases scheduled before a normalized Jerusalem date", async () => {
+    const repository = new CaseRepository();
+    const query = createQueryMock({ modifiedCount: 2 });
+    const model = { updateMany: jest.fn().mockReturnValue(query) };
+    attachModel(repository as never, model);
+    const targetDate = new Date("2026-04-21T08:00:00.000Z");
+
+    const result = await repository.archiveProceduresScheduledBeforeDate(targetDate);
+
+    expect(model.updateMany).toHaveBeenCalled();
+    const [filter, update] = model.updateMany.mock.calls[0] as [
+      Record<string, unknown>,
+      Record<string, unknown>,
+    ];
+    expect(filter.isArchived).toBe(false);
+    expect(filter.isDeleted).toBe(false);
+    expect(filter["flags.isProcedure"]).toBe(true);
+    expect(filter["caseDetailsGrid.dateTime"]).toEqual({
+      $not: { $gte: new Date("2026-04-21T00:00:00.000Z") },
+    });
+    expect(update).toEqual({
+      $set: { isArchived: true, isManuallyUnarchived: false },
+    });
+    expect(query.exec).toHaveBeenCalled();
+    expect(result).toBe(2);
+  });
+
+  it("does not archive past procedures when the target date cannot be normalized", async () => {
+    const repository = new CaseRepository();
+    const model = { updateMany: jest.fn() };
+    attachModel(repository as never, model);
+
+    const result = await repository.archiveProceduresScheduledBeforeDate(
+      new Date(Number.NaN),
+    );
+
+    expect(model.updateMany).not.toHaveBeenCalled();
+    expect(result).toBe(0);
+  });
+
+  it("unarchives procedure cases that have case details on or after the target date", async () => {
+    const repository = new CaseRepository();
+    const query = createQueryMock({ modifiedCount: 5 });
+    const model = { updateMany: jest.fn().mockReturnValue(query) };
+    attachModel(repository as never, model);
+    const targetDate = new Date("2026-04-21T08:00:00.000Z");
+
+    const result =
+      await repository.unarchiveProceduresWithCaseDetailsOnOrAfterDate(targetDate);
+
+    expect(model.updateMany).toHaveBeenCalledWith(
+      {
+        isArchived: true,
+        isDeleted: false,
+        "flags.isProcedure": true,
+        "caseDetailsGrid.dateTime": {
+          $gte: new Date("2026-04-21T00:00:00.000Z"),
+        },
+      },
+      { $set: { isArchived: false, isManuallyUnarchived: false } },
+    );
+    expect(query.exec).toHaveBeenCalled();
+    expect(result).toBe(5);
+  });
+
   it("releases a case and includes updated dates when provided", async () => {
     const repository = new CaseRepository();
     const updateByIdSpy = jest.spyOn(repository, "updateById").mockResolvedValue({ _id: "case-12" } as never);
