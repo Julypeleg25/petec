@@ -1,8 +1,11 @@
 import cron, { ScheduledTask } from "node-cron";
 import { logger } from "../config/logger.js";
 import { clinicaClientService } from "../services/clinica/clinicaClient.service.js";
+import { syncProcedureArchiveStatus } from "../services/scheduledJobs/procedureArchiveSyncJob.js";
 
 const CLINICA_DAILY_SYNC_CRON = "0 6 * * *";
+const PROCEDURE_ARCHIVE_SYNC_CRON = "0 8 * * *";
+const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
 
 export const initializeScheduledJobs = (isProduction: boolean): (() => void) => {
   const scheduledJobs: ScheduledTask[] = [];
@@ -18,6 +21,18 @@ export const initializeScheduledJobs = (isProduction: boolean): (() => void) => 
   logger.info("Scheduled jobs initialized", {
     module: "scheduler",
   });
+
+  void syncProcedureArchiveStatus(new Date());
+
+  const procedureArchiveSyncJob = cron.schedule(
+    PROCEDURE_ARCHIVE_SYNC_CRON,
+    () => {
+      void syncProcedureArchiveStatus(new Date());
+    },
+    {
+      timezone: JERUSALEM_TIME_ZONE,
+    },
+  );
 
   const clinicaDailySyncJob = cron.schedule(
     CLINICA_DAILY_SYNC_CRON,
@@ -44,10 +59,11 @@ export const initializeScheduledJobs = (isProduction: boolean): (() => void) => 
       }
     },
     {
-      timezone: "Asia/Jerusalem",
+      timezone: JERUSALEM_TIME_ZONE,
     },
   );
 
+  scheduledJobs.push(procedureArchiveSyncJob);
   scheduledJobs.push(clinicaDailySyncJob);
 
   return () => {
