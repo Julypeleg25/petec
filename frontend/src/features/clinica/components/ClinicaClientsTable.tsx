@@ -12,12 +12,15 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
 } from "@mui/material";
 
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 import { ClinicaClient } from "../types/clinicaClient.types";
+
+const MAX_VISIBLE_PETS = 2;
 
 type Props = {
   clients: ClinicaClient[];
@@ -159,7 +162,27 @@ export const ClinicaClientsTable = ({
                 <TableRow key={client._id} hover>
                   <TableCell sx={{ pr: 4 }}>
                     <Stack spacing={1.25} sx={{ alignItems: "flex-start" }}>
-                      <Box>{client.externalPatientId || "-"}</Box>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: 1,
+                          direction: "rtl",
+                        }}
+                      >
+                        <Box>{client.externalPatientId || "-"}</Box>
+                        {client.sourceTag === "new" && (
+                          <Chip
+                            label="חדש"
+                            size="small"
+                            color="success"
+                            variant="outlined"
+                            sx={{ height: 24, fontWeight: 700 }}
+                          />
+                        )}
+                      </Stack>
                       <Box sx={{ display: { xs: "block", md: "none" } }}>
                         <CreateCaseButton
                           client={client}
@@ -179,15 +202,51 @@ export const ClinicaClientsTable = ({
                       direction="row"
                       spacing={1}
                       sx={{
-                        flexWrap: "wrap",
+                        alignItems: "center",
+                        flexWrap: "nowrap",
                         gap: 1,
                         direction: "rtl",
+                        overflow: "hidden",
+                        minWidth: 0,
                       }}
                     >
                       {client.pets.length > 0 ? (
-                        client.pets.map((pet) => (
-                          <Chip key={pet.name} label={pet.name} size="small" />
-                        ))
+                        <>
+                          {client.pets.slice(0, MAX_VISIBLE_PETS).map((pet, index) => (
+                            <Chip
+                              key={`${pet.name}-${index}`}
+                              label={pet.name}
+                              size="small"
+                              sx={{
+                                maxWidth: 86,
+                                "& .MuiChip-label": {
+                                  display: "block",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                },
+                              }}
+                            />
+                          ))}
+
+                          {client.pets.length > MAX_VISIBLE_PETS && (
+                            <Tooltip
+                              title={client.pets
+                                .slice(MAX_VISIBLE_PETS)
+                                .map((pet) => pet.name)
+                                .join(", ")}
+                              placement="top"
+                              arrow
+                            >
+                              <Chip
+                                label={`+${client.pets.length - MAX_VISIBLE_PETS}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ flexShrink: 0, fontWeight: 700 }}
+                              />
+                            </Tooltip>
+                          )}
+                        </>
                       ) : (
                         <>-</>
                       )}

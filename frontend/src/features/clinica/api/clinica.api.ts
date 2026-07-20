@@ -38,6 +38,7 @@ const ClinicaClientSchema = z.object({
   lastSyncedAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  sourceTag: z.enum(["existing", "new"]).optional(),
 });
 
 const ClinicaClientsResponseSchema = z.object({

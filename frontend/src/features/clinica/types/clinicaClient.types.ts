@@ -36,6 +36,7 @@ export interface ClinicaPet {
     lastSyncedAt: string;
     createdAt: string;
     updatedAt: string;
+    sourceTag?: "existing" | "new";
   }
   
   export interface ClinicaClientsResponse {
