@@ -58,7 +58,7 @@ function Header({ type, patientsNavType }: HeaderProps) {
       <div className="logo-and-navbar-container">
         <img
           className="logo-and-navbar-logo-img"
-          src={"/assets/images/petec_logo_v2.jpg"}
+          src={"/assets/images/house_logo.png"}
           alt="logo_image"
         />
         <nav className="navbar header-navbar">
