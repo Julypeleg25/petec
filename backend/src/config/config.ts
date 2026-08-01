@@ -31,6 +31,15 @@ const envSchema = z.object({
   CLINICA_URL: z.string().url(),
   CLINIC_USERNAME: z.string().optional(),
   CLINIC_PASSWORD: z.string().optional(),
+  GROQ_API_KEY: z.string().trim().optional().default(""),
+  GROQ_MODEL: z.string().trim().min(1).default("openai/gpt-oss-120b"),
+  AI_SUMMARY_ENABLED: z.preprocess(
+    (value) =>
+      typeof value === "string" && /^(true|false)$/i.test(value)
+        ? value.toLowerCase() === "true"
+        : value,
+    z.boolean().default(false),
+  ),
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
@@ -83,4 +92,7 @@ export const ENV = {
   clinicaBaseUrl: envs.CLINICA_URL,
   clinicUsername: envs.CLINIC_USERNAME ?? "",
   clinicPassword: envs.CLINIC_PASSWORD ?? "",
+  groqApiKey: envs.GROQ_API_KEY,
+  groqModel: envs.GROQ_MODEL,
+  aiSummaryEnabled: envs.AI_SUMMARY_ENABLED,
 } as const;
