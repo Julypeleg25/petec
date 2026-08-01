@@ -12,6 +12,7 @@ import SavePatientChildCasesSection from "./sections/SavePatientChildCases.secti
 import SavePatientDailyDetailsSection from "./sections/SavePatientDailyDetails.section";
 import SavePatientEditActionsSection from "./sections/SavePatientEditActions.section";
 import SavePatientPatientInfoSection from "./sections/SavePatientPatientInfo.section";
+import type { SavePatientActions } from "./sections/SavePatientActionsMenu";
 import {
   getCaseDateSelectionData,
   resolveSelectedCaseDate,
@@ -36,7 +37,8 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
       : undefined;
   const caseIdString = caseId ?? "";
   const allowNavigationRef = useRef(false);
-  const [showClinicalSummaryModal, setShowClinicalSummaryModal] = useState(false);
+  const [showClinicalSummaryModal, setShowClinicalSummaryModal] =
+    useState(false);
 
   const allowNextNavigation = useCallback(() => {
     allowNavigationRef.current = true;
@@ -182,12 +184,33 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     onSaveAndExit: handleSaveAndExit,
   });
 
-  const handleSelectChildCase = useCallback((childCaseId: string) => {
-    navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
-  }, [masterCaseId, navigate]);
+  const handleSelectChildCase = useCallback(
+    (childCaseId: string) => {
+      navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
+    },
+    [masterCaseId, navigate],
+  );
   const handleShowClinicalSummary = useCallback(() => {
     setShowClinicalSummaryModal(true);
   }, []);
+
+  const patientEditActions: SavePatientActions = {
+    isArchived,
+    isSaveButtonsDisabled,
+    hasChanges: hasPendingSave,
+    isSaving,
+    isExporting,
+    isArchiving,
+    onBack: () => navigate(-1),
+    onShowReleasePatientModal: () => setShowReleasePatientModal(true),
+    onExportCaseDetails: exportCaseDetails,
+    onShowPatientDocumentsModal: () => setShowPatientDocumentsModal(true),
+    onShowPatientChartsModal: () => setShowPatientChartsModal(true),
+    onShowClinicalSummary: handleShowClinicalSummary,
+    onShowArchiveConfirmationModal: () => setShowArchiveConfirmationModal(true),
+    onShowDeletePatientCaseModal: () => setShowDeletePatientCaseModal(true),
+    onSavePatientChanges: handleSaveFromMenu,
+  };
 
   const handleCaseDateChange = (value: string) => {
     const { caseDetailsIndex, selectedHour } = getCaseDateSelectionData(
@@ -198,7 +221,9 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
       return;
     }
     setCaseDetailsDataIndex(caseDetailsIndex);
-    setSelectedCaseDate(resolveSelectedCaseDate(caseDetailsList, caseDetailsIndex));
+    setSelectedCaseDate(
+      resolveSelectedCaseDate(caseDetailsList, caseDetailsIndex),
+    );
     setTimeSelectionValue(selectedHour);
   };
 
@@ -209,25 +234,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
       ) : (
         <div className={`${isEdit ? "edit" : "new"}-patient-form-container`}>
           {isEdit && (
-            <SavePatientEditActionsSection
-              isArchived={isArchived}
-              isSaveButtonsDisabled={isSaveButtonsDisabled}
-              hasChanges={hasPendingSave}
-              isSaving={isSaving}
-              isExporting={isExporting}
-              isArchiving={isArchiving}
-              onBack={() => navigate(-1)}
-              onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
-              onExportCaseDetails={exportCaseDetails}
-              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
-              onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
-              onShowClinicalSummary={handleShowClinicalSummary}
-              onShowArchiveConfirmationModal={() =>
-                setShowArchiveConfirmationModal(true)
-              }
-              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
-              onSavePatientChanges={handleSaveFromMenu}
-            />
+            <SavePatientEditActionsSection actions={patientEditActions} />
           )}
           {!isEdit && <h2 className="new-patient-form-title">מטופל חדש</h2>}
           {!isEdit && clinicaState?.source !== "clinica" && (
@@ -299,23 +306,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               setIsAllergic={setIsAllergic}
               isProcedure={isProcedure}
               setIsProcedure={setIsProcedure}
-              isArchived={isArchived}
-              isSaveButtonsDisabled={isSaveButtonsDisabled}
-              hasChanges={hasPendingSave}
-              isSaving={isSaving}
-              isExporting={isExporting}
-              isArchiving={isArchiving}
-              onBack={() => navigate(-1)}
-              onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
-              onExportCaseDetails={exportCaseDetails}
-              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
-              onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
-              onShowClinicalSummary={handleShowClinicalSummary}
-              onShowArchiveConfirmationModal={() =>
-                setShowArchiveConfirmationModal(true)
-              }
-              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
-              onSavePatientChanges={handleSaveFromMenu}
+              editActions={patientEditActions}
             />
             {!isEdit && (
               <button
