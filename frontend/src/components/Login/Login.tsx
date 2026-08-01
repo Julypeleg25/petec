@@ -45,7 +45,7 @@ const Login = () => {
       <div className="login-page-main">
         <img
           className="logo-img"
-          src={"/assets/images/petec_logo_v2.jpg"}
+          src={"/assets/images/house_logo.png"}
           alt="logo_image"
         />
         <form className="login-form" onSubmit={login} noValidate>
