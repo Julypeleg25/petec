@@ -57,11 +57,12 @@ export class PatientController {
       const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
       const { date } = getValidatedBody<ClinicalSummaryRequestDTO>(req);
       const userId = getAuthenticatedUserId(req);
-      const result = await clinicalSummaryService.generate(
+      const result = await clinicalSummaryService.generate({
         patientId,
         userId,
-        date,
-      );
+        requestedDate: date,
+        requestId: req.requestId,
+      });
       sendSuccess(res, result, ClinicalSummaryResultDTOSchema);
     } catch (err) {
       next(err);

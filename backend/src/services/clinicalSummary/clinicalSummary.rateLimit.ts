@@ -1,6 +1,8 @@
 import { ClinicalSummaryUnavailableError } from "./clinicalSummary.error.js";
-import { ENV } from "../../config/config.js";
-import { logger } from "../../config/logger.js";
+import {
+  logClinicalSummaryFailure,
+  type ClinicalSummaryLogContext,
+} from "./clinicalSummary.logging.js";
 
 const MAX_REQUESTS_PER_HOUR = 10;
 const HOUR_MS = 60 * 60 * 1000;
@@ -8,16 +10,28 @@ const requestHistory = new Map<string, number[]>();
 const activeUsers = new Set<string>();
 const activePatients = new Set<string>();
 
-export const withClinicalSummaryLimit = async <T>(userId: string, patientId: string, task: () => Promise<T>): Promise<T> => {
+export const withClinicalSummaryLimit = async <T>(
+  context: ClinicalSummaryLogContext,
+  task: () => Promise<T>,
+): Promise<T> => {
+  const { patientId, userId } = context;
   const now = Date.now();
-  const recent = (requestHistory.get(userId) ?? []).filter((time) => now - time < HOUR_MS);
-  if (recent.length >= MAX_REQUESTS_PER_HOUR || activeUsers.has(userId) || activePatients.has(patientId)) {
-    logger.info("Clinical summary audit", {
-      module: "clinical_summary", event: "clinical_summary_requested", user_id: userId,
-      patient_id: patientId, model: ENV.groqModel, success: false,
-      failure_category: "duplicate_request", duration_ms: 0, input_was_truncated: false,
-    });
-    throw new ClinicalSummaryUnavailableError(429);
+  const recent = (requestHistory.get(userId) ?? []).filter(
+    (time) => now - time < HOUR_MS,
+  );
+  const hourlyLimitReached = recent.length >= MAX_REQUESTS_PER_HOUR;
+  const requestAlreadyActive =
+    activeUsers.has(userId) || activePatients.has(patientId);
+  if (hourlyLimitReached || requestAlreadyActive) {
+    const category = hourlyLimitReached ? "rate_limit" : "duplicate_request";
+    const error = new ClinicalSummaryUnavailableError(category);
+    logClinicalSummaryFailure(
+      context,
+      { durationMs: 0, inputWasTruncated: false },
+      category,
+      error,
+    );
+    throw error;
   }
   recent.push(now);
   requestHistory.set(userId, recent);
@@ -32,5 +46,7 @@ export const withClinicalSummaryLimit = async <T>(userId: string, patientId: str
 };
 
 export const resetClinicalSummaryLimitsForTests = (): void => {
-  requestHistory.clear(); activeUsers.clear(); activePatients.clear();
+  requestHistory.clear();
+  activeUsers.clear();
+  activePatients.clear();
 };

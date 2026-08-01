@@ -1,10 +1,8 @@
 import type { ClinicalSummaryInput } from "./clinicalSummary.types.js";
-
-const MAX_INPUT_JSON_CHARS = 18_000;
-const MAX_NOTE_CHARS = 800;
-const MAX_RECENT_VITALS = 48;
-const MAX_RECENT_OBSERVATIONS = 40;
-const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
+import {
+  CLINICAL_SUMMARY_LIMITS,
+  CLINICAL_SUMMARY_TIME_ZONE,
+} from "./clinicalSummary.constants.js";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -14,7 +12,7 @@ const asArray = (value: unknown): unknown[] =>
   Array.isArray(value) ? value : [];
 const asText = (value: unknown): string | undefined =>
   typeof value === "string" && value.trim()
-    ? value.trim().slice(0, MAX_NOTE_CHARS)
+    ? value.trim().slice(0, CLINICAL_SUMMARY_LIMITS.noteCharacters)
     : undefined;
 const asNumber = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
@@ -36,7 +34,7 @@ export const toJerusalemDateTime = (value: unknown): string | undefined => {
         : null;
   if (!date || Number.isNaN(date.getTime())) return undefined;
   const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: JERUSALEM_TIME_ZONE,
+    timeZone: CLINICAL_SUMMARY_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -48,6 +46,15 @@ export const toJerusalemDateTime = (value: unknown): string | undefined => {
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((item) => item.type === type)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`;
+};
+
+export const toClinicalDisplayDate = (value: unknown): string | undefined => {
+  const dateTime = toJerusalemDateTime(value);
+  if (!dateTime) return undefined;
+
+  const [date] = dateTime.split(" ");
+  const [year, month, day] = date.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : undefined;
 };
 const populatedName = (value: unknown): string | undefined =>
   asText(asRecord(value).name);
@@ -265,7 +272,8 @@ export const buildClinicalSummaryInput = (
       asText(row.foodAndWater),
     ]),
   );
-  if (observations.length > MAX_RECENT_OBSERVATIONS) inputWasTruncated = true;
+  if (observations.length > CLINICAL_SUMMARY_LIMITS.recentObservations)
+    inputWasTruncated = true;
 
   const examinations = rows
     .flatMap((row) =>
@@ -294,7 +302,8 @@ export const buildClinicalSummaryInput = (
         : {}),
     }))
     .filter((vital) => Object.keys(vital).length > 1);
-  if (vitalSigns.length > MAX_RECENT_VITALS) inputWasTruncated = true;
+  if (vitalSigns.length > CLINICAL_SUMMARY_LIMITS.recentVitals)
+    inputWasTruncated = true;
 
   const treatmentByName = new Map<
     string,
@@ -345,6 +354,7 @@ export const buildClinicalSummaryInput = (
     flags.isAllergic === true
       ? (asText(admission.allergicComments) ?? "אלרגיה מסומנת ברשומה ללא פירוט")
       : undefined;
+  const admissionDate = toClinicalDisplayDate(caseRecord.createdAt);
 
   const input: ClinicalSummaryInput = {
     patient: {
@@ -367,9 +377,7 @@ export const buildClinicalSummaryInput = (
         : {}),
     },
     hospitalization: {
-      ...(toJerusalemDateTime(caseRecord.createdAt)
-        ? { admittedAt: toJerusalemDateTime(caseRecord.createdAt) }
-        : {}),
+      ...(admissionDate ? { admittedAt: admissionDate } : {}),
       ...(asText(admission.hospitalizationReason)
         ? { reason: asText(admission.hospitalizationReason) }
         : {}),
@@ -379,11 +387,16 @@ export const buildClinicalSummaryInput = (
     },
     currentStatus: {
       ...(observations.length
-        ? { observations: observations.slice(0, MAX_RECENT_OBSERVATIONS) }
+        ? {
+            observations: observations.slice(
+              0,
+              CLINICAL_SUMMARY_LIMITS.recentObservations,
+            ),
+          }
         : {}),
       ...(examinations[0] ? { latestExamination: examinations[0] } : {}),
     },
-    vitalSigns: vitalSigns.slice(0, MAX_RECENT_VITALS),
+    vitalSigns: vitalSigns.slice(0, CLINICAL_SUMMARY_LIMITS.recentVitals),
     treatments: [...treatmentByName.values()],
     alerts: {
       ...(allergy ? { allergies: [allergy] } : {}),
@@ -414,21 +427,26 @@ export const buildClinicalSummaryInput = (
 
   // Deterministically remove older, low-priority narrative before protected data.
   while (
-    JSON.stringify(input).length > MAX_INPUT_JSON_CHARS &&
+    JSON.stringify(input).length >
+      CLINICAL_SUMMARY_LIMITS.inputJsonCharacters &&
     (input.currentStatus.observations?.length ?? 0) > 1
   ) {
     input.currentStatus.observations!.pop();
     input.sourceMetadata.inputWasTruncated = true;
   }
   while (
-    JSON.stringify(input).length > MAX_INPUT_JSON_CHARS &&
+    JSON.stringify(input).length >
+      CLINICAL_SUMMARY_LIMITS.inputJsonCharacters &&
     input.vitalSigns.length > 1
   ) {
     input.vitalSigns.pop();
     input.sourceMetadata.inputWasTruncated = true;
   }
   const sanitized = sanitizeRecursively(input) as ClinicalSummaryInput;
-  if (JSON.stringify(sanitized).length > MAX_INPUT_JSON_CHARS) {
+  if (
+    JSON.stringify(sanitized).length >
+    CLINICAL_SUMMARY_LIMITS.inputJsonCharacters
+  ) {
     throw new Error("CLINICAL_SUMMARY_INPUT_TOO_LARGE");
   }
   return sanitized;
