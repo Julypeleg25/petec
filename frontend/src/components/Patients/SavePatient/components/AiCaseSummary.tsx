@@ -1,34 +1,58 @@
+import { useState } from "react";
+import {
+  FaChartLine,
+  FaClock,
+  FaExclamationTriangle,
+  FaNotesMedical,
+  FaPaw,
+  FaPills,
+  FaPlus,
+  FaSpinner,
+  FaStethoscope,
+  FaSyncAlt,
+} from "react-icons/fa";
 import {
   CLINICAL_SUMMARY_ERROR_MESSAGE,
   CLINICAL_SUMMARY_WARNING,
-  HEBREW_WEEKDAY_FORMAT,
 } from "./clinicalSummary/clinicalSummary.constants";
 import {
   cleanClinicalText,
   filterCaseDetailsByDate,
   formatClinicalDate,
   formatClinicalDateTime,
-  formatSummaryWeekday,
 } from "./clinicalSummary/clinicalSummary.utils";
 import { useClinicalSummary } from "./clinicalSummary/useClinicalSummary";
 import { ClinicalCaseDetailsPager } from "./clinicalSummary/ClinicalCaseDetailsPager";
 import {
   ClinicalSummaryCard,
   ClinicalSummaryList,
+  ClinicalSummaryText,
 } from "./clinicalSummary/ClinicalSummaryCard";
+import "./clinicalSummary/AiCaseSummary.css";
 
 interface AiCaseSummaryProps {
-  patientId: string;
+  readonly patientId: string;
 }
+
+const getCaseDetailsCardClassName = (isExpanded: boolean): string =>
+  [
+    "ai-summary-card--medicine",
+    "ai-summary-card--details-wide",
+    isExpanded ? "ai-summary-card--details-expanded" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
 export { CLINICAL_SUMMARY_ERROR_MESSAGE, cleanClinicalText };
 export { requestClinicalSummary } from "./clinicalSummary/useClinicalSummary";
 
 export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
+  const [caseDetailsExpanded, setCaseDetailsExpanded] = useState(false);
   const {
     errorMessage,
     generateSummary,
     isLoading,
+    loadingDate,
     selectedDate,
     selectSummaryDate,
     summary,
@@ -37,6 +61,11 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
   const selectedDayDetails = summary
     ? filterCaseDetailsByDate(summary.caseDetailItems, selectedDate)
     : [];
+  const SummaryActionIcon = isLoading
+    ? FaSpinner
+    : summary
+      ? FaSyncAlt
+      : FaPlus;
 
   return (
     <section
@@ -46,11 +75,11 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
       <header className="ai-case-summary__header">
         <div className="ai-case-summary__heading">
           <div className="ai-case-summary__icon" aria-hidden="true">
-            ✚
+            <FaNotesMedical />
           </div>
           <div>
             <h3 id="ai-case-summary-title">סיכום קליני מג'ונרט</h3>
-            <p>תמונת מצב קלינית מרוכזת מהרשומה העדכנית</p>
+            <p>תמונת מצב מרוכזת מהרשומה העדכנית</p>
           </div>
         </div>
         <button
@@ -59,9 +88,10 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
           onClick={() => void generateSummary(selectedDate || undefined)}
           disabled={isLoading}
         >
-          <span aria-hidden="true">
-            {isLoading ? "◌" : summary ? "↻" : "+"}
-          </span>
+          <SummaryActionIcon
+            className={isLoading ? "ai-summary-icon--spin" : undefined}
+            aria-hidden="true"
+          />
           {isLoading
             ? "מכין סיכום..."
             : summary
@@ -91,66 +121,74 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
           <nav className="ai-summary-days" aria-label="בחירת יום לסיכום">
             <span className="ai-summary-days__label">יום ברשומה</span>
             <div className="ai-summary-days__options">
-              {summary.availableDates.map((date, index) => (
+              {summary.availableDates.map((date) => (
                 <button
                   type="button"
                   key={date}
-                  className={date === selectedDate ? "is-active" : ""}
+                  className={
+                    date === loadingDate
+                      ? "is-loading"
+                      : date === selectedDate
+                        ? "is-active"
+                        : ""
+                  }
                   disabled={isLoading}
+                  aria-busy={date === loadingDate}
                   aria-pressed={date === selectedDate}
                   onClick={() => void selectSummaryDate(date)}
                 >
+                  {date === loadingDate && (
+                    <FaSpinner
+                      className="ai-summary-days__spinner"
+                      aria-hidden="true"
+                    />
+                  )}
                   <strong>{formatClinicalDate(date)}</strong>
-                  <span>
-                    {index === 0
-                      ? "האחרון"
-                      : formatSummaryWeekday(date, HEBREW_WEEKDAY_FORMAT)}
-                  </span>
                 </button>
               ))}
             </div>
           </nav>
 
           <div className="ai-summary-grid">
-            <ClinicalSummaryCard icon="🐾" title="רקע וסיבת אשפוז">
-              <p>{cleanClinicalText(summary.backgroundAndAdmission)}</p>
-            </ClinicalSummaryCard>
-            <ClinicalSummaryCard icon="🩺" title="מצב קליני נוכחי">
-              <p>{cleanClinicalText(summary.currentClinicalStatus)}</p>
+            <ClinicalSummaryCard icon={<FaPaw />} title="רקע וסיבת אשפוז">
+              <ClinicalSummaryText value={summary.backgroundAndAdmission} />
             </ClinicalSummaryCard>
             <ClinicalSummaryCard
-              icon="↗"
+              icon={<FaStethoscope />}
+              title="מצב קליני נוכחי"
+            >
+              <ClinicalSummaryText value={summary.currentClinicalStatus} />
+            </ClinicalSummaryCard>
+            <ClinicalSummaryCard
+              icon={<FaChartLine />}
               title="שינויים ומגמות"
               className="ai-summary-card--compact"
             >
               <ClinicalSummaryList items={summary.importantChangesAndTrends} />
             </ClinicalSummaryCard>
             <ClinicalSummaryCard
-              icon="💊"
-              title="כל פרטי הטיפול והרישום"
-              className="ai-summary-card--medicine"
-            >
-              <ClinicalCaseDetailsPager
-                items={selectedDayDetails}
-                selectedDate={selectedDate}
-              />
-            </ClinicalSummaryCard>
-            <ClinicalSummaryCard
-              icon="⚠"
+              icon={<FaExclamationTriangle />}
               title="אלרגיות, סיכונים והתראות"
               className="ai-summary-card--alert"
             >
               <ClinicalSummaryList items={summary.alerts} tone="alert" />
             </ClinicalSummaryCard>
-            <ClinicalSummaryCard icon="📋" title="מידע חסר ומעקב">
-              <ClinicalSummaryList
-                items={summary.missingInformationAndFollowUp}
+            <ClinicalSummaryCard
+              icon={<FaPills />}
+              title="פרטי הטיפול והתרופות"
+              className={getCaseDetailsCardClassName(caseDetailsExpanded)}
+            >
+              <ClinicalCaseDetailsPager
+                isExpanded={caseDetailsExpanded}
+                items={selectedDayDetails}
+                onExpandedChange={setCaseDetailsExpanded}
+                selectedDate={selectedDate}
               />
             </ClinicalSummaryCard>
           </div>
 
           <div className="ai-summary-updated">
-            <span aria-hidden="true">🕒</span>
+            <FaClock aria-hidden="true" />
             <span>הרשומה מעודכנת עד</span>
             <strong>
               {formatClinicalDateTime(summary.recordUpdatedThrough)}

@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isAxiosError } from "axios";
 import toast from "react-hot-toast";
 import type { ClinicalSummaryResultDTO } from "@petec/shared";
 import { patientsApi } from "../../../../../features/patients/patients.api";
+import { toHebrewErrorMessage } from "../../../../../lib/errorMessages";
 import { CLINICAL_SUMMARY_ERROR_MESSAGE } from "./clinicalSummary.constants";
 
 type ClinicalSummaryRequestResult =
   | { summary: ClinicalSummaryResultDTO; error: null }
   | { summary: null; error: string };
+
+const formatClinicalSummaryError = (error: unknown): string => {
+  const hasServerResponse = isAxiosError(error) && Boolean(error.response);
+  const message = hasServerResponse
+    ? toHebrewErrorMessage(error)
+    : CLINICAL_SUMMARY_ERROR_MESSAGE;
+  return message;
+};
 
 export const requestClinicalSummary = async (
   patientId: string,
@@ -15,8 +25,8 @@ export const requestClinicalSummary = async (
   try {
     const summary = await patientsApi.generateClinicalSummary(patientId, date);
     return { summary, error: null };
-  } catch {
-    return { summary: null, error: CLINICAL_SUMMARY_ERROR_MESSAGE };
+  } catch (error) {
+    return { summary: null, error: formatClinicalSummaryError(error) };
   }
 };
 
@@ -24,12 +34,14 @@ export const useClinicalSummary = (patientId: string) => {
   const [summary, setSummary] = useState<ClinicalSummaryResultDTO | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingDate, setLoadingDate] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const requestInProgressRef = useRef(false);
 
   useEffect(() => {
     setSummary(null);
     setErrorMessage("");
+    setLoadingDate("");
     setSelectedDate("");
     requestInProgressRef.current = false;
   }, [patientId]);
@@ -40,6 +52,7 @@ export const useClinicalSummary = (patientId: string) => {
 
       requestInProgressRef.current = true;
       setIsLoading(true);
+      setLoadingDate(date ?? "");
       setErrorMessage("");
 
       const result = await requestClinicalSummary(patientId, date);
@@ -65,6 +78,7 @@ export const useClinicalSummary = (patientId: string) => {
 
       requestInProgressRef.current = false;
       setIsLoading(false);
+      setLoadingDate("");
     },
     [patientId],
   );
@@ -82,6 +96,7 @@ export const useClinicalSummary = (patientId: string) => {
     errorMessage,
     generateSummary,
     isLoading,
+    loadingDate,
     selectedDate,
     selectSummaryDate,
     summary,

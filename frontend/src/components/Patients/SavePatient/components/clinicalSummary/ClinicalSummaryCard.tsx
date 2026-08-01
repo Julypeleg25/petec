@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
+import { FaCircle, FaExclamationTriangle } from "react-icons/fa";
+import { CLINICAL_SUMMARY_EMPTY_TEXT } from "./clinicalSummary.constants";
 import { cleanClinicalText } from "./clinicalSummary.utils";
 
 interface ClinicalSummaryCardProps {
-  children: ReactNode;
-  className?: string;
-  icon: string;
-  title: string;
+  readonly children: ReactNode;
+  readonly className?: string;
+  readonly icon: ReactNode;
+  readonly title: string;
 }
 
 export function ClinicalSummaryCard({
@@ -26,8 +28,12 @@ export function ClinicalSummaryCard({
 }
 
 interface ClinicalSummaryListProps {
-  items: readonly string[];
-  tone?: "alert" | "default";
+  readonly items: readonly string[];
+  readonly tone?: "alert" | "default";
+}
+
+interface ClinicalSummaryTextProps {
+  readonly value: string;
 }
 
 export function ClinicalSummaryList({
@@ -35,14 +41,29 @@ export function ClinicalSummaryList({
   tone = "default",
 }: ClinicalSummaryListProps) {
   if (items.length === 0) {
-    return <p className="ai-summary-empty">לא תועד מידע בסעיף זה.</p>;
+    return <p className="ai-summary-empty">{CLINICAL_SUMMARY_EMPTY_TEXT}</p>;
   }
 
   return (
     <ul className={`ai-summary-list ai-summary-list--${tone}`}>
-      {items.map((item, index) => (
-        <li key={`${index}-${item}`}>{cleanClinicalText(item)}</li>
-      ))}
+      {items.map((item, index) => {
+        const MarkerIcon = tone === "alert" ? FaExclamationTriangle : FaCircle;
+        return (
+          <li key={`${index}-${item}`}>
+            <MarkerIcon className="ai-summary-list__icon" aria-hidden="true" />
+            <span>{cleanClinicalText(item)}</span>
+          </li>
+        );
+      })}
     </ul>
+  );
+}
+
+export function ClinicalSummaryText({ value }: ClinicalSummaryTextProps) {
+  const text = cleanClinicalText(value);
+  return (
+    <p className={text ? undefined : "ai-summary-empty"}>
+      {text || CLINICAL_SUMMARY_EMPTY_TEXT}
+    </p>
   );
 }
