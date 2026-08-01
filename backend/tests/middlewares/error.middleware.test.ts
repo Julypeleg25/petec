@@ -52,7 +52,8 @@ const createRequest = () =>
 describe("error middleware", () => {
   it("handles validation errors as warn-level app errors", async () => {
     const { errorHandler } = await loadErrorHandler(false);
-    const { ValidationError } = await import("../../src/constants/error.constants.js");
+    const { ValidationError } =
+      await import("../../src/constants/error.constants.js");
     const res = {} as never;
     const details = {
       body: ["Required"],
@@ -153,19 +154,59 @@ describe("error middleware", () => {
     );
   });
 
+  it("keeps safe clinical summary guidance visible in production", async () => {
+    const { errorHandler } = await loadErrorHandler(true);
+    const { ClinicalSummaryUnavailableError } =
+      await import("../../src/services/clinicalSummary/clinicalSummary.error.js");
+    const res = {} as never;
+    const error = new ClinicalSummaryUnavailableError("timeout");
+
+    errorHandler(error, createRequest(), res, jest.fn());
+
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.SERVICE_UNAVAILABLE,
+      expect.stringContaining("אפשר לנסות שוב בעוד רגע"),
+      "CLINICAL_SUMMARY_UNAVAILABLE",
+      undefined,
+      "req-1",
+    );
+  });
+
   it.each([
-    ["BadRequestError", "Bad request happened", HttpStatus.BAD_REQUEST, "BAD_REQUEST", "warn"],
-    ["AuthError", "Auth failed", HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "warn"],
+    [
+      "BadRequestError",
+      "Bad request happened",
+      HttpStatus.BAD_REQUEST,
+      "BAD_REQUEST",
+      "warn",
+    ],
+    [
+      "AuthError",
+      "Auth failed",
+      HttpStatus.UNAUTHORIZED,
+      "UNAUTHORIZED",
+      "warn",
+    ],
     ["ForbiddenError", "Forbidden", HttpStatus.FORBIDDEN, "FORBIDDEN", "warn"],
     ["NotFoundError", "Missing", HttpStatus.NOT_FOUND, "NOT_FOUND", "warn"],
     ["ConflictError", "Conflict", HttpStatus.CONFLICT, "CONFLICT", "warn"],
-    ["InternalServerError", "Internal boom", HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "error"],
+    [
+      "InternalServerError",
+      "Internal boom",
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      "INTERNAL_ERROR",
+      "error",
+    ],
   ] as const)(
     "maps %s to the expected API error code",
     async (errorClassName, message, statusCode, errorCode, loggerMethod) => {
       const { errorHandler } = await loadErrorHandler(false);
-      const errorModule = await import("../../src/constants/error.constants.js");
-      const ErrorClass = errorModule[errorClassName] as new (message?: string) => Error;
+      const errorModule =
+        await import("../../src/constants/error.constants.js");
+      const ErrorClass = errorModule[errorClassName] as new (
+        message?: string,
+      ) => Error;
       const res = {} as never;
 
       errorHandler(new ErrorClass(message), createRequest(), res, jest.fn());
@@ -178,13 +219,14 @@ describe("error middleware", () => {
         undefined,
         "req-1",
       );
-      expect((loggerMethod === "warn" ? warnMock : errorMock)).toHaveBeenCalled();
+      expect(loggerMethod === "warn" ? warnMock : errorMock).toHaveBeenCalled();
     },
   );
 
   it("formats custom app-error names and sorts validation issues by message within the same path", async () => {
     const { errorHandler } = await loadErrorHandler(false);
-    const { ValidationError, AppError } = await import("../../src/constants/error.constants.js");
+    const { ValidationError, AppError } =
+      await import("../../src/constants/error.constants.js");
     const validationRes = {} as never;
 
     errorHandler(

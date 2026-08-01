@@ -87,6 +87,7 @@ describe("clinical summary input allowlist", () => {
         weightKg: 12.5,
       }),
     );
+    expect(input.hospitalization.admittedAt).toBe("01/01/2026");
     expect(input.alerts.allergies).toEqual(["פניצילין"]);
     expect(input.alerts.anesthesiaRisks).toHaveLength(1);
     expect(input.treatments[0]).toEqual(
