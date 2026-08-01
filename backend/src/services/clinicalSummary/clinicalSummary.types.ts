@@ -52,4 +52,5 @@ export type ClinicalSummaryFailureCategory =
   | "rate_limit"
   | "provider"
   | "invalid_output"
-  | "duplicate_request";
+  | "duplicate_request"
+  | "internal";
