@@ -1436,7 +1436,197 @@
   }
 }
 
-/* Align mobile exposed save button with trigger */
+.ai-case-summary {
+  margin: 1rem 0;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(126, 72, 160, 0.25);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fbf7ff, #f4f8ff);
+  direction: rtl;
+}
+.modal.clinical-summary-modal {
+  --modal-width: min(1180px, 96vw);
+  --modal-max-width: 96vw;
+  direction: rtl;
+  padding: 2.75rem 1.25rem 1.25rem;
+}
+.clinical-summary-modal .ai-case-summary { margin: 0; }
+@media screen and (max-width: 600px) {
+  .modal.clinical-summary-modal { padding: 3rem 0.85rem 0.85rem; }
+}
+.ai-case-summary__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.ai-case-summary__header h3 { margin: 0.15rem 0; color: #59306f; }
+.ai-case-summary__header p, .ai-case-summary small { margin: 0; color: #667085; }
+.ai-case-summary__eyebrow { font-weight: 700; color: #8b4cac; font-size: 0.8rem; }
+.ai-case-summary__content { margin: 1rem 0 0.65rem; padding: 1rem; white-space: pre-wrap; line-height: 1.65; background: white; border-radius: 10px; }
+.ai-case-summary__content.is-unavailable { color: #8a4b08; background: #fff8e8; }
+.ai-case-summary__content h4 { margin: 1rem 0 0.35rem; color: #59306f; }
+.ai-case-summary__content p, .ai-case-summary__content ul { margin: 0; }
+.ai-case-summary__warning, .ai-case-summary__truncated, .ai-case-summary__error {
+  margin-top: 0.9rem; padding: 0.8rem; border-radius: 8px; font-weight: 600;
+}
+.ai-case-summary__warning { background: #fff4d6; color: #6b4700; border: 1px solid #f3d488; }
+.ai-case-summary__truncated { background: #eef4ff; color: #294d7a; }
+.ai-case-summary__error { background: #fff0f0; color: #9b1c1c; }
+@media screen and (max-width: 600px) { .ai-case-summary__header { align-items: stretch; flex-direction: column; } }
+
+/* Clinical summary styles are isolated from editable patient form styles. */
+.ai-case-summary {
+  position: relative;
+  overflow: visible;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  direction: rtl;
+  text-align: right;
+  padding: 1.25rem;
+  border: 1px solid #cad7df;
+  background: #f6f9fb;
+  box-shadow: 0 8px 24px rgba(28, 52, 66, 0.08);
+  font-family: Arial, "Noto Sans Hebrew", sans-serif;
+}
+.ai-case-summary::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 4px;
+  background: #28736f;
+}
+.ai-case-summary__heading { display: flex; align-items: center; gap: 0.85rem; }
+.ai-case-summary__icon {
+  display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 46px;
+  border-radius: 10px; color: #fff; font-size: 1.25rem;
+  background: #28736f;
+  box-shadow: none;
+}
+.ai-case-summary__eyebrow { color: #526b76; font-size: 0.72rem; letter-spacing: 0; }
+.ai-case-summary__header h3 { color: #173b4a; font-family: inherit; }
+.ai-case-summary__header h3 { font-size: 1.25rem; line-height: 1.25; }
+.ai-case-summary__header .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  min-height: 42px; padding-inline: 1.1rem; border-radius: 10px; white-space: nowrap;
+}
+.ai-case-summary__content { padding: 0; background: transparent; white-space: normal; }
+.ai-summary-metrics { display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 0.9rem 0; }
+.ai-summary-metrics span {
+  padding: 0.35rem 0.7rem; border: 1px solid #d3dfe4; border-radius: 6px;
+  background: #fff; color: #38525e; font-size: 0.78rem; font-weight: 700;
+}
+.ai-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; }
+.ai-summary-days {
+  display: flex; align-items: center; gap: 0.75rem; margin: 0 0 0.9rem;
+  padding: 0.7rem; border: 1px solid #ded5e7; border-radius: 11px; background: #fff;
+  direction: rtl; text-align: right;
+}
+.ai-summary-days__label { flex: 0 0 auto; color: #5e4a6c; font-size: 0.82rem; font-weight: 700; }
+.ai-summary-days__options {
+  display: flex; flex: 1; gap: 0.45rem; overflow-x: auto; padding: 0.1rem 0 0.25rem;
+  scrollbar-width: thin; direction: rtl;
+}
+.ai-summary-days__options button {
+  display: grid; gap: 0.05rem; min-width: 70px; padding: 0.42rem 0.65rem;
+  border: 1px solid #ded8e3; border-radius: 9px; background: #faf9fb; color: #554b5c;
+  cursor: pointer; text-align: center;
+}
+.ai-summary-days__options button span { font-size: 0.68rem; color: #817789; }
+.ai-summary-days__options button.is-active {
+  border-color: #28736f; background: #28736f; color: #fff; box-shadow: 0 3px 10px rgba(40, 115, 111, 0.18);
+}
+.ai-summary-days__options button.is-active span { color: #eee5f4; }
+.ai-summary-card {
+  min-width: 0; padding: 0.95rem 1rem; border: 1px solid #e6e1ea; border-radius: 12px;
+  align-self: start; background: rgba(255, 255, 255, 0.94); box-shadow: 0 3px 12px rgba(51, 37, 65, 0.045);
+}
+.ai-summary-card h4 {
+  display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.55rem;
+  padding-bottom: 0.5rem; border-bottom: 1px solid #eee9f1; font-size: 0.95rem;
+  color: #214858;
+}
+.ai-summary-card h4 span { font-size: 1rem; }
+.ai-summary-card__body { color: #342f38; font-size: 0.9rem; line-height: 1.65; }
+.ai-summary-card__body, .ai-summary-list li, .ai-summary-card p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.ai-summary-card, .ai-summary-card__body, .ai-summary-list, .ai-summary-list li {
+  direction: rtl;
+  text-align: right;
+}
+.ai-case-summary p, .ai-case-summary li, .ai-case-summary span, .ai-case-summary strong, .ai-case-summary button { font-family: Arial, "Noto Sans Hebrew", sans-serif; }
+.ai-medication-list { display: grid; gap: 0.55rem; margin: 0; padding: 0; list-style: none; direction: rtl; }
+.ai-medication-list li {
+  display: grid; grid-template-columns: minmax(86px, auto) 1fr; gap: 0.7rem;
+  align-items: stretch; overflow: hidden; border: 1px solid; border-radius: 9px; text-align: right;
+}
+.ai-medication-list li.is-received { border-color: #acd9ce; background: #effaf7; }
+.ai-medication-list li.is-pending { border-color: #efaaaa; background: #fff1f1; }
+.ai-medication-list li.is-recorded { border-color: #c9d8ea; background: #f4f8fd; }
+.ai-medication-list__status {
+  display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+  padding: 0.55rem; white-space: nowrap;
+}
+.is-received .ai-medication-list__status { color: #126d5d; background: #d9f1eb; }
+.is-pending .ai-medication-list__status { color: #a91f2c; background: #ffdede; }
+.is-recorded .ai-medication-list__status { color: #345f8c; background: #e4eef9; }
+.ai-medication-list__status span { font-size: 1rem; font-weight: 900; }
+.ai-medication-list__details {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem 0.65rem; padding: 0.55rem 0.1rem 0.55rem 0.65rem;
+  min-width: 0; direction: rtl; text-align: right;
+}
+.ai-medication-list__details b { flex-basis: 100%; color: #2e2932; }
+.ai-medication-list__details span { font-size: 0.78rem; color: #665d6b; }
+.ai-medication-list__details span[dir="auto"], .ai-medication-list__details b[dir="auto"] { unicode-bidi: plaintext; text-align: right; }
+.ai-medication-list__details .ai-case-detail-time { padding: 0.05rem 0.35rem; border-radius: 4px; background: #e8eef2; color: #304d5a; font-variant-numeric: tabular-nums; }
+.ai-medication-list__details .ai-case-detail-category {
+  display: inline-flex; align-items: center; width: fit-content; padding: 0.16rem 0.5rem;
+  border: 1px solid #bdd3dc; border-radius: 999px; background: #eaf2f5;
+  color: #244f60; font-size: 0.72rem; font-weight: 700; line-height: 1.25;
+}
+.ai-summary-card--medicine { border-color: #bcded6; background: #f8fffd; }
+.ai-summary-card--medicine h4 { color: #17695d; border-bottom-color: #d6eee8; }
+.ai-summary-card--compact .ai-summary-list { max-height: 132px; overflow-y: auto; scrollbar-width: thin; }
+.ai-case-detail-carousel { display: grid; gap: 0.65rem; }
+.ai-case-detail-carousel__controls {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; direction: rtl;
+  padding-top: 0.15rem;
+}
+.ai-case-detail-carousel__controls button {
+  display: grid; place-items: center; min-width: 72px; height: 34px; padding: 0.25rem 0.75rem;
+  border: 1px solid #b9d9d2; border-radius: 8px; background: #fff; color: #17695d;
+  font-size: 0.8rem; font-weight: 700; line-height: 1; cursor: pointer;
+}
+.ai-case-detail-carousel__controls button:hover { background: #eaf8f4; border-color: #71b7a8; }
+.ai-case-detail-carousel__controls button:disabled { opacity: 0.42; cursor: default; background: #f4f6f7; border-color: #d8e0e3; }
+.ai-case-detail-carousel__controls strong { min-width: 82px; color: #5d5662; font-size: 0.78rem; text-align: center; direction: rtl; }
+.ai-summary-card--alert { border-color: #efd09e; background: #fffaf1; }
+.ai-summary-card--alert h4 { color: #8a5100; border-bottom-color: #f2dfbe; }
+.ai-summary-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.42rem; }
+.ai-summary-list li { position: relative; padding: 0.38rem 1.05rem 0.38rem 0.45rem; border-radius: 7px; background: #f8f6fa; }
+.ai-summary-list li::before { content: "?"; position: absolute; right: 0.38rem; color: #744491; font-weight: 900; }
+.ai-summary-list--medicine li { background: #eaf8f4; }
+.ai-summary-list--medicine li::before { content: "?"; color: #187465; }
+.ai-summary-list--alert li { background: #fff1d8; }
+.ai-summary-list--alert li::before { content: "!"; color: #a05d00; }
+.ai-summary-empty { color: #7c7381; font-style: italic; }
+.ai-summary-updated {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.85rem;
+  padding: 0.7rem 0.85rem; border-radius: 9px; background: #edf3fb; color: #46566e; font-size: 0.78rem;
+}
+.ai-summary-updated strong { color: #243c60; }
+.ai-case-summary > small { display: block; margin-top: 0.8rem; }
+@media screen and (max-width: 760px) {
+  .ai-summary-grid { grid-template-columns: 1fr; }
+  .ai-case-summary { padding: 1rem; margin-inline: 0; }
+}
+@media screen and (max-width: 600px) {
+  .ai-case-summary__header .btn { width: 100%; }
+  .ai-case-summary__heading { align-items: flex-start; }
+  .ai-summary-metrics span { flex: 1 1 auto; text-align: center; }
+  .ai-summary-days { align-items: stretch; flex-direction: column; }
+  .ai-medication-list li { grid-template-columns: 1fr; gap: 0; }
+  .ai-medication-list__status { justify-content: flex-start; }
+}
+
 .daily-details-mobile-actions .daily-details-save-btn {
   margin-right: 0.5rem;
   border-radius: 999px;

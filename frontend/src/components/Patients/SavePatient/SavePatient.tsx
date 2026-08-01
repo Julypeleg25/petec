@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import CaseDetailsTable from "../CaseDetailsTable/CaseDetailsTable";
 import MyLoader from "../../../utils/MyLoader/MyLoader";
@@ -36,6 +36,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
       : undefined;
   const caseIdString = caseId ?? "";
   const allowNavigationRef = useRef(false);
+  const [showClinicalSummaryModal, setShowClinicalSummaryModal] = useState(false);
 
   const allowNextNavigation = useCallback(() => {
     allowNavigationRef.current = true;
@@ -184,6 +185,9 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
   const handleSelectChildCase = useCallback((childCaseId: string) => {
     navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
   }, [masterCaseId, navigate]);
+  const handleShowClinicalSummary = useCallback(() => {
+    setShowClinicalSummaryModal(true);
+  }, []);
 
   const handleCaseDateChange = (value: string) => {
     const { caseDetailsIndex, selectedHour } = getCaseDateSelectionData(
@@ -217,6 +221,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               onExportCaseDetails={exportCaseDetails}
               onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
               onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
+              onShowClinicalSummary={handleShowClinicalSummary}
               onShowArchiveConfirmationModal={() =>
                 setShowArchiveConfirmationModal(true)
               }
@@ -305,6 +310,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               onExportCaseDetails={exportCaseDetails}
               onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
               onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
+              onShowClinicalSummary={handleShowClinicalSummary}
               onShowArchiveConfirmationModal={() =>
                 setShowArchiveConfirmationModal(true)
               }
@@ -381,6 +387,8 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
         setShowPatientDocumentsModal={setShowPatientDocumentsModal}
         showPatientChartsModal={showPatientChartsModal}
         setShowPatientChartsModal={setShowPatientChartsModal}
+        showClinicalSummaryModal={showClinicalSummaryModal}
+        setShowClinicalSummaryModal={setShowClinicalSummaryModal}
         showArchiveConfirmationModal={showArchiveConfirmationModal}
         setShowArchiveConfirmationModal={setShowArchiveConfirmationModal}
         isArchived={isArchived}

@@ -13,6 +13,7 @@ interface SavePatientEditActionsSectionProps {
   onExportCaseDetails: () => void;
   onShowPatientDocumentsModal: () => void;
   onShowPatientChartsModal: () => void;
+  onShowClinicalSummary: () => void;
   onShowArchiveConfirmationModal: () => void;
   onShowDeletePatientCaseModal: () => void;
   onSavePatientChanges: () => Promise<boolean>;
@@ -30,6 +31,7 @@ function SavePatientEditActionsSection({
   onExportCaseDetails,
   onShowPatientDocumentsModal,
   onShowPatientChartsModal,
+  onShowClinicalSummary,
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
   onSavePatientChanges,
@@ -90,7 +92,7 @@ function SavePatientEditActionsSection({
                 onClick={() => handleMenuAction(onExportCaseDetails)}
                 disabled={isExporting}
               >
-                {isExporting ? "...מייצא" : "PDF - ייצא ל"}
+                {isExporting ? "...מייצא" : "ייצוא ל-PDF"}
               </button>
               <button
                 type="button"
@@ -103,6 +105,12 @@ function SavePatientEditActionsSection({
                 onClick={() => handleMenuAction(onShowPatientChartsModal)}
               >
                 מידע גרפי
+              </button>
+              <button
+                type="button"
+                onClick={() => handleMenuAction(onShowClinicalSummary)}
+              >
+                סיכום קליני שנוצר
               </button>
               <button
                 type="button"

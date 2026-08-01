@@ -84,6 +84,7 @@ interface SavePatientPatientInfoSectionProps {
   onExportCaseDetails?: () => void;
   onShowPatientDocumentsModal?: () => void;
   onShowPatientChartsModal?: () => void;
+  onShowClinicalSummary?: () => void;
   onShowArchiveConfirmationModal?: () => void;
   onShowDeletePatientCaseModal?: () => void;
   onSavePatientChanges?: () => Promise<boolean>;
@@ -152,6 +153,7 @@ function SavePatientPatientInfoSection({
   onExportCaseDetails,
   onShowPatientDocumentsModal,
   onShowPatientChartsModal,
+  onShowClinicalSummary,
   onShowArchiveConfirmationModal,
   onShowDeletePatientCaseModal,
   onSavePatientChanges,
@@ -283,7 +285,7 @@ function SavePatientPatientInfoSection({
                     onClick={() => runMobileAction(onExportCaseDetails)}
                     disabled={isExporting}
                   >
-                    {isExporting ? "...מייצא" : "PDF - ייצא ל"}
+                    {isExporting ? "...מייצא" : "ייצוא ל-PDF"}
                   </button>
                   <button
                     type="button"
@@ -296,6 +298,12 @@ function SavePatientPatientInfoSection({
                     onClick={() => runMobileAction(onShowPatientChartsModal)}
                   >
                     מידע גרפי
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => runMobileAction(onShowClinicalSummary)}
+                  >
+                    סיכום קליני שנוצר
                   </button>
                   <button
                     type="button"

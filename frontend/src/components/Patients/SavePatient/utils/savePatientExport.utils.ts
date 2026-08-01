@@ -179,7 +179,7 @@ const buildSummaryItem = (
   label: string,
   valueAttributes = "",
 ): string =>
-  `<div><span${valueAttributes}>${value}</span><span>:${escapeHtml(label)}</span></div>`;
+  `<div><span class="export-label">${escapeHtml(label)}:</span><span${valueAttributes}>${value}</span></div>`;
 
 const buildFlagItem = (label: string, isChecked: boolean | undefined): string =>
   `
@@ -387,8 +387,8 @@ const buildReleaseMedicinesHtml = (
         .join(" ");
 
       return `
-        <div><span>${medicineName}</span><span>:שם תרופה</span></div>
-        <div><span>${formatTextValue(doseParts, "")}</span><span>:מינון</span></div>
+        <div><span class="export-label">שם תרופה:</span><span>${medicineName}</span></div>
+        <div><span class="export-label">מינון:</span><span>${formatTextValue(doseParts, "")}</span></div>
       `;
     })
     .join("");
@@ -417,7 +417,7 @@ const buildExportHtml = (
 
   const html = `
     <!doctype html>
-    <html lang="he">
+    <html lang="he" dir="rtl">
       <head>
         <meta charset="utf-8" />
         <title>${escapeHtml(fileName)}</title>
@@ -429,6 +429,8 @@ const buildExportHtml = (
 
           body {
             font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
           }
 
           .details-table {
@@ -436,6 +438,7 @@ const buildExportHtml = (
             margin: 0 auto;
             border-collapse: collapse;
             margin-bottom: 20px;
+            direction: ltr;
           }
 
           th,
@@ -446,6 +449,8 @@ const buildExportHtml = (
             word-break: break-word;
             padding-top: 0.2em;
             padding-bottom: 0.2em;
+            direction: rtl;
+            unicode-bidi: plaintext;
           }
 
           .case-details,
@@ -456,7 +461,7 @@ const buildExportHtml = (
             width: 95%;
             margin: 1em auto;
             justify-content: flex-start;
-            flex-direction: row-reverse;
+            direction: rtl;
             row-gap: 1em;
           }
 
@@ -467,20 +472,22 @@ const buildExportHtml = (
             font-size: 1rem;
             display: flex;
             justify-content: flex-start;
+            direction: rtl;
+            text-align: right;
           }
 
-          .case-details div span:first-child,
-          .case-after-release-details div span:first-child,
-          .case-after-release-medicines div span:first-child {
+          .case-details div span:not(.export-label),
+          .case-after-release-details div span:not(.export-label),
+          .case-after-release-medicines div span:not(.export-label) {
             border-bottom: 2px solid black;
             text-align: center;
-            margin-right: 0.2em;
+            margin-right: 0.35em;
             min-width: 80px;
           }
 
           .case-after-release-medicines-container {
             display: flex;
-            flex-direction: row-reverse;
+            direction: rtl;
             width: 95%;
             margin: 0 auto;
           }
@@ -580,7 +587,7 @@ const buildExportHtml = (
         <table class="details-table">
           <tr>
             ${hourRows
-              .map((row) => `<th>${formatTextValue(formatHourLabel(row?.time), "")}</th>`)
+              .map((row) => `<th dir="ltr">${formatTextValue(formatHourLabel(row?.time), "")}</th>`)
               .join("")}
             <th></th>
           </tr>
@@ -727,7 +734,7 @@ const buildExportHtml = (
         </div>
 
         <div class="case-after-release-medicines-container">
-          <div class="case-after-release-medicines-container-title">:תרופות לשחרור</div>
+          <div class="case-after-release-medicines-container-title">תרופות לשחרור:</div>
           <div class="case-after-release-medicines">${buildReleaseMedicinesHtml(
             lookups.releaseData.medicines,
           )}</div>

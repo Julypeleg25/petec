@@ -103,6 +103,8 @@ export const API_ROUTES = {
             PATIENT + "case/anesthesia/" + caseId,
         chartsData: (caseId: string) =>
             PATIENT + "case/charts/" + caseId,
+        clinicalSummary: (patientId: string) =>
+            PATIENT + patientId + "/clinical-summary",
         exportCase: (caseId: string) =>
             PATIENT + "case/export/" + caseId,
         case: {

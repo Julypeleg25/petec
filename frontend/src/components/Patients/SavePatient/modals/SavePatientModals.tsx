@@ -5,6 +5,7 @@ import DeletePatient from "../../../DeletePatient/DeletePatient";
 import PatientDocuments from "../../../PatientDocuments/PatientDocuments";
 import PatientCharts from "../../../PatientCharts/PatientCharts";
 import CatheterReplacement from "../../../CatheterReplacement/CatheterReplacement";
+import { AiCaseSummary } from "../components/AiCaseSummary";
 
 interface SavePatientModalsProps {
   beforeNavigation?: () => void;
@@ -24,6 +25,8 @@ interface SavePatientModalsProps {
   setShowPatientDocumentsModal: React.Dispatch<React.SetStateAction<boolean>>;
   showPatientChartsModal: boolean;
   setShowPatientChartsModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showClinicalSummaryModal: boolean;
+  setShowClinicalSummaryModal: React.Dispatch<React.SetStateAction<boolean>>;
   showArchiveConfirmationModal: boolean;
   setShowArchiveConfirmationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isArchived: boolean;
@@ -50,6 +53,8 @@ export function SavePatientModals({
   setShowPatientDocumentsModal,
   showPatientChartsModal,
   setShowPatientChartsModal,
+  showClinicalSummaryModal,
+  setShowClinicalSummaryModal,
   showArchiveConfirmationModal,
   setShowArchiveConfirmationModal,
   isArchived,
@@ -61,6 +66,14 @@ export function SavePatientModals({
 
   return (
     <>
+      {showClinicalSummaryModal && (
+        <Modal
+          setIsOpen={setShowClinicalSummaryModal}
+          size="lg"
+          className="clinical-summary-modal"
+          component={<AiCaseSummary patientId={patientId} />}
+        />
+      )}
       {showReleasePatientModal && (
         <Modal
           setIsOpen={setShowReleasePatientModal}
