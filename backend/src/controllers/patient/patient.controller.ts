@@ -2,6 +2,7 @@ import { logger } from "../../config/logger.js";
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "../../services/patient/index.js";
 import { patientUploadService } from "../../services/patient/index.js";
+import { clinicalSummaryService } from "../../services/clinicalSummary/index.js";
 import {
   sendSuccess,
   sendCreated,
@@ -23,6 +24,7 @@ import type {
   UploadDocumentDTO,
   UpdateDailyPlanRequestDTO,
   CreateAnesthesiaProcedureFormDTO,
+  ClinicalSummaryRequestDTO,
 } from "@petec/shared";
 import type {
   CaseIdParamsDTO,
@@ -41,9 +43,32 @@ import {
   ChartsDataResponseDTOSchema,
   DailyPlanDetailListResponseDTOSchema,
   CreateAnesthesiaProcedureFormDTOSchema,
+  ClinicalSummaryResultDTOSchema,
 } from "@petec/shared";
 
 export class PatientController {
+  async generateClinicalSummary(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    res.setHeader("Cache-Control", "no-store");
+    try {
+      const { patientId } = getValidatedParams<PatientIdParamsDTO>(req);
+      const { date } = getValidatedBody<ClinicalSummaryRequestDTO>(req);
+      const userId = getAuthenticatedUserId(req);
+      const result = await clinicalSummaryService.generate({
+        patientId,
+        userId,
+        requestedDate: date,
+        requestId: req.requestId,
+      });
+      sendSuccess(res, result, ClinicalSummaryResultDTOSchema);
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async createPatientAndCase(
     req: Request,
     res: Response,

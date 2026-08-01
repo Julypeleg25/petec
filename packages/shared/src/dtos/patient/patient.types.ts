@@ -2,6 +2,9 @@ import type { z } from "zod";
 import type {
     ArchivePatientDTOSchema,
     CaseDetailsResponseDTOSchema,
+    ClinicalSummaryResultDTOSchema,
+    ClinicalSummaryRequestDTOSchema,
+    ClinicalSummaryCoreDTOSchema,
     caseDetailsHeaderSchema,
     caseDailyDetailsRowSchema,
     CalendarDayDTOSchema,
@@ -43,6 +46,9 @@ export type DeleteDocumentDTO = z.infer<typeof DeleteDocumentDTOSchema>;
 export type DeletePatientCaseDTO = z.infer<typeof DeletePatientCaseDTOSchema>;
 export type ArchivePatientDTO = z.infer<typeof ArchivePatientDTOSchema>;
 export type CaseDetailsResponseDTO = z.infer<typeof CaseDetailsResponseDTOSchema>;
+export type ClinicalSummaryResultDTO = z.infer<typeof ClinicalSummaryResultDTOSchema>;
+export type ClinicalSummaryRequestDTO = z.infer<typeof ClinicalSummaryRequestDTOSchema>;
+export type ClinicalSummaryCoreDTO = z.infer<typeof ClinicalSummaryCoreDTOSchema>;
 export type CaseDetailsHeaderDTO = z.infer<typeof caseDetailsHeaderSchema>;
 export type PopulatedMedicineReferenceDTO = z.infer<typeof populatedMedicineRefSchema>;
 export type CaseDetailsResponseMedicineItemDTO = z.infer<typeof responseMedicineItemSchema>;

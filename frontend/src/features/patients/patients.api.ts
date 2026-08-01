@@ -46,9 +46,28 @@ import {
   CaseIdParamsDTOSchema,
   PatientIdParamsDTOSchema,
   DocumentIdParamsDTOSchema,
+  ClinicalSummaryResultDTO,
+  ClinicalSummaryResultDTOSchema,
+  ClinicalSummaryRequestDTOSchema,
 } from "@petec/shared";
 
 export const patientsApi = {
+  generateClinicalSummary: (
+    patientId: string,
+    date?: string,
+  ): Promise<ClinicalSummaryResultDTO> => {
+    const params = PatientIdParamsDTOSchema.parse({ patientId });
+    const body = ClinicalSummaryRequestDTOSchema.parse({ date });
+    return requestWithSchema(
+      {
+        method: HTTP_METHODS.POST,
+        url: API_ROUTES.patient.clinicalSummary(params.patientId),
+        data: body,
+      },
+      ClinicalSummaryResultDTOSchema,
+    );
+  },
+
   createPatient: (dto: NewPatientDTO): Promise<CreatePatientResponseDTO> =>
     requestWithRequestAndResponseSchema(
       { method: HTTP_METHODS.POST, url: API_ROUTES.patient.create },

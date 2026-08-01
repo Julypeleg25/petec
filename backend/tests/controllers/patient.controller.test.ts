@@ -37,6 +37,9 @@ const patientUploadServiceMocks = {
   uploadDocument: jest.fn<(...args: any[]) => Promise<any>>(),
   uploadPatientPhoto: jest.fn<(...args: any[]) => Promise<string>>(),
 };
+const clinicalSummaryServiceMock = {
+  generate: jest.fn<(...args: any[]) => Promise<any>>(),
+};
 
 const sendSuccessMock = jest.fn<(...args: any[]) => void>();
 const sendCreatedMock = jest.fn<(...args: any[]) => void>();
@@ -48,6 +51,9 @@ const getAuthenticatedUserIdMock = jest.fn<(req: any) => string>();
 jest.unstable_mockModule("../../src/services/patient/index.js", () => ({
   patientService: patientServiceMocks,
   patientUploadService: patientUploadServiceMocks,
+}));
+jest.unstable_mockModule("../../src/services/clinicalSummary/index.js", () => ({
+  clinicalSummaryService: clinicalSummaryServiceMock,
 }));
 
 jest.unstable_mockModule("../../src/utils/apiResponse.js", () => ({
@@ -62,9 +68,8 @@ jest.unstable_mockModule("../../src/utils/request.utils.js", () => ({
   getValidatedParams: getValidatedParamsMock,
 }));
 
-const { PatientController } = await import(
-  "../../src/controllers/patient/patient.controller.js"
-);
+const { PatientController } =
+  await import("../../src/controllers/patient/patient.controller.js");
 
 describe("PatientController", () => {
   const controller = new PatientController();
@@ -89,9 +94,48 @@ describe("PatientController", () => {
     getValidatedBodyMock.mockReset();
     getValidatedParamsMock.mockReset();
     getAuthenticatedUserIdMock.mockReset();
+    clinicalSummaryServiceMock.generate.mockReset();
     (res.setHeader as any).mockReset();
     (res.status as any).mockReset();
     next.mockReset();
+  });
+
+  it("generates a no-store clinical summary for the authenticated user", async () => {
+    const result = {
+      backgroundAndAdmission: "רקע",
+      currentClinicalStatus: "מצב",
+      importantChangesAndTrends: [],
+      treatmentsAndMedications: [],
+      alerts: [],
+      missingInformationAndFollowUp: [],
+      recordUpdatedThrough: "2026-01-01T00:00:00.000Z",
+      inputWasTruncated: false,
+    };
+    getValidatedParamsMock.mockReturnValue({
+      patientId: "507f1f77bcf86cd799439011",
+    });
+    getValidatedBodyMock.mockReturnValue({});
+    getAuthenticatedUserIdMock.mockReturnValue("507f1f77bcf86cd799439012");
+    clinicalSummaryServiceMock.generate.mockResolvedValue(result);
+
+    await controller.generateClinicalSummary(
+      { params: {}, requestId: "req-summary-1" } as never,
+      res,
+      next,
+    );
+
+    expect(clinicalSummaryServiceMock.generate).toHaveBeenCalledWith({
+      patientId: "507f1f77bcf86cd799439011",
+      userId: "507f1f77bcf86cd799439012",
+      requestedDate: undefined,
+      requestId: "req-summary-1",
+    });
+    expect(res.setHeader).toHaveBeenCalledWith("Cache-Control", "no-store");
+    expect(sendSuccessMock).toHaveBeenCalledWith(
+      res,
+      result,
+      expect.anything(),
+    );
   });
 
   it("creates a patient and case for the authenticated user", async () => {
@@ -219,11 +263,7 @@ describe("PatientController", () => {
     getAuthenticatedUserIdMock.mockReturnValue("user-1");
     patientUploadServiceMocks.uploadDocument.mockResolvedValue(result);
 
-    await controller.uploadDocument(
-      { body: dto, file } as never,
-      res,
-      next,
-    );
+    await controller.uploadDocument({ body: dto, file } as never, res, next);
 
     expect(patientUploadServiceMocks.uploadDocument).toHaveBeenCalledWith({
       dto,
@@ -258,7 +298,9 @@ describe("PatientController", () => {
 
     await controller.getAnesthesiaForm({ params: {} } as never, res, next);
 
-    expect(patientServiceMocks.getAnesthesiaForm).toHaveBeenCalledWith("case-1");
+    expect(patientServiceMocks.getAnesthesiaForm).toHaveBeenCalledWith(
+      "case-1",
+    );
     expect(sendSuccessMock.mock.calls[0]?.[0]).toBe(res);
     expect(sendSuccessMock.mock.calls[0]?.[1]).toBe(result);
     expect(sendSuccessMock.mock.calls[0]?.[2]).toBeTruthy();
@@ -361,7 +403,9 @@ describe("PatientController", () => {
     const file = { originalname: "photo.png" };
     getValidatedParamsMock.mockReturnValue({ patientId: "patient-1" });
     getAuthenticatedUserIdMock.mockReturnValue("user-1");
-    patientUploadServiceMocks.uploadPatientPhoto.mockResolvedValue("photo-1.png");
+    patientUploadServiceMocks.uploadPatientPhoto.mockResolvedValue(
+      "photo-1.png",
+    );
 
     await controller.uploadPatientPhoto(
       { params: {}, file } as never,
@@ -395,17 +439,17 @@ describe("PatientController", () => {
 
     await controller.getPatientPhoto({ params: {} } as never, res, next);
 
-    expect((res.setHeader as any)).toHaveBeenNthCalledWith(
+    expect(res.setHeader as any).toHaveBeenNthCalledWith(
       1,
       "Content-Type",
       "image/png",
     );
-    expect((res.setHeader as any)).toHaveBeenNthCalledWith(
+    expect(res.setHeader as any).toHaveBeenNthCalledWith(
       2,
       "Cache-Control",
       "public, max-age=300",
     );
-    expect((res.status as any)).toHaveBeenCalledWith(HttpStatus.OK);
+    expect(res.status as any).toHaveBeenCalledWith(HttpStatus.OK);
     expect(stream.pipe).toHaveBeenCalledWith(res);
 
     const streamError = new Error("stream failed");
@@ -446,7 +490,10 @@ describe("PatientController", () => {
     [
       "getCaseDetails",
       (error: Error) => {
-        getValidatedParamsMock.mockReturnValue({ caseId: "case-1", masterCaseId: "master-1" });
+        getValidatedParamsMock.mockReturnValue({
+          caseId: "case-1",
+          masterCaseId: "master-1",
+        });
         patientServiceMocks.getCaseDetails.mockRejectedValue(error);
       },
       () => controller.getCaseDetails({ params: {} } as never, res, next),
@@ -454,7 +501,10 @@ describe("PatientController", () => {
     [
       "archivePatientCase",
       (error: Error) => {
-        getValidatedBodyMock.mockReturnValue({ caseId: "case-1", shouldArchive: true });
+        getValidatedBodyMock.mockReturnValue({
+          caseId: "case-1",
+          shouldArchive: true,
+        });
         getAuthenticatedUserIdMock.mockReturnValue("user-1");
         patientServiceMocks.archivePatientCase.mockRejectedValue(error);
       },
@@ -484,7 +534,12 @@ describe("PatientController", () => {
         getAuthenticatedUserIdMock.mockReturnValue("user-1");
         patientUploadServiceMocks.uploadDocument.mockRejectedValue(error);
       },
-      () => controller.uploadDocument({ body: {}, file: { originalname: "report.pdf" } } as never, res, next),
+      () =>
+        controller.uploadDocument(
+          { body: {}, file: { originalname: "report.pdf" } } as never,
+          res,
+          next,
+        ),
     ],
     [
       "deleteDocument",
@@ -511,7 +566,12 @@ describe("PatientController", () => {
         getAuthenticatedUserIdMock.mockReturnValue("user-1");
         patientServiceMocks.upsertAnesthesiaForm.mockRejectedValue(error);
       },
-      () => controller.upsertAnesthesiaForm({ params: {}, body: {} } as never, res, next),
+      () =>
+        controller.upsertAnesthesiaForm(
+          { params: {}, body: {} } as never,
+          res,
+          next,
+        ),
     ],
     [
       "getReleasePatientData",
@@ -519,7 +579,8 @@ describe("PatientController", () => {
         getValidatedParamsMock.mockReturnValue({ caseId: "case-1" });
         patientServiceMocks.getReleasePatientData.mockRejectedValue(error);
       },
-      () => controller.getReleasePatientData({ params: {} } as never, res, next),
+      () =>
+        controller.getReleasePatientData({ params: {} } as never, res, next),
     ],
     [
       "getChartsData",
@@ -559,7 +620,12 @@ describe("PatientController", () => {
         getAuthenticatedUserIdMock.mockReturnValue("user-1");
         patientUploadServiceMocks.uploadPatientPhoto.mockRejectedValue(error);
       },
-      () => controller.uploadPatientPhoto({ params: {}, file: { originalname: "photo.png" } } as never, res, next),
+      () =>
+        controller.uploadPatientPhoto(
+          { params: {}, file: { originalname: "photo.png" } } as never,
+          res,
+          next,
+        ),
     ],
     [
       "getPatientPhoto",

@@ -456,6 +456,49 @@ export const CaseDetailsResponseDTOSchema = z.object({
     masterCaseDetails: z.array(masterCaseDetailSchema),
 }).strict();
 
+export const ClinicalSummaryCoreDTOSchema = z.object({
+    backgroundAndAdmission: z.string().max(1500),
+    currentClinicalStatus: z.string().max(1500),
+    importantChangesAndTrends: z.array(z.string().max(500)).max(10),
+    treatmentsAndMedications: z.array(z.string().max(500)).max(20),
+    alerts: z.array(z.string().max(500)).max(10),
+    missingInformationAndFollowUp: z.array(z.string().max(500)).max(10),
+    recordUpdatedThrough: z.string(),
+    inputWasTruncated: z.boolean(),
+}).strict();
+
+export const ClinicalMedicationAdministrationDTOSchema = z.object({
+    name: z.string().max(500),
+    administrationStatus: z.enum(["received", "not_received_yet"]),
+    scheduledAt: z.string(),
+    dosage: z.string().max(500).optional(),
+    route: z.string().max(500).optional(),
+    frequency: z.string().max(500).optional(),
+}).strict();
+
+export const ClinicalCaseDetailItemDTOSchema = z.object({
+    category: z.enum(["medicine", "fluid", "procedure", "examination", "food_extra", "care"]),
+    name: z.string().max(500),
+    scheduledAt: z.string(),
+    status: z.enum(["received", "not_received_yet", "recorded"]),
+    value: z.string().max(1000).optional(),
+    dosage: z.string().max(500).optional(),
+    route: z.string().max(500).optional(),
+    frequency: z.string().max(500).optional(),
+    comment: z.string().max(1000).optional(),
+}).strict();
+
+export const ClinicalSummaryResultDTOSchema = ClinicalSummaryCoreDTOSchema.extend({
+    summaryDate: z.string(),
+    availableDates: z.array(z.string()),
+    medicationAdministrations: z.array(ClinicalMedicationAdministrationDTOSchema).max(20),
+    caseDetailItems: z.array(ClinicalCaseDetailItemDTOSchema),
+}).strict();
+
+export const ClinicalSummaryRequestDTOSchema = z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+}).strict();
+
 export const ReleaseMedicineDisplayDTOSchema = z.object({
     value: z.string(),
     text: z.string(),

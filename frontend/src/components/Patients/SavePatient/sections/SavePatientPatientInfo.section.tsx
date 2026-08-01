@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { FaBars, FaTimes, FaCamera } from "react-icons/fa";
+import { useRef } from "react";
+import { FaCamera } from "react-icons/fa";
 import DatePicker from "../../../../utils/DatePicker/DatePicker";
 import FormInput from "../../../../utils/FormInput/FormInput";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
@@ -15,6 +15,9 @@ import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.ty
 import type { NewPatientData } from "../types/savePatient.types";
 import type { SavePatientInputChangeHandler } from "./types/savePatientSections.types";
 import SavePatientFlagsSection from "./SavePatientFlags.section";
+import SavePatientActionsMenu, {
+  type SavePatientActions,
+} from "./SavePatientActionsMenu";
 import {
   getPatientImageSrc,
   handlePatientImageLoadError,
@@ -72,21 +75,7 @@ interface SavePatientPatientInfoSectionProps {
   setIsAllergic: React.Dispatch<React.SetStateAction<boolean>>;
   isProcedure: boolean;
   setIsProcedure: React.Dispatch<React.SetStateAction<boolean>>;
-  // Mobile actions props
-  isArchived?: boolean;
-  isSaveButtonsDisabled?: boolean;
-  hasChanges?: boolean;
-  isSaving?: boolean;
-  isExporting?: boolean;
-  isArchiving?: boolean;
-  onBack?: () => void;
-  onShowReleasePatientModal?: () => void;
-  onExportCaseDetails?: () => void;
-  onShowPatientDocumentsModal?: () => void;
-  onShowPatientChartsModal?: () => void;
-  onShowArchiveConfirmationModal?: () => void;
-  onShowDeletePatientCaseModal?: () => void;
-  onSavePatientChanges?: () => Promise<boolean>;
+  editActions: SavePatientActions;
 }
 
 function SavePatientPatientInfoSection({
@@ -141,37 +130,8 @@ function SavePatientPatientInfoSection({
   setIsAllergic,
   isProcedure,
   setIsProcedure,
-  isArchived,
-  isSaveButtonsDisabled,
-  hasChanges,
-  isSaving,
-  isExporting,
-  isArchiving,
-  onBack,
-  onShowReleasePatientModal,
-  onExportCaseDetails,
-  onShowPatientDocumentsModal,
-  onShowPatientChartsModal,
-  onShowArchiveConfirmationModal,
-  onShowDeletePatientCaseModal,
-  onSavePatientChanges,
+  editActions,
 }: SavePatientPatientInfoSectionProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isSaveDisabled =
-    isSaveButtonsDisabled ||
-    !hasChanges ||
-    isSaving ||
-    isArchived ||
-    !onSavePatientChanges;
-
-  const runMobileAction = (action?: () => void) => {
-    setIsMobileMenuOpen(false);
-    action?.();
-  };
-  const saveFromMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-    void onSavePatientChanges?.();
-  };
   const currentPatientImage = isEdit ? getPatientImageSrc(photoName) : "#";
   const getOptionText = (options: SelectOptionObj[], value: string): string =>
     options.find((option) => option.value === value)?.text || "-";
@@ -226,7 +186,10 @@ function SavePatientPatientInfoSection({
   return (
     <section className="new-patient-form-data-section">
       {isEdit && (
-        <section className="edit-patient-mobile-summary" aria-label="פרטי מטופל">
+        <section
+          className="edit-patient-mobile-summary"
+          aria-label="פרטי מטופל"
+        >
           <div className="edit-patient-mobile-summary__main">
             <div className="edit-patient-mobile-summary__image-wrapper">
               <FormUploadImage
@@ -246,78 +209,19 @@ function SavePatientPatientInfoSection({
               <h2>{formData.name || "מטופל"}</h2>
               <span>תיק {formData.caseId || "-"}</span>
             </div>
-            <div className="edit-patient-mobile-actions">
-              <button
-                type="button"
-                className="btn edit-patient-mobile-actions__trigger"
-                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                aria-expanded={isMobileMenuOpen}
-                aria-controls="edit-patient-mobile-actions-panel"
-              >
-                {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-                <span>פעולות</span>
-              </button>
-              {isMobileMenuOpen && (
-                <div
-                  id="edit-patient-mobile-actions-panel"
-                  className="edit-patient-mobile-actions__panel"
-                >
-                  <button type="button" onClick={() => runMobileAction(onBack)}>
-                    חזרה
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isSaveDisabled}
-                    onClick={saveFromMobileMenu}
-                  >
-                    {isSaving ? "...שומר" : "שמור"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => runMobileAction(onShowReleasePatientModal)}
-                  >
-                    שחרור
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => runMobileAction(onExportCaseDetails)}
-                    disabled={isExporting}
-                  >
-                    {isExporting ? "...מייצא" : "PDF - ייצא ל"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => runMobileAction(onShowPatientDocumentsModal)}
-                  >
-                    מסמכים
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => runMobileAction(onShowPatientChartsModal)}
-                  >
-                    מידע גרפי
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => runMobileAction(onShowArchiveConfirmationModal)}
-                    disabled={isArchiving}
-                  >
-                    {isArchiving ? "...מעבד" : isArchived ? "הוצא מהארכיון" : "העבר לארכיון"}
-                  </button>
-                  <button
-                    type="button"
-                    className="edit-patient-mobile-actions__danger"
-                    onClick={() => runMobileAction(onShowDeletePatientCaseModal)}
-                  >
-                    מחיקה
-                  </button>
-                </div>
-              )}
-            </div>
+            <SavePatientActionsMenu
+              actions={editActions}
+              menuId="edit-patient-mobile-actions-panel"
+              variant="mobile"
+              showBackAction
+            />
           </div>
           <dl className="edit-patient-mobile-summary__grid">
             {summaryItems.map((item) => (
-              <div key={item.label} className="edit-patient-mobile-summary__item">
+              <div
+                key={item.label}
+                className="edit-patient-mobile-summary__item"
+              >
                 <dt>{item.label}</dt>
                 <dd>{item.value}</dd>
               </div>

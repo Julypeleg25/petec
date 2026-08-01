@@ -17,6 +17,7 @@ import {
     CalendarMonthParamsDTOSchema,
     PatientIdParamsDTOSchema,
     DocumentIdParamsDTOSchema,
+    ClinicalSummaryRequestDTOSchema,
 } from "@petec/shared";
 import { PATIENT_ROUTE_PATHS } from "./patientRoutes.constants.js";
 
@@ -150,6 +151,14 @@ router.get(
     requirePermission(Permission.READ_CASE),
     validateParams(CaseIdParamsDTOSchema),
     patientController.getChartsData,
+);
+
+router.post(
+    PATIENT_ROUTE_PATHS.clinicalSummary,
+    requirePermission(Permission.READ_PATIENT, Permission.READ_CASE),
+    validateParams(PatientIdParamsDTOSchema),
+    validateBody(ClinicalSummaryRequestDTOSchema),
+    patientController.generateClinicalSummary,
 );
 
 router.get(
