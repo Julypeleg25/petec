@@ -72,6 +72,8 @@ const toAppErrorCode = (error: AppError): string => {
             return "CONFLICT";
         case "InternalServerError":
             return "INTERNAL_ERROR";
+        case "ClinicalSummaryUnavailableError":
+            return "CLINICAL_SUMMARY_UNAVAILABLE";
         default:
             return error.name
                 .replace(/([a-z0-9])([A-Z])/g, "$1_$2")

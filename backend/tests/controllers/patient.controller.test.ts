@@ -37,6 +37,9 @@ const patientUploadServiceMocks = {
   uploadDocument: jest.fn<(...args: any[]) => Promise<any>>(),
   uploadPatientPhoto: jest.fn<(...args: any[]) => Promise<string>>(),
 };
+const clinicalSummaryServiceMock = {
+  generate: jest.fn<(...args: any[]) => Promise<any>>(),
+};
 
 const sendSuccessMock = jest.fn<(...args: any[]) => void>();
 const sendCreatedMock = jest.fn<(...args: any[]) => void>();
@@ -48,6 +51,9 @@ const getAuthenticatedUserIdMock = jest.fn<(req: any) => string>();
 jest.unstable_mockModule("../../src/services/patient/index.js", () => ({
   patientService: patientServiceMocks,
   patientUploadService: patientUploadServiceMocks,
+}));
+jest.unstable_mockModule("../../src/services/clinicalSummary/index.js", () => ({
+  clinicalSummaryService: clinicalSummaryServiceMock,
 }));
 
 jest.unstable_mockModule("../../src/utils/apiResponse.js", () => ({
@@ -89,9 +95,43 @@ describe("PatientController", () => {
     getValidatedBodyMock.mockReset();
     getValidatedParamsMock.mockReset();
     getAuthenticatedUserIdMock.mockReset();
+    clinicalSummaryServiceMock.generate.mockReset();
     (res.setHeader as any).mockReset();
     (res.status as any).mockReset();
     next.mockReset();
+  });
+
+  it("generates a no-store clinical summary for the authenticated user", async () => {
+    const result = {
+      backgroundAndAdmission: "רקע",
+      currentClinicalStatus: "מצב",
+      importantChangesAndTrends: [],
+      treatmentsAndMedications: [],
+      alerts: [],
+      missingInformationAndFollowUp: [],
+      recordUpdatedThrough: "2026-01-01T00:00:00.000Z",
+      inputWasTruncated: false,
+    };
+    getValidatedParamsMock.mockReturnValue({
+      patientId: "507f1f77bcf86cd799439011",
+    });
+    getValidatedBodyMock.mockReturnValue({});
+    getAuthenticatedUserIdMock.mockReturnValue("507f1f77bcf86cd799439012");
+    clinicalSummaryServiceMock.generate.mockResolvedValue(result);
+
+    await controller.generateClinicalSummary({ params: {} } as never, res, next);
+
+    expect(clinicalSummaryServiceMock.generate).toHaveBeenCalledWith(
+      "507f1f77bcf86cd799439011",
+      "507f1f77bcf86cd799439012",
+      undefined,
+    );
+    expect(res.setHeader).toHaveBeenCalledWith("Cache-Control", "no-store");
+    expect(sendSuccessMock).toHaveBeenCalledWith(
+      res,
+      result,
+      expect.anything(),
+    );
   });
 
   it("creates a patient and case for the authenticated user", async () => {
