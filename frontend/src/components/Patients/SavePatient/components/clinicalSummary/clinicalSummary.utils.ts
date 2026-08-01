@@ -1,4 +1,7 @@
-import type { CaseDetailItem } from "./clinicalSummary.constants";
+import {
+  CLINICAL_TIME_ZONE,
+  type CaseDetailItem,
+} from "./clinicalSummary.constants";
 
 const ENGLISH_ALIAS_IN_PARENTHESES_PATTERN =
   /\s*\([A-Za-z][A-Za-z0-9 .,+/:'-]*\)/g;
@@ -31,7 +34,31 @@ export const getPageItems = <T>(
   pageSize: number,
 ): T[] => items.slice(page * pageSize, (page + 1) * pageSize);
 
-export const formatSummaryDay = (
+export const formatClinicalDate = (date: string): string => {
+  const [year, month, day] = date.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : date;
+};
+
+export const formatSummaryWeekday = (
   date: string,
   options: Intl.DateTimeFormatOptions,
 ): string => new Date(`${date}T12:00:00`).toLocaleDateString("he-IL", options);
+
+export const formatClinicalDateTime = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: CLINICAL_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
+};

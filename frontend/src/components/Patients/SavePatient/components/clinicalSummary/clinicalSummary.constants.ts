@@ -6,6 +6,7 @@ export type CaseDetailCategory = CaseDetailItem["category"];
 export type CaseDetailStatus = CaseDetailItem["status"];
 
 export const CASE_DETAILS_PER_PAGE = 3;
+export const CLINICAL_TIME_ZONE = "Asia/Jerusalem";
 export const CLINICAL_SUMMARY_ERROR_MESSAGE =
   "לא ניתן ליצור את הסיכום כעת. לא בוצע כל שינוי ברשומת המטופל.";
 export const CLINICAL_SUMMARY_WARNING =
@@ -48,11 +49,4 @@ export const CASE_DETAIL_STATUS_CLASS_NAMES: Record<CaseDetailStatus, string> =
     recorded: "is-recorded",
   };
 
-export const HEBREW_DATE_FORMAT = { day: "2-digit", month: "2-digit" } as const;
 export const HEBREW_WEEKDAY_FORMAT = { weekday: "short" } as const;
-export const SUMMARY_UPDATED_DATE_FORMAT = {
-  timeZone: "Asia/Jerusalem",
-  dateStyle: "short",
-  timeStyle: "short",
-  hour12: false,
-} as const;

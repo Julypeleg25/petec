@@ -1,14 +1,14 @@
 import {
   CLINICAL_SUMMARY_ERROR_MESSAGE,
   CLINICAL_SUMMARY_WARNING,
-  HEBREW_DATE_FORMAT,
   HEBREW_WEEKDAY_FORMAT,
-  SUMMARY_UPDATED_DATE_FORMAT,
 } from "./clinicalSummary/clinicalSummary.constants";
 import {
   cleanClinicalText,
   filterCaseDetailsByDate,
-  formatSummaryDay,
+  formatClinicalDate,
+  formatClinicalDateTime,
+  formatSummaryWeekday,
 } from "./clinicalSummary/clinicalSummary.utils";
 import { useClinicalSummary } from "./clinicalSummary/useClinicalSummary";
 import { ClinicalCaseDetailsPager } from "./clinicalSummary/ClinicalCaseDetailsPager";
@@ -100,11 +100,11 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
                   aria-pressed={date === selectedDate}
                   onClick={() => void selectSummaryDate(date)}
                 >
-                  <strong>{formatSummaryDay(date, HEBREW_DATE_FORMAT)}</strong>
+                  <strong>{formatClinicalDate(date)}</strong>
                   <span>
                     {index === 0
                       ? "האחרון"
-                      : formatSummaryDay(date, HEBREW_WEEKDAY_FORMAT)}
+                      : formatSummaryWeekday(date, HEBREW_WEEKDAY_FORMAT)}
                   </span>
                 </button>
               ))}
@@ -153,10 +153,7 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
             <span aria-hidden="true">🕒</span>
             <span>הרשומה מעודכנת עד</span>
             <strong>
-              {new Date(summary.recordUpdatedThrough).toLocaleString(
-                "he-IL",
-                SUMMARY_UPDATED_DATE_FORMAT,
-              )}
+              {formatClinicalDateTime(summary.recordUpdatedThrough)}
             </strong>
           </div>
         </div>

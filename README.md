@@ -28,6 +28,8 @@ Before using real patient records, enable Zero Data Retention in GroqCloud, disa
 
 The model has no tools, web access, database access, persistent conversation, or application actions. Clinical notes are treated as untrusted data. Output is rendered as React text, not raw HTML or Markdown, and is informational only.
 
+Dates displayed in the generated clinical summary use the `dd/mm/yyyy` format.
+
 ### Verification
 
 ```powershell
