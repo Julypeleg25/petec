@@ -6,5 +6,6 @@ export * from "./table.dto.js";
 export * from "./table.dto.types.js";
 export * from "./user.dto.js";
 export * from "./bulkTemplate.dto.js";
+export * from "./caseSuggestion.dto.js";
 export * from "./params/index.js";
 export * from "./system-management/index.js";

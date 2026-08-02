@@ -1,183 +1,187 @@
 import { HydratedDocument, Types } from "mongoose";
+import type { CaseSuggestionReference } from "@petec/shared";
 
 type NamedLookupReference = {
-    _id: Types.ObjectId;
-    name?: string;
+  _id: Types.ObjectId;
+  name?: string;
 };
 
 type LookupReference = Types.ObjectId | NamedLookupReference;
 
 export interface ICaseDetailsMedicineObj {
-    _id?: Types.ObjectId;
-    medicineId: LookupReference;
-    dosageText?: string;
-    doseAmount?: number | string;
-    measureUnitTypeId?: LookupReference;
-    dosageFrequencyId?: LookupReference;
-    routeOfAdministrationId?: LookupReference;
-    isGiven?: boolean;
-    isRequired: boolean;
-    isEditable: boolean;
-    comment?: string;
+  _id?: Types.ObjectId;
+  medicineId: LookupReference;
+  dosageText?: string;
+  doseAmount?: number | string;
+  measureUnitTypeId?: LookupReference;
+  dosageFrequencyId?: LookupReference;
+  routeOfAdministrationId?: LookupReference;
+  isGiven?: boolean;
+  isRequired: boolean;
+  isEditable: boolean;
+  comment?: string;
+  suggestionReference?: CaseSuggestionReference;
 }
 
 export interface ICaseDetailsOptionsObj {
-    _id?: Types.ObjectId;
-    typeId: Types.ObjectId;
-    isGiven?: boolean;
-    isRequired: boolean;
-    isEditable: boolean;
-    comment?: string;
+  _id?: Types.ObjectId;
+  typeId: Types.ObjectId;
+  isGiven?: boolean;
+  isRequired: boolean;
+  isEditable: boolean;
+  comment?: string;
+  suggestionReference?: CaseSuggestionReference;
 }
 
 export interface ICaseDetailsExamObj {
-    _id?: Types.ObjectId;
-    typeId: Types.ObjectId;
-    value?: string | null;
-    isRequired: boolean;
-    isEditable: boolean;
-    comment?: string;
+  _id?: Types.ObjectId;
+  typeId: Types.ObjectId;
+  value?: string | null;
+  isRequired: boolean;
+  isEditable: boolean;
+  comment?: string;
+  suggestionReference?: CaseSuggestionReference;
 }
 
 export interface ICaseDetailsRow {
-    _id?: Types.ObjectId;
-    date: string;
-    time: string;
-    dateTime: Date;
-    index: number;
+  _id?: Types.ObjectId;
+  date: string;
+  time: string;
+  dateTime: Date;
+  index: number;
 
-    temperature?: number;
-    temperatureIsRequired?: boolean;
-    temperatureIsEditable?: boolean;
+  temperature?: number;
+  temperatureIsRequired?: boolean;
+  temperatureIsEditable?: boolean;
 
-    pulse?: number;
-    pulseIsRequired?: boolean;
-    pulseIsEditable?: boolean;
+  pulse?: number;
+  pulseIsRequired?: boolean;
+  pulseIsEditable?: boolean;
 
-    respiration?: number;
-    respirationIsRequired?: boolean;
-    respirationIsEditable?: boolean;
+  respiration?: number;
+  respirationIsRequired?: boolean;
+  respirationIsEditable?: boolean;
 
-    urineTypeId?: Types.ObjectId;
-    urineComments?: string;
-    urineIsRequired?: boolean;
-    urineIsEditable?: boolean;
+  urineTypeId?: Types.ObjectId;
+  urineComments?: string;
+  urineIsRequired?: boolean;
+  urineIsEditable?: boolean;
 
-    fecesTypeId?: Types.ObjectId;
-    fecesComments?: string;
-    fecesIsRequired?: boolean;
-    fecesIsEditable?: boolean;
+  fecesTypeId?: Types.ObjectId;
+  fecesComments?: string;
+  fecesIsRequired?: boolean;
+  fecesIsEditable?: boolean;
 
-    isBoxClean?: boolean;
-    isBoxCleanIsRequired?: boolean;
-    isBoxCleanIsEditable?: boolean;
+  isBoxClean?: boolean;
+  isBoxCleanIsRequired?: boolean;
+  isBoxCleanIsEditable?: boolean;
 
-    isRelease?: boolean;
-    isReleaseIsRequired?: boolean;
-    isReleaseIsEditable?: boolean;
+  isRelease?: boolean;
+  isReleaseIsRequired?: boolean;
+  isReleaseIsEditable?: boolean;
 
-    isTravel?: boolean;
-    isTravelIsRequired?: boolean;
-    isTravelIsEditable?: boolean;
+  isTravel?: boolean;
+  isTravelIsRequired?: boolean;
+  isTravelIsEditable?: boolean;
 
-    weigh?: number;
-    weighIsRequired?: boolean;
-    weighIsEditable?: boolean;
+  weigh?: number;
+  weighIsRequired?: boolean;
+  weighIsEditable?: boolean;
 
-    isPuke?: boolean;
-    pukeComments?: string;
-    pukeIsRequired?: boolean;
-    pukeIsEditable?: boolean;
+  isPuke?: boolean;
+  pukeComments?: string;
+  pukeIsRequired?: boolean;
+  pukeIsEditable?: boolean;
 
-    rowComments?: string;
-    rowCommentsIsRequired?: boolean;
-    rowCommentsIsEditable?: boolean;
+  rowComments?: string;
+  rowCommentsIsRequired?: boolean;
+  rowCommentsIsEditable?: boolean;
 
-    ownerUpdate?: string;
-    ownerUpdateIsRequired?: boolean;
-    ownerUpdateIsEditable?: boolean;
+  ownerUpdate?: string;
+  ownerUpdateIsRequired?: boolean;
+  ownerUpdateIsEditable?: boolean;
 
-    foodGiven?: boolean;
-    waterGiven?: boolean;
+  foodGiven?: boolean;
+  waterGiven?: boolean;
 
-    foodAndWater?: string | null;
-    foodAndWaterIsRequired?: boolean;
-    foodAndWaterIsEditable?: boolean;
+  foodAndWater?: string | null;
+  foodAndWaterIsRequired?: boolean;
+  foodAndWaterIsEditable?: boolean;
 
-    fluids: ICaseDetailsMedicineObj[];
-    medicines: ICaseDetailsMedicineObj[];
-    procedures: ICaseDetailsOptionsObj[];
-    examinations: ICaseDetailsExamObj[];
-    foodExtras: ICaseDetailsOptionsObj[];
+  fluids: ICaseDetailsMedicineObj[];
+  medicines: ICaseDetailsMedicineObj[];
+  procedures: ICaseDetailsOptionsObj[];
+  examinations: ICaseDetailsExamObj[];
+  foodExtras: ICaseDetailsOptionsObj[];
 }
 
 export interface ICase {
-    _id: Types.ObjectId;
-    serialId: string;
-    patientId: Types.ObjectId;
-    masterCaseId?: Types.ObjectId;
+  _id: Types.ObjectId;
+  serialId: string;
+  patientId: Types.ObjectId;
+  masterCaseId?: Types.ObjectId;
 
-    createdByUserId?: Types.ObjectId;
-    doctorUserId?: Types.ObjectId;
-    nurseUserId?: Types.ObjectId;
-    releasedByUserId?: Types.ObjectId;
+  createdByUserId?: Types.ObjectId;
+  doctorUserId?: Types.ObjectId;
+  nurseUserId?: Types.ObjectId;
+  releasedByUserId?: Types.ObjectId;
 
-    createdAt: Date;
-    updatedAt: Date;
-    releaseDate?: Date;
-    isArchived: boolean;
-    isManuallyUnarchived?: boolean;
-    isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  releaseDate?: Date;
+  isArchived: boolean;
+  isManuallyUnarchived?: boolean;
+  isDeleted: boolean;
 
-    admission: {
-        hospitalizationReason?: string;
-        referringDoctor?: string;
-        allergicComments?: string | null;
-        bloodTestLink?: string | null;
-    };
+  admission: {
+    hospitalizationReason?: string;
+    referringDoctor?: string;
+    allergicComments?: string | null;
+    bloodTestLink?: string | null;
+  };
 
-    patientSnapshot: {
-        ageYears?: number;
-        ageMonths?: number;
-        weightKg?: number;
-    };
+  patientSnapshot: {
+    ageYears?: number;
+    ageMonths?: number;
+    weightKg?: number;
+  };
 
-    flags: {
-        isAllergic?: boolean;
-        isEscapePotential?: boolean;
-        isNPO?: boolean;
-        isRiskAnesthesia?: boolean;
-        isHeartMurmur?: boolean;
-        isAMB?: boolean;
-        isAggressive?: boolean;
-        isConvenia?: boolean;
-        isCerenia?: boolean;
-        isProcedure?: boolean;
-    };
+  flags: {
+    isAllergic?: boolean;
+    isEscapePotential?: boolean;
+    isNPO?: boolean;
+    isRiskAnesthesia?: boolean;
+    isHeartMurmur?: boolean;
+    isAMB?: boolean;
+    isAggressive?: boolean;
+    isConvenia?: boolean;
+    isCerenia?: boolean;
+    isProcedure?: boolean;
+  };
 
-    dates: {
-        catheterDate?: Date;
-        procedureDate?: Date;
-        nextInspectionDate?: Date;
-        stitchesRemovalDate?: Date;
-    };
+  dates: {
+    catheterDate?: Date;
+    procedureDate?: Date;
+    nextInspectionDate?: Date;
+    stitchesRemovalDate?: Date;
+  };
 
-    refs: {
-        animalTypeId?: Types.ObjectId;
-        genderTypeId?: Types.ObjectId;
-        raceTypeId?: Types.ObjectId;
-        animalColorId?: Types.ObjectId;
-        insuranceTypeId?: Types.ObjectId;
-        foodTypeId?: Types.ObjectId;
-    };
+  refs: {
+    animalTypeId?: Types.ObjectId;
+    genderTypeId?: Types.ObjectId;
+    raceTypeId?: Types.ObjectId;
+    animalColorId?: Types.ObjectId;
+    insuranceTypeId?: Types.ObjectId;
+    foodTypeId?: Types.ObjectId;
+  };
 
+  comments?: string;
+  dailyPlan: {
     comments?: string;
-    dailyPlan: {
-        comments?: string;
-        updatedAt?: Date;
-    };
+    updatedAt?: Date;
+  };
 
-    caseDetailsGrid: ICaseDetailsRow[];
+  caseDetailsGrid: ICaseDetailsRow[];
 }
 
 export type CaseDocument = HydratedDocument<ICase>;

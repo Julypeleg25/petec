@@ -1,4 +1,3 @@
-
 export const HttpStatus = {
   OK: 200,
   CREATED: 201,
@@ -10,6 +9,7 @@ export const HttpStatus = {
   CONFLICT: 409,
   PAYLOAD_TOO_LARGE: 413,
   UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
 } as const;
 
