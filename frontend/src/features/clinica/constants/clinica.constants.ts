@@ -38,7 +38,7 @@ export const CLINICA_TEXTS = {
   prefillSelectAction: "מילוי פרטים",
   prefillClearAction: "נקה",
   choosePetTitle: "בחירת חיה לפתיחת תיק",
-  choosePetDescription: "ללקוח הזה יש כמה חיות. בחרי עבור מי לפתוח תיק.",
+  choosePetDescription: "ללקוח הזה יש כמה חיות. בחר/י עבור איזו חיה לפתוח תיק.",
   cancel: "ביטול",
   prefillCommentsTitle: "מידע שיובא מקליניקה אונליין",
   prefillMedicalRecordsTitle: "רשומות רפואיות מהקליניקה",

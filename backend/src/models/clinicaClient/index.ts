@@ -61,7 +61,6 @@ const clinicaClientSchema = new Schema<
     externalPatientId: {
       type: String,
       trim: true,
-      index: true,
     },
     ownerName: {
       type: String,
