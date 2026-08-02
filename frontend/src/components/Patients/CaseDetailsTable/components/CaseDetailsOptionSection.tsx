@@ -30,7 +30,8 @@ export const CaseDetailsOptionSection = ({
   handleCellClick,
   onAddClick,
 }: CaseDetailsOptionSectionProps) => {
-  const selectedRows = caseDetailsList[caseDetailsDataIndex]?.[0]?.[sectionType] ?? [];
+  const selectedRows =
+    caseDetailsList[caseDetailsDataIndex]?.[0]?.[sectionType] ?? [];
 
   return (
     <>

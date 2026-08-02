@@ -23,6 +23,7 @@ type CaseDetailsMedicineItemBase = Pick<
   | "dosageText"
   | "doseAmount"
   | "comment"
+  | "suggestionReference"
 >;
 
 interface CaseDetailsMedicinePresentationFields {
@@ -47,18 +48,24 @@ interface CaseDetailsCollections {
 }
 
 export interface CaseDetailsMedicineCell
-  extends CaseDetailsMedicineItemBase,
-  Partial<CaseDetailsMedicinePresentationFields> { }
+  extends
+    CaseDetailsMedicineItemBase,
+    Partial<CaseDetailsMedicinePresentationFields> {}
 
 export interface CaseDetailsOptionCell
-  extends SelectOptionsPickerOptionObj,
-  Partial<
-    Pick<
-      CaseDetailsResponseOptionItemDTO,
-      "isGiven" | "isRequired" | "isEditable" | "comment"
-    >
-  >,
-  Partial<Pick<CaseDetailsResponseExaminationItemDTO, "exam_value">> { }
+  extends
+    SelectOptionsPickerOptionObj,
+    Partial<
+      Pick<
+        CaseDetailsResponseOptionItemDTO,
+        | "isGiven"
+        | "isRequired"
+        | "isEditable"
+        | "comment"
+        | "suggestionReference"
+      >
+    >,
+    Partial<Pick<CaseDetailsResponseExaminationItemDTO, "exam_value">> {}
 
 export type CaseDetailsData = CaseDetailsRowBase & CaseDetailsCollections;
 export type CaseDetailsStateSetter = Dispatch<
@@ -96,6 +103,7 @@ export interface CaseDetailsInteractiveStateProps {
 }
 
 export interface CaseDetailsTableProps extends CaseDetailsInteractiveStateProps {
+  patientId: string;
   animalWeight?: string | number | null;
   animalId?: string | number | null;
   selectedStartHour: string;
