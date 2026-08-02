@@ -23,6 +23,9 @@ const restoreProcessEnv = () => {
 };
 
 const setRequiredSecrets = () => {
+  process.env.MONGODB_URI = "mongodb://localhost:27017/petec-test";
+  process.env.FRONTEND_URL = "https://petec.vercel.app";
+  process.env.CLINICA_URL = "https://clinica.example.test";
   process.env.JWT_ACCESS_SECRET = "access-secret-123";
   process.env.JWT_REFRESH_SECRET = "refresh-secret-123";
   process.env.MJ_APIKEY_PUBLIC = "mailjet-public";
@@ -93,6 +96,10 @@ describe("config.ts", () => {
       accessTokenExpiresInMs: 3_600_000,
       refreshTokenExpiresIn: "1d",
       refreshTokenExpiresInMs: 86_400_000,
+      aiCaseSuggestionsEnabled: false,
+      groqApiKey: "",
+      groqModel: "openai/gpt-oss-20b",
+      groqTimeoutMs: 8_000,
     });
   });
 
@@ -103,5 +110,24 @@ describe("config.ts", () => {
     delete process.env.MJ_APIKEY_PRIVATE;
 
     await expect(loadConfigModule()).rejects.toThrow("Invalid environment variables");
+  });
+
+  it("requires a Groq key when AI case suggestions are enabled", async () => {
+    setRequiredSecrets();
+    process.env.AI_CASE_SUGGESTIONS_ENABLED = "true";
+    delete process.env.GROQ_API_KEY;
+
+    await expect(loadConfigModule()).rejects.toThrow(
+      "GROQ_API_KEY is required when AI case suggestions are enabled",
+    );
+  });
+
+  it("rejects Groq models that do not guarantee strict structured output", async () => {
+    setRequiredSecrets();
+    process.env.GROQ_MODEL = "llama-3.3-70b-versatile";
+
+    await expect(loadConfigModule()).rejects.toThrow(
+      "Invalid environment variables",
+    );
   });
 });

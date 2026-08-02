@@ -28,6 +28,9 @@ const patientController = {
   getCalendarMonth: jest.fn(),
   updateDailyPlan: jest.fn(),
 };
+const caseSuggestionController = {
+  generate: jest.fn(),
+};
 
 const createRouterMock = () => ({
   use: jest.fn<(...args: any[]) => void>(),
@@ -45,6 +48,7 @@ const loadPatientRoutes = async () => {
   uploadImageSingleMock.mockReset();
 
   requirePermissionMock
+    .mockReturnValueOnce({ kind: "permission-read-case-suggestions" })
     .mockReturnValueOnce({ kind: "permission-write-patient-create" })
     .mockReturnValueOnce({ kind: "permission-write-patient-edit" })
     .mockReturnValueOnce({ kind: "permission-read-case-1" })
@@ -67,6 +71,7 @@ const loadPatientRoutes = async () => {
     .mockReturnValueOnce({ kind: "permission-write-case-daily-plan" });
 
   validateBodyMock
+    .mockReturnValueOnce({ kind: "validate-case-suggestions" })
     .mockReturnValueOnce({ kind: "validate-new-patient" })
     .mockReturnValueOnce({ kind: "validate-edit-patient" })
     .mockReturnValueOnce({ kind: "validate-release" })
@@ -78,6 +83,7 @@ const loadPatientRoutes = async () => {
 
   validateParamsMock
     .mockReturnValueOnce({ kind: "validate-patient-photo-public" })
+    .mockReturnValueOnce({ kind: "validate-case-suggestions" })
     .mockReturnValueOnce({ kind: "validate-case-details-1" })
     .mockReturnValueOnce({ kind: "validate-case-details-2" })
     .mockReturnValueOnce({ kind: "validate-case-details-3" })
@@ -102,6 +108,7 @@ const loadPatientRoutes = async () => {
   }));
   jest.unstable_mockModule("../../src/controllers/patient/index.js", () => ({
     patientController,
+    caseSuggestionController,
   }));
   jest.unstable_mockModule("../../src/middlewares/auth.middleware.js", () => ({
     authenticate,
@@ -126,54 +133,66 @@ describe("patient.routes", () => {
     const { router, module } = await loadPatientRoutes();
 
     expect(module.default).toBe(router);
-    expect(validateParamsMock).toHaveBeenCalledTimes(13);
-    expect(router.get.mock.calls[0]?.[0]).toBe(PATIENT_ROUTE_PATHS.patientPhoto);
-    expect(router.get.mock.calls[0]?.[1]).toBe(validateParamsMock.mock.results[0]?.value);
-    expect(router.get.mock.calls[0]?.[2]).toBe(patientController.getPatientPhoto);
+    expect(validateParamsMock).toHaveBeenCalledTimes(14);
+    expect(router.get.mock.calls[0]?.[0]).toBe(
+      PATIENT_ROUTE_PATHS.patientPhoto,
+    );
+    expect(router.get.mock.calls[0]?.[1]).toBe(
+      validateParamsMock.mock.results[0]?.value,
+    );
+    expect(router.get.mock.calls[0]?.[2]).toBe(
+      patientController.getPatientPhoto,
+    );
     expect(router.use).toHaveBeenCalledWith(authenticate);
   });
 
   it("wires the key patient CRUD, document, and planning endpoints", async () => {
     const { router } = await loadPatientRoutes();
 
-    expect(requirePermissionMock).toHaveBeenCalledWith(Permission.WRITE_PATIENT);
+    expect(requirePermissionMock).toHaveBeenCalledWith(
+      Permission.WRITE_PATIENT,
+    );
     expect(requirePermissionMock).toHaveBeenCalledWith(Permission.READ_CASE);
     expect(requirePermissionMock).toHaveBeenCalledWith(Permission.WRITE_CASE);
-    expect(requirePermissionMock).toHaveBeenCalledWith(Permission.MANAGE_DOCUMENTS);
-    expect(validateBodyMock).toHaveBeenCalledTimes(8);
-    expect(validateParamsMock).toHaveBeenCalledTimes(13);
-    expect(uploadImageSingleMock).toHaveBeenCalledWith(UPLOAD.FILE_FORM_FIELD_NAME);
+    expect(requirePermissionMock).toHaveBeenCalledWith(
+      Permission.MANAGE_DOCUMENTS,
+    );
+    expect(validateBodyMock).toHaveBeenCalledTimes(9);
+    expect(validateParamsMock).toHaveBeenCalledTimes(14);
+    expect(uploadImageSingleMock).toHaveBeenCalledWith(
+      UPLOAD.FILE_FORM_FIELD_NAME,
+    );
 
     expect(router.post).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.newPatient,
-      requirePermissionMock.mock.results[0]?.value,
-      validateBodyMock.mock.results[0]?.value,
+      requirePermissionMock.mock.results[1]?.value,
+      validateBodyMock.mock.results[1]?.value,
       patientController.createPatientAndCase,
     );
     expect(router.post).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.documentUpload,
-      requirePermissionMock.mock.results[11]?.value,
+      requirePermissionMock.mock.results[12]?.value,
       uploadImageSingleMock.mock.results[0]?.value,
-      validateBodyMock.mock.results[5]?.value,
+      validateBodyMock.mock.results[6]?.value,
       patientController.uploadDocument,
     );
     expect(router.post).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.patientPhoto,
-      requirePermissionMock.mock.results[12]?.value,
-      validateParamsMock.mock.results[7]?.value,
+      requirePermissionMock.mock.results[13]?.value,
+      validateParamsMock.mock.results[8]?.value,
       uploadImageSingleMock.mock.results[1]?.value,
       patientController.uploadPatientPhoto,
     );
     expect(router.put).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.dailyPlan,
-      requirePermissionMock.mock.results[19]?.value,
-      validateBodyMock.mock.results[7]?.value,
+      requirePermissionMock.mock.results[20]?.value,
+      validateBodyMock.mock.results[8]?.value,
       patientController.updateDailyPlan,
     );
     expect(router.delete).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.documentDelete,
-      requirePermissionMock.mock.results[13]?.value,
-      validateParamsMock.mock.results[8]?.value,
+      requirePermissionMock.mock.results[14]?.value,
+      validateParamsMock.mock.results[9]?.value,
       patientController.deleteDocument,
     );
   });

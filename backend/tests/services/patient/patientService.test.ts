@@ -62,6 +62,8 @@ const storageServiceMocks = {
 const caseGridServiceMocks = {
   saveGrid: jest.fn<(...args: any[]) => Promise<void>>(),
 };
+const validateCaseSuggestionsOnSaveMock =
+  jest.fn<(...args: any[]) => Promise<void>>();
 
 const infoMock = jest.fn<(...args: any[]) => void>();
 const warnMock = jest.fn<(...args: any[]) => void>();
@@ -73,9 +75,7 @@ const toAnesthesiaFormDTOMock = jest.fn<(value: any) => any>();
 const toCaseDetailsResponseDTOMock = jest.fn<(value: any) => any>();
 const withMasterCaseDetailsMock = jest.fn<(value: any, master: any) => any>();
 const toPatientDocumentResponseDTOMock = jest.fn<(value: any) => any>();
-const toReleasePatientDataResponseDTOMock = jest.fn<
-  (...args: any[]) => any
->();
+const toReleasePatientDataResponseDTOMock = jest.fn<(...args: any[]) => any>();
 
 const isPhotoStorageKeyMock = jest.fn<(value: string) => boolean>();
 const mapCaseToChartsDataResponseMock = jest.fn<(value: any) => any>();
@@ -85,7 +85,8 @@ const toPhotoContentTypeMock = jest.fn<(value: string) => string>();
 
 const toObjectIdMock = jest.fn<(value: string) => any>();
 const toPatientPhotoUrlMock = jest.fn<(...args: any[]) => string | undefined>();
-const toCanonicalJerusalemDateMock = jest.fn<(value: any) => Date | undefined>();
+const toCanonicalJerusalemDateMock =
+  jest.fn<(value: any) => Date | undefined>();
 const toDateInputStringMock = jest.fn<(value: any) => string | undefined>();
 const mapNewPatientDtoToPatientDataMock = jest.fn<(value: any) => any>();
 const mapEditDtoToPatientUpdateMock = jest.fn<(value: any) => any>();
@@ -96,16 +97,23 @@ const mapReleaseMedicineToDataMock = jest.fn<(value: any) => any>();
 const mapUploadDocumentToDataMock = jest.fn<(...args: any[]) => any>();
 
 const getCaseByIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
-const getCaseByIdPopulatedOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
-const getCaseBySerialIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
-const ensureDedicatedPatientForCaseMock = jest.fn<(...args: any[]) => Promise<any>>();
-const resolveMasterCaseBySerialPrefixMock = jest.fn<
-  (...args: any[]) => Promise<any>
->();
+const getCaseByIdPopulatedOrThrowMock =
+  jest.fn<(...args: any[]) => Promise<any>>();
+const getCaseBySerialIdOrThrowMock =
+  jest.fn<(...args: any[]) => Promise<any>>();
+const ensureDedicatedPatientForCaseMock =
+  jest.fn<(...args: any[]) => Promise<any>>();
+const deleteCaseDocumentAssetMock =
+  jest.fn<(...args: any[]) => Promise<void>>();
+const getCalendarQueryBoundsMock = jest.fn<(...args: any[]) => any>();
+const getTodayProcedureDateFilterMock = jest.fn<(...args: any[]) => any>();
+const shouldPersistManualProcedureUnarchiveMock =
+  jest.fn<(...args: any[]) => boolean>();
+const resolveMasterCaseBySerialPrefixMock =
+  jest.fn<(...args: any[]) => Promise<any>>();
 const hasCaseWeightChangedMock = jest.fn<(left: any, right: any) => boolean>();
-const recalculateCaseGridMedicationDosesMock = jest.fn<
-  (...args: any[]) => any
->();
+const recalculateCaseGridMedicationDosesMock =
+  jest.fn<(...args: any[]) => any>();
 const buildCalendarMonthResponseMock = jest.fn<(...args: any[]) => any>();
 
 jest.unstable_mockModule("mongoose", () => ({
@@ -136,6 +144,15 @@ jest.unstable_mockModule("../../../src/services/storage/index.js", () => ({
 jest.unstable_mockModule("../../../src/services/patient/index.js", () => ({
   caseGridService: caseGridServiceMocks,
 }));
+
+jest.unstable_mockModule(
+  "../../../src/services/caseSuggestion/index.js",
+  () => ({
+    caseSuggestionSaveValidationService: {
+      validate: validateCaseSuggestionsOnSaveMock,
+    },
+  }),
+);
 
 jest.unstable_mockModule("../../../src/config/logger.js", () => ({
   logger: {
@@ -221,11 +238,16 @@ jest.unstable_mockModule(
 jest.unstable_mockModule(
   "../../../src/services/patient/utils/patientService.utils.js",
   () => ({
+    deleteCaseDocumentAsset: deleteCaseDocumentAssetMock,
     ensureDedicatedPatientForCase: ensureDedicatedPatientForCaseMock,
+    getCalendarQueryBounds: getCalendarQueryBoundsMock,
     getCaseByIdOrThrow: getCaseByIdOrThrowMock,
     getCaseByIdPopulatedOrThrow: getCaseByIdPopulatedOrThrowMock,
     getCaseBySerialIdOrThrow: getCaseBySerialIdOrThrowMock,
+    getTodayProcedureDateFilter: getTodayProcedureDateFilterMock,
     resolveMasterCaseBySerialPrefix: resolveMasterCaseBySerialPrefixMock,
+    shouldPersistManualProcedureUnarchive:
+      shouldPersistManualProcedureUnarchiveMock,
   }),
 );
 
@@ -244,12 +266,13 @@ jest.unstable_mockModule(
   }),
 );
 
-const { PatientService } = await import(
-  "../../../src/services/patient/patientService.js"
-);
+const { PatientService } =
+  await import("../../../src/services/patient/patientService.js");
 
 const createSession = () => ({
-  withTransaction: jest.fn(async (callback: () => Promise<unknown>) => callback()),
+  withTransaction: jest.fn(async (callback: () => Promise<unknown>) =>
+    callback(),
+  ),
   endSession: jest.fn(async () => undefined),
 });
 
@@ -285,6 +308,8 @@ describe("PatientService lower-slice", () => {
     auditLogMock.mockReset();
     infoMock.mockReset();
     warnMock.mockReset();
+    validateCaseSuggestionsOnSaveMock.mockReset();
+    validateCaseSuggestionsOnSaveMock.mockResolvedValue(undefined);
     uploadToCloudinaryMock.mockReset();
     deleteFromCloudinaryMock.mockReset();
     toAnesthesiaFormDTOMock.mockReset();
@@ -331,7 +356,10 @@ describe("PatientService lower-slice", () => {
     auditLogMock.mockResolvedValue(undefined);
 
     await expect(
-      service.createPatientAndCase({ caseId: "123-45", name: "Milo" } as never, "user-1"),
+      service.createPatientAndCase(
+        { caseId: "123-45", name: "Milo" } as never,
+        "user-1",
+      ),
     ).resolves.toEqual({
       patientId: "patient-1",
       caseId: "case-1",
@@ -379,7 +407,10 @@ describe("PatientService lower-slice", () => {
     auditLogMock.mockResolvedValue(undefined);
 
     await expect(
-      service.createPatientAndCase({ caseId: "999-1", name: "Luna" } as never, "user-2"),
+      service.createPatientAndCase(
+        { caseId: "999-1", name: "Luna" } as never,
+        "user-2",
+      ),
     ).resolves.toEqual({
       patientId: "patient-2",
       caseId: "case-2",
@@ -401,7 +432,9 @@ describe("PatientService lower-slice", () => {
   it("rejects creating a patient case when the serial id already exists", async () => {
     const session = createSession();
     startSessionMock.mockResolvedValue(session);
-    caseRepositoryMocks.findBySerialId.mockResolvedValue({ _id: "existing-case" });
+    caseRepositoryMocks.findBySerialId.mockResolvedValue({
+      _id: "existing-case",
+    });
 
     await expect(
       service.createPatientAndCase(
@@ -580,12 +613,19 @@ describe("PatientService lower-slice", () => {
     getCaseByIdOrThrowMock.mockResolvedValue(isolatedCase);
     ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
     getCaseByIdPopulatedOrThrowMock.mockResolvedValue(populatedCase);
-    toCaseDetailsResponseDTOMock.mockReturnValue({ caseDetails: {}, masterCaseDetails: [] });
+    toCaseDetailsResponseDTOMock.mockReturnValue({
+      caseDetails: {},
+      masterCaseDetails: [],
+    });
     caseRepositoryMocks.findMany.mockResolvedValue([relatedDoc]);
-    mapRelatedCasesToMasterCaseDetailsMock.mockReturnValue([{ caseId: "case-2" }]);
+    mapRelatedCasesToMasterCaseDetailsMock.mockReturnValue([
+      { caseId: "case-2" },
+    ]);
     withMasterCaseDetailsMock.mockReturnValue({ merged: true });
 
-    await expect(service.getCaseDetails("case-1")).resolves.toEqual({ merged: true });
+    await expect(service.getCaseDetails("case-1")).resolves.toEqual({
+      merged: true,
+    });
 
     expect(caseRepositoryMocks.findMany).toHaveBeenCalledWith(
       { masterCaseId: "master-1", isDeleted: false },
@@ -601,7 +641,10 @@ describe("PatientService lower-slice", () => {
   });
 
   it("returns base case details when no related cases are found via serial prefix fallback", async () => {
-    const baseResponse = { caseDetails: { serial_id: "123-45" }, masterCaseDetails: [] };
+    const baseResponse = {
+      caseDetails: { serial_id: "123-45" },
+      masterCaseDetails: [],
+    };
     getCaseByIdOrThrowMock.mockResolvedValue({ _id: "case-1" });
     ensureDedicatedPatientForCaseMock.mockResolvedValue("patient-1");
     getCaseByIdPopulatedOrThrowMock.mockResolvedValue({
@@ -806,7 +849,9 @@ describe("PatientService lower-slice", () => {
     deleteFromCloudinaryMock.mockRejectedValue(new Error("cleanup failed"));
     storageServiceMocks.delete.mockResolvedValue(undefined);
 
-    await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
+    await expect(
+      service.deletePatientCase("SER-1", "user-1"),
+    ).resolves.toBeUndefined();
 
     expect(documentRepositoryMocks.deleteMany).toHaveBeenCalledWith(
       { caseId: "case-1" },
@@ -867,7 +912,9 @@ describe("PatientService lower-slice", () => {
     auditLogMock.mockResolvedValue(undefined);
     deleteFromCloudinaryMock.mockResolvedValue(undefined);
 
-    await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
+    await expect(
+      service.deletePatientCase("SER-1", "user-1"),
+    ).resolves.toBeUndefined();
 
     expect(deleteFromCloudinaryMock).toHaveBeenCalledWith(
       "http://cdn.example.com/cloud.pdf",
@@ -1001,12 +1048,15 @@ describe("PatientService lower-slice", () => {
       ),
     ).resolves.toBe("/patients/patient-1/photo?v=1");
 
-    expect(patientRepositoryMocks.updateById).toHaveBeenCalledWith(patient._id, {
-      $set: {
-        photoName: "patients/photos/new-photo.png",
-        photoPublicId: "new-photo-id",
+    expect(patientRepositoryMocks.updateById).toHaveBeenCalledWith(
+      patient._id,
+      {
+        $set: {
+          photoName: "patients/photos/new-photo.png",
+          photoPublicId: "new-photo-id",
+        },
       },
-    });
+    );
     expect(deleteFromCloudinaryMock).toHaveBeenCalledWith("old-photo-id");
     expect(warnMock).toHaveBeenCalledWith(
       "Previous patient photo delete from Cloudinary failed",
@@ -1107,7 +1157,9 @@ describe("PatientService lower-slice", () => {
     documentRepositoryMocks.deleteById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
 
-    await expect(service.deleteDocument("doc-1", "user-1")).resolves.toBeUndefined();
+    await expect(
+      service.deleteDocument("doc-1", "user-1"),
+    ).resolves.toBeUndefined();
 
     expect(deleteFromCloudinaryMock).toHaveBeenCalledWith("cloud-1");
     expect(documentRepositoryMocks.deleteById).toHaveBeenCalledWith("doc-1");
@@ -1130,7 +1182,9 @@ describe("PatientService lower-slice", () => {
     documentRepositoryMocks.deleteById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
 
-    await expect(service.deleteDocument("doc-1", "user-1")).resolves.toBeUndefined();
+    await expect(
+      service.deleteDocument("doc-1", "user-1"),
+    ).resolves.toBeUndefined();
 
     expect(storageServiceMocks.delete).toHaveBeenCalledWith(
       "patients/documents/doc.pdf",
@@ -1226,7 +1280,11 @@ describe("PatientService lower-slice", () => {
   it("loads the calendar month and delegates month response construction", async () => {
     const leanCases = [{ id: "case-1" }];
     caseRepositoryMocks.findManyLean.mockResolvedValue(leanCases);
-    buildCalendarMonthResponseMock.mockReturnValue({ year: 2026, month: 4, days: [] });
+    buildCalendarMonthResponseMock.mockReturnValue({
+      year: 2026,
+      month: 4,
+      days: [],
+    });
 
     await expect(service.getCalendarMonth(2026, 4)).resolves.toEqual({
       year: 2026,
