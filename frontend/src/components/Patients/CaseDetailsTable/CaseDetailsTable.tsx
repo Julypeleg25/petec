@@ -1,13 +1,16 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import "./CaseDetailsTable.css";
 import { useCaseDetailsData } from "./hooks/useCaseDetailsData";
 import { useCaseDetailsTableSelectionModals } from "./hooks/useCaseDetailsTableSelectionModals";
-import { getLatestVitals, isValueInRange } from "./utils/caseDetailsVitals.utils";
 import {
-  parseCaseGridHour,
-} from "./caseGrid.utils";
+  getLatestVitals,
+  isValueInRange,
+} from "./utils/caseDetailsVitals.utils";
+import { parseCaseGridHour } from "./caseGrid.utils";
 import {
+  MEDICINE_SECTION_SUGGESTION_CATEGORIES,
   MEDICINE_SECTIONS,
+  OPTION_SECTION_SUGGESTION_CATEGORIES,
   OPTION_SECTIONS,
 } from "./CaseDetailsTable.constants";
 
@@ -26,6 +29,20 @@ import {
   applySelectedStartHourToDay,
   updateCaseDetailsFieldValue,
 } from "./utils/caseDetailsTableState.utils";
+import type { CaseItemSuggestion } from "@petec/shared";
+import type { MedicineSelectOptionObj } from "../../MedicinePicker/MedicinePicker.types";
+import type {
+  MedicineSectionType,
+  OptionSectionType,
+} from "./CaseDetailsTable.constants";
+import {
+  hydrateCaseDetailsMedicineCell,
+  toMedicineSelectOption,
+} from "./utils/CaseDetailsTable.utils";
+import {
+  toSuggestedMedicineOption,
+  toSuggestedOption,
+} from "./utils/caseDetailsSuggestion.utils";
 
 import { CaseDetailsDataRow } from "./components/CaseDetailsDataRow";
 import { CaseDetailsTextareaRow } from "./components/CaseDetailsTextareaRow";
@@ -39,6 +56,7 @@ import { CaseDetailsMedicineModal } from "./components/CaseDetailsMedicineModal"
 import { CaseDetailsOptionsModal } from "./components/CaseDetailsOptionsModal";
 
 function CaseDetailsTable({
+  patientId,
   handleCellClick,
   caseDetailsList,
   setCaseDetailsList,
@@ -60,10 +78,16 @@ function CaseDetailsTable({
 
   const {
     medicineList,
+    medicineCellType,
+    optionCellType,
     medicineModalTitle,
     optionsUrl,
     selectedOptionsList,
     selectedMedicinesList,
+    initialOptionsList,
+    initialMedicinesList,
+    setSelectedOptionsList,
+    setSelectedMedicinesList,
     showMedicineModal,
     showOptionsModal,
     setShowMedicineModal,
@@ -159,6 +183,47 @@ function CaseDetailsTable({
   const fluidCatalogMedicines = useMemo(
     () => [...fluids, ...fluidsExtras],
     [fluids, fluidsExtras],
+  );
+  const suggestionInvalidationKey = useMemo(
+    () =>
+      JSON.stringify({
+        patientId,
+        animalId,
+        animalWeight,
+        caseDetails: caseDetailsList,
+      }),
+    [animalId, animalWeight, caseDetailsList, patientId],
+  );
+
+  const handleMedicineSuggestionSelected = useCallback(
+    (suggestion: CaseItemSuggestion) => {
+      setSelectedMedicinesList((currentItems) => {
+        if (
+          currentItems.some((item) => String(item.value) === suggestion.itemId)
+        ) {
+          return currentItems;
+        }
+        return [
+          ...currentItems,
+          toSuggestedMedicineOption(suggestion, medicineList),
+        ];
+      });
+    },
+    [medicineList, setSelectedMedicinesList],
+  );
+
+  const handleOptionSuggestionSelected = useCallback(
+    (suggestion: CaseItemSuggestion) => {
+      setSelectedOptionsList((currentItems) => {
+        if (
+          currentItems.some((item) => String(item.value) === suggestion.itemId)
+        ) {
+          return currentItems;
+        }
+        return [...currentItems, toSuggestedOption(suggestion)];
+      });
+    },
+    [setSelectedOptionsList],
   );
 
   return (
@@ -373,20 +438,36 @@ function CaseDetailsTable({
         title={medicineModalTitle}
         medicineList={medicineList}
         selectedMedicinesList={selectedMedicinesList}
+        initialMedicinesList={initialMedicinesList}
         animalWeight={
           animalWeight !== null && animalWeight !== undefined
             ? Number(animalWeight)
             : undefined
         }
         onConfirm={handleMedicineModalConfirmation}
+        patientId={patientId}
+        suggestionCategory={
+          MEDICINE_SECTION_SUGGESTION_CATEGORIES[medicineCellType]
+        }
+        suggestionInvalidationKey={suggestionInvalidationKey}
+        onSuggestionSelected={handleMedicineSuggestionSelected}
+        setSelectedMedicinesList={setSelectedMedicinesList}
       />
       <CaseDetailsOptionsModal
         isOpen={showOptionsModal}
         setIsOpen={setShowOptionsModal}
         optionsList={[]}
         selectedOptionsList={selectedOptionsList}
+        initialOptionsList={initialOptionsList}
         selectOptionsUrl={optionsUrl}
         onConfirm={handleOptionsModalConfirmation}
+        patientId={patientId}
+        suggestionCategory={
+          OPTION_SECTION_SUGGESTION_CATEGORIES[optionCellType]
+        }
+        suggestionInvalidationKey={suggestionInvalidationKey}
+        onSuggestionSelected={handleOptionSuggestionSelected}
+        setSelectedOptionsList={setSelectedOptionsList}
       />
     </div>
   );

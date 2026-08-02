@@ -10,10 +10,7 @@ import {
   normalizeCaseDetailsDate,
   normalizeCaseDetailsTime,
 } from "./savePatientCaseDetails.utils";
-import {
-  toOptionalNumber,
-  toOptionalText,
-} from "./savePatientCommon.utils";
+import { toOptionalNumber, toOptionalText } from "./savePatientCommon.utils";
 
 const FOOD_AND_WATER_LABELS = {
   FOOD_HE: "אוכל",
@@ -57,6 +54,7 @@ export const mapApiMedicineCellsToUiCells = (
     routeOfAdministrationId: cell.routeOfAdministration?.id ?? null,
     medicineRouteText: cell.routeOfAdministration?.name ?? "",
     comment: cell.comment ?? undefined,
+    suggestionReference: cell.suggestionReference,
   }));
 
 export const mapApiOptionCellsToUiCells = (
@@ -69,6 +67,7 @@ export const mapApiOptionCellsToUiCells = (
     isRequired: cell.isRequired,
     isEditable: cell.isEditable,
     comment: cell.comment,
+    suggestionReference: cell.suggestionReference,
   }));
 
 export const mapApiExaminationCellsToUiCells = (
@@ -81,6 +80,7 @@ export const mapApiExaminationCellsToUiCells = (
     isRequired: cell.isRequired,
     isEditable: cell.isEditable,
     comment: cell.comment,
+    suggestionReference: cell.suggestionReference,
   }));
 
 const mapFoodAndWaterFlags = (
@@ -121,6 +121,7 @@ const mapUiMedicineCellToDto = (
     isRequired: cell.isRequired ?? false,
     isEditable: cell.isEditable ?? true,
     comment: toOptionalText(cell.comment),
+    suggestionReference: cell.suggestionReference,
   };
 };
 
@@ -138,6 +139,7 @@ const mapUiOptionCellToDto = (
     isRequired: cell.isRequired ?? false,
     isEditable: cell.isEditable ?? true,
     comment: toOptionalText(cell.comment),
+    suggestionReference: cell.suggestionReference,
   };
 };
 
@@ -155,6 +157,7 @@ const mapUiExaminationCellToDto = (
     isRequired: cell.isRequired ?? false,
     isEditable: cell.isEditable ?? true,
     comment: toOptionalText(cell.comment),
+    suggestionReference: cell.suggestionReference,
   };
 };
 

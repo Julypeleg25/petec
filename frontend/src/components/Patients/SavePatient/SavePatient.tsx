@@ -181,9 +181,12 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     onSaveAndExit: handleSaveAndExit,
   });
 
-  const handleSelectChildCase = useCallback((childCaseId: string) => {
-    navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
-  }, [masterCaseId, navigate]);
+  const handleSelectChildCase = useCallback(
+    (childCaseId: string) => {
+      navigate(resolveChildCaseRoute(masterCaseId, childCaseId));
+    },
+    [masterCaseId, navigate],
+  );
 
   const handleCaseDateChange = (value: string) => {
     const { caseDetailsIndex, selectedHour } = getCaseDateSelectionData(
@@ -194,7 +197,9 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
       return;
     }
     setCaseDetailsDataIndex(caseDetailsIndex);
-    setSelectedCaseDate(resolveSelectedCaseDate(caseDetailsList, caseDetailsIndex));
+    setSelectedCaseDate(
+      resolveSelectedCaseDate(caseDetailsList, caseDetailsIndex),
+    );
     setTimeSelectionValue(selectedHour);
   };
 
@@ -215,12 +220,16 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               onBack={() => navigate(-1)}
               onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
               onExportCaseDetails={exportCaseDetails}
-              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
+              onShowPatientDocumentsModal={() =>
+                setShowPatientDocumentsModal(true)
+              }
               onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
               onShowArchiveConfirmationModal={() =>
                 setShowArchiveConfirmationModal(true)
               }
-              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onShowDeletePatientCaseModal={() =>
+                setShowDeletePatientCaseModal(true)
+              }
               onSavePatientChanges={handleSaveFromMenu}
             />
           )}
@@ -303,12 +312,16 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               onBack={() => navigate(-1)}
               onShowReleasePatientModal={() => setShowReleasePatientModal(true)}
               onExportCaseDetails={exportCaseDetails}
-              onShowPatientDocumentsModal={() => setShowPatientDocumentsModal(true)}
+              onShowPatientDocumentsModal={() =>
+                setShowPatientDocumentsModal(true)
+              }
               onShowPatientChartsModal={() => setShowPatientChartsModal(true)}
               onShowArchiveConfirmationModal={() =>
                 setShowArchiveConfirmationModal(true)
               }
-              onShowDeletePatientCaseModal={() => setShowDeletePatientCaseModal(true)}
+              onShowDeletePatientCaseModal={() =>
+                setShowDeletePatientCaseModal(true)
+              }
               onSavePatientChanges={handleSaveFromMenu}
             />
             {!isEdit && (
@@ -345,6 +358,7 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
             )}
             {isEdit && (
               <CaseDetailsTable
+                patientId={patientId}
                 caseDetailsList={caseDetailsList}
                 setCaseDetailsList={setCaseDetailsList}
                 caseDetailsDataIndex={caseDetailsDataIndex}
