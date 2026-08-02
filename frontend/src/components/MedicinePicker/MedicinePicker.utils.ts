@@ -6,7 +6,11 @@ import type {
 const toMedicineComparableKey = (
   medicine: Pick<
     MedicineSelectOptionObj,
-    "value" | "routeOfAdministrationId" | "dosageFrequencyId" | "doseAmount"
+    | "value"
+    | "routeOfAdministrationId"
+    | "dosageFrequencyId"
+    | "doseAmount"
+    | "comments"
   >,
 ): string =>
   [
@@ -14,6 +18,7 @@ const toMedicineComparableKey = (
     String(medicine.routeOfAdministrationId ?? ""),
     String(medicine.dosageFrequencyId ?? ""),
     String(medicine.doseAmount ?? ""),
+    medicine.comments?.trim() ?? "",
   ].join(":");
 
 const normalizeMedicineSelection = (
@@ -21,7 +26,9 @@ const normalizeMedicineSelection = (
 ): string =>
   [...medicines]
     .sort((left, right) =>
-      toMedicineComparableKey(left).localeCompare(toMedicineComparableKey(right)),
+      toMedicineComparableKey(left).localeCompare(
+        toMedicineComparableKey(right),
+      ),
     )
     .map(toMedicineComparableKey)
     .join("|");

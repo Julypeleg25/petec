@@ -8,9 +8,7 @@ import RangeSlider from "../../utils/RangeSlider/RangeSlider";
 import type { MedicinePickerProps } from "./MedicinePicker.types";
 import { useMedicinePicker } from "./hooks/useMedicinePicker";
 import { hasDoseRange } from "./hooks/useMedicinePicker.utils";
-import {
-  isMedicineSelectionConfirmationDisabled,
-} from "./MedicinePicker.utils";
+import { isMedicineSelectionConfirmationDisabled } from "./MedicinePicker.utils";
 import { MedicinePickerSelectedItem } from "./components/MedicinePickerSelectedItem";
 import "./MedicinePicker.css";
 
@@ -18,10 +16,12 @@ function MedicinePicker({
   medicineList,
   afterConfirmation,
   selectedMedicinesList = [],
+  confirmationBaselineMedicines = selectedMedicinesList,
   setStateSelectedMedicines,
   isEdit = true,
   animalWeight,
   requireSelectionChangeForConfirmation = false,
+  confirmationPreamble,
 }: MedicinePickerProps) {
   const {
     medicinesRoutesForAdministration,
@@ -57,13 +57,13 @@ function MedicinePicker({
   const isConfirmationDisabled = useMemo(() => {
     return isMedicineSelectionConfirmationDisabled(
       selectedMedicines,
-      selectedMedicinesList,
+      confirmationBaselineMedicines,
       requireSelectionChangeForConfirmation,
     );
   }, [
     requireSelectionChangeForConfirmation,
     selectedMedicines,
-    selectedMedicinesList,
+    confirmationBaselineMedicines,
   ]);
   const isMedicineActionDisabled = useMemo(() => {
     const isDraftIncomplete =
@@ -152,8 +152,8 @@ function MedicinePicker({
                   onClick={addMedicine}
                   title={
                     editingMedicineIndex === null
-                    ? "הוספת תרופה"
-                    : "עריכת תרופה"
+                      ? "הוספת תרופה"
+                      : "עריכת תרופה"
                   }
                   aria-label={
                     editingMedicineIndex === null ? "הוסף תרופה" : "עדכן תרופה"
@@ -212,8 +212,7 @@ function MedicinePicker({
                   step={0.01}
                   label={`טווח ערכים ל- ק"ג:`}
                   initialValue={
-                    (selectedMedicine.rangeMin + selectedMedicine.rangeMax) /
-                    2
+                    (selectedMedicine.rangeMin + selectedMedicine.rangeMax) / 2
                   }
                   onChange={onRangeInputChange}
                   reload={reloadRangeSlider}
@@ -241,6 +240,7 @@ function MedicinePicker({
           </div>
         </div>
       )}
+      {confirmationPreamble}
       {afterConfirmation && (
         <button
           className="confirm-medicine-btn"

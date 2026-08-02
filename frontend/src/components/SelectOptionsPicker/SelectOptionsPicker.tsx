@@ -12,10 +12,12 @@ function SelectOptionsPicker({
   optionsList,
   afterConfirmation,
   selectedOptionsList = [],
+  confirmationBaselineOptions = selectedOptionsList,
   setStateSelectedOptions,
   selectOptionsUrl,
   isEdit = true,
   requireSelectionChangeForConfirmation = false,
+  confirmationPreamble,
 }: SelectOptionsPickerProps) {
   const {
     selectOptions,
@@ -36,13 +38,13 @@ function SelectOptionsPicker({
   const isConfirmationDisabled = useMemo(() => {
     return isOptionsSelectionConfirmationDisabled(
       selectedOptions,
-      selectedOptionsList,
+      confirmationBaselineOptions,
       requireSelectionChangeForConfirmation,
     );
   }, [
     requireSelectionChangeForConfirmation,
     selectedOptions,
-    selectedOptionsList,
+    confirmationBaselineOptions,
   ]);
   const isAddDisabled = useMemo(
     () => selectedFormValue === "",
@@ -100,6 +102,7 @@ function SelectOptionsPicker({
           })}
         </div>
       )}
+      {confirmationPreamble}
       {afterConfirmation && (
         <button
           className="confirm-option-btn"
