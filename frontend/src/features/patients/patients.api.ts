@@ -46,9 +46,35 @@ import {
   CaseIdParamsDTOSchema,
   PatientIdParamsDTOSchema,
   DocumentIdParamsDTOSchema,
+  CaseSuggestionParamsSchema,
+  CaseSuggestionRequestSchema,
+  CaseSuggestionsResponseSchema,
+  type CaseSuggestionCategory,
+  type CaseSuggestionRequest,
+  type CaseSuggestionsResponse,
 } from "@petec/shared";
 
 export const patientsApi = {
+  getCaseSuggestions: (
+    patientId: string,
+    category: CaseSuggestionCategory,
+    request: CaseSuggestionRequest = {},
+  ): Promise<CaseSuggestionsResponse> => {
+    const params = CaseSuggestionParamsSchema.parse({ patientId, category });
+    return requestWithRequestAndResponseSchema(
+      {
+        method: HTTP_METHODS.POST,
+        url: API_ROUTES.patient.caseSuggestions(
+          params.patientId,
+          params.category,
+        ),
+      },
+      request,
+      CaseSuggestionRequestSchema,
+      CaseSuggestionsResponseSchema,
+    );
+  },
+
   createPatient: (dto: NewPatientDTO): Promise<CreatePatientResponseDTO> =>
     requestWithRequestAndResponseSchema(
       { method: HTTP_METHODS.POST, url: API_ROUTES.patient.create },
@@ -74,9 +100,9 @@ export const patientsApi = {
     });
     const url = params.masterCaseId
       ? API_ROUTES.patient.caseDetailsWithMaster(
-        params.masterCaseId,
-        params.caseId,
-      )
+          params.masterCaseId,
+          params.caseId,
+        )
       : API_ROUTES.patient.caseDetails(params.caseId);
 
     return requestWithSchema(
@@ -95,10 +121,15 @@ export const patientsApi = {
       ReleasePatientDTOSchema,
     ),
 
-  getReleasePatientData: (caseId: string): Promise<ReleasePatientDataResponseDTO> => {
+  getReleasePatientData: (
+    caseId: string,
+  ): Promise<ReleasePatientDataResponseDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.releaseData(params.caseId) },
+      {
+        method: HTTP_METHODS.GET,
+        url: API_ROUTES.patient.releaseData(params.caseId),
+      },
       ReleasePatientDataResponseDTOSchema,
     );
   },
@@ -120,7 +151,10 @@ export const patientsApi = {
   getDocuments: (caseId: string): Promise<PatientDocumentResponseDTO[]> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.documentsByCase(params.caseId) },
+      {
+        method: HTTP_METHODS.GET,
+        url: API_ROUTES.patient.documentsByCase(params.caseId),
+      },
       PatientDocumentListResponseDTOSchema,
     );
   },
@@ -150,7 +184,10 @@ export const patientsApi = {
     const form = new FormData();
     form.append(PATIENTS_UPLOAD_FILE_FIELD_NAME, file);
     return requestFormDataWithResponseSchema(
-      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.photo(params.patientId) },
+      {
+        method: HTTP_METHODS.POST,
+        url: API_ROUTES.patient.photo(params.patientId),
+      },
       form,
       UploadPatientPhotoResponseDTOSchema,
     );
@@ -164,10 +201,15 @@ export const patientsApi = {
     });
   },
 
-  getAnesthesiaForm: (caseId: string): Promise<CreateAnesthesiaProcedureFormDTO | null> => {
+  getAnesthesiaForm: (
+    caseId: string,
+  ): Promise<CreateAnesthesiaProcedureFormDTO | null> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.anesthesia(params.caseId) },
+      {
+        method: HTTP_METHODS.GET,
+        url: API_ROUTES.patient.anesthesia(params.caseId),
+      },
       CreateAnesthesiaProcedureFormDTOSchema.nullable(),
     );
   },
@@ -178,7 +220,10 @@ export const patientsApi = {
   ): Promise<CreateAnesthesiaProcedureFormDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithRequestAndResponseSchema(
-      { method: HTTP_METHODS.POST, url: API_ROUTES.patient.anesthesia(params.caseId) },
+      {
+        method: HTTP_METHODS.POST,
+        url: API_ROUTES.patient.anesthesia(params.caseId),
+      },
       dto,
       CreateAnesthesiaProcedureFormDTOSchema,
       CreateAnesthesiaProcedureFormDTOSchema,
@@ -188,13 +233,19 @@ export const patientsApi = {
   getChartsData: (caseId: string): Promise<ChartsDataResponseDTO> => {
     const params = CaseIdParamsDTOSchema.parse({ caseId });
     return requestWithSchema(
-      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.chartsData(params.caseId) },
+      {
+        method: HTTP_METHODS.GET,
+        url: API_ROUTES.patient.chartsData(params.caseId),
+      },
       ChartsDataResponseDTOSchema,
     );
   },
 
   getDailyPlan: (): Promise<DailyPlanDetailDTO[]> =>
-    requestWithSchema({ method: HTTP_METHODS.GET, url: API_ROUTES.patient.dailyPlan.get }, DailyPlanDetailListResponseDTOSchema),
+    requestWithSchema(
+      { method: HTTP_METHODS.GET, url: API_ROUTES.patient.dailyPlan.get },
+      DailyPlanDetailListResponseDTOSchema,
+    ),
 
   getCalendarMonth: (
     year: number,
