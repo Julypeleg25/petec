@@ -88,6 +88,9 @@ const mapMedicineCell = (
         ? { id: routeRef.id, name: routeRef.name }
         : null,
     comment: toOptionalString(item.comment) ?? null,
+    ...(item.suggestionReference
+      ? { suggestionReference: item.suggestionReference }
+      : {}),
   };
 };
 
@@ -100,6 +103,9 @@ const mapOptionCell = (
   isRequired: toBooleanWithDefault(item.isRequired, false),
   isEditable: toBooleanWithDefault(item.isEditable, true),
   comment: item.comment ?? null,
+  ...(item.suggestionReference
+    ? { suggestionReference: item.suggestionReference }
+    : {}),
 });
 
 const mapExamCell = (
@@ -111,13 +117,19 @@ const mapExamCell = (
   isRequired: toBooleanWithDefault(item.isRequired, false),
   isEditable: toBooleanWithDefault(item.isEditable, true),
   comment: item.comment ?? null,
+  ...(item.suggestionReference
+    ? { suggestionReference: item.suggestionReference }
+    : {}),
 });
 
 const mapMedicineCollection = (
   collection?: ICaseDetailsMedicineObj[],
-): CaseDetailsResponseMedicineItemDTO[] => (collection ?? [])
-  .map(mapMedicineCell)
-  .filter((item): item is CaseDetailsResponseMedicineItemDTO => item !== null);
+): CaseDetailsResponseMedicineItemDTO[] =>
+  (collection ?? [])
+    .map(mapMedicineCell)
+    .filter(
+      (item): item is CaseDetailsResponseMedicineItemDTO => item !== null,
+    );
 
 const mapOptionCollection = (
   collection?: ICaseDetailsOptionsObj[],
@@ -125,7 +137,8 @@ const mapOptionCollection = (
 
 const mapExamCollection = (
   collection?: ICaseDetailsExamObj[],
-): CaseDetailsResponseExaminationItemDTO[] => (collection ?? []).map(mapExamCell);
+): CaseDetailsResponseExaminationItemDTO[] =>
+  (collection ?? []).map(mapExamCell);
 
 export const mapGridRowToDto = (
   row: ICaseDetailsRow,
@@ -152,8 +165,14 @@ export const mapGridRowToDto = (
   foodGiven: toOptionalBoolean(row.foodGiven),
   waterGiven: toOptionalBoolean(row.waterGiven),
   foodAndWater: row.foodAndWater ?? null,
-  foodAndWaterIsRequired: toBooleanWithDefault(row.foodAndWaterIsRequired, false),
-  foodAndWaterIsEditable: toBooleanWithDefault(row.foodAndWaterIsEditable, true),
+  foodAndWaterIsRequired: toBooleanWithDefault(
+    row.foodAndWaterIsRequired,
+    false,
+  ),
+  foodAndWaterIsEditable: toBooleanWithDefault(
+    row.foodAndWaterIsEditable,
+    true,
+  ),
   urineTypeId: toNullableIdString(row.urineTypeId),
   urineComments: row.urineComments ?? null,
   urineIsRequired: toBooleanWithDefault(row.urineIsRequired, false),

@@ -9,8 +9,14 @@ import { auditRepository } from "../../repositories/audit/index.js";
 import { storageService } from "../storage/index.js";
 import { caseGridService } from "./index.js";
 import { logger } from "../../config/logger.js";
-import { uploadToCloudinary, deleteFromCloudinary } from "../../utils/cloudinary.utils.js";
-import { NotFoundError, BadRequestError } from "../../constants/error.constants.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../../utils/cloudinary.utils.js";
+import {
+  NotFoundError,
+  BadRequestError,
+} from "../../constants/error.constants.js";
 import { PATIENT_STORAGE } from "../../constants/patient.constants.js";
 import {
   toAnesthesiaFormDTO,
@@ -42,7 +48,11 @@ import {
   type CaseDetailsResponseDTO,
   type ReleasePatientDataResponseDTO,
 } from "@petec/shared";
-import type { ICase, ICaseDetailsRow, CaseDocument } from "../../models/case/index.js";
+import type {
+  ICase,
+  ICaseDetailsRow,
+  CaseDocument,
+} from "../../models/case/index.js";
 import type { ReadStream } from "node:fs";
 
 import { toObjectId } from "../../utils/objectId.utils.js";
@@ -57,6 +67,7 @@ import {
   mapNewPatientDtoToCaseData,
 } from "../../mappers/patient/patient.case-data.mappers.js";
 import { mapGridDtoToRows } from "../../mappers/patient/patient.case-grid.request.mappers.js";
+import { caseSuggestionSaveValidationService } from "../caseSuggestion/index.js";
 import {
   mapReleaseMedicineToData,
   mapUploadDocumentToData,
@@ -100,7 +111,10 @@ export class PatientService {
     const session = await mongoose.startSession();
     try {
       return await session.withTransaction(async () => {
-        const existingCaseBySerial = await caseRepository.findBySerialId(dto.caseId, { session });
+        const existingCaseBySerial = await caseRepository.findBySerialId(
+          dto.caseId,
+          { session },
+        );
         if (existingCaseBySerial) {
           throw new BadRequestError("Case with this serial id already exists");
         }
@@ -115,13 +129,19 @@ export class PatientService {
 
         if (existingMasterCaseId) {
           const patientData = mapNewPatientDtoToPatientData(dto);
-          const patient = await patientRepository.create(patientData, { session });
+          const patient = await patientRepository.create(patientData, {
+            session,
+          });
 
           patientIdForCase = patient._id;
-          masterCaseIdForCase = existingMasterCaseId as NonNullable<ICase["masterCaseId"]>;
+          masterCaseIdForCase = existingMasterCaseId as NonNullable<
+            ICase["masterCaseId"]
+          >;
         } else {
           const patientData = mapNewPatientDtoToPatientData(dto);
-          const patient = await patientRepository.create(patientData, { session });
+          const patient = await patientRepository.create(patientData, {
+            session,
+          });
 
           const masterCase = await masterCaseRepository.create(
             { caseIds: [] },
@@ -141,7 +161,11 @@ export class PatientService {
         const newCase = await caseRepository.create(caseData, { session });
 
         if (existingMasterCaseId) {
-          await masterCaseRepository.addCaseId(masterCaseIdForCase, newCase._id, { session });
+          await masterCaseRepository.addCaseId(
+            masterCaseIdForCase,
+            newCase._id,
+            { session },
+          );
         } else {
           await masterCaseRepository.updateById(
             masterCaseIdForCase,
@@ -184,7 +208,10 @@ export class PatientService {
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
-        const existingCase = await getCaseBySerialIdOrThrow(dto.caseId, session);
+        const existingCase = await getCaseBySerialIdOrThrow(
+          dto.caseId,
+          session,
+        );
 
         if (existingCase.isArchived) {
           throw new BadRequestError("Cannot edit an archived case");
@@ -194,14 +221,27 @@ export class PatientService {
           existingCase,
           session,
         );
-        const patient = await patientRepository.findById(patientIdForCase, { session });
+        const patient = await patientRepository.findById(patientIdForCase, {
+          session,
+        });
         if (!patient) {
           throw new NotFoundError("Patient not found");
         }
 
+        await caseSuggestionSaveValidationService.validate(
+          dto,
+          existingCase,
+          patientIdForCase.toString(),
+          userId,
+        );
+
         const patientUpdate = mapEditDtoToPatientUpdate(dto);
         if (Object.keys(patientUpdate).length > 0) {
-          await patientRepository.updateById(patient._id, { $set: patientUpdate }, { session });
+          await patientRepository.updateById(
+            patient._id,
+            { $set: patientUpdate },
+            { session },
+          );
         }
 
         const hasWeightInDto =
@@ -225,17 +265,25 @@ export class PatientService {
         if (gridRows) {
           const nextGridRows = shouldRecalculateMedicationDoses
             ? await recalculateCaseGridMedicationDoses(
-              gridRows,
-              nextWeight,
-              session,
-            )
+                gridRows,
+                nextWeight,
+                session,
+              )
             : gridRows;
-          await caseGridService.saveGrid(existingCase.serialId, nextGridRows, session);
+          await caseGridService.saveGrid(
+            existingCase.serialId,
+            nextGridRows,
+            session,
+          );
         }
 
         const caseUpdate = mapEditDtoToCaseUpdate(dto, existingCase);
         if (Object.keys(caseUpdate).length > 0) {
-          await caseRepository.updateById(existingCase._id, { $set: caseUpdate }, { session });
+          await caseRepository.updateById(
+            existingCase._id,
+            { $set: caseUpdate },
+            { session },
+          );
         }
 
         await auditRepository.log(
@@ -284,14 +332,14 @@ export class PatientService {
       const serialPrefix = getCaseSerialPrefix(caseDoc.serialId);
       relatedCases = serialPrefix
         ? await caseRepository.findMany(
-          {
-            serialId: new RegExp(
-              `^${serialPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:-[\\d-]+)?$`,
-            ),
-            isDeleted: false,
-          },
-          { sort: { createdAt: -1 }, populate: "patientId" },
-        )
+            {
+              serialId: new RegExp(
+                `^${serialPrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:-[\\d-]+)?$`,
+              ),
+              isDeleted: false,
+            },
+            { sort: { createdAt: -1 }, populate: "patientId" },
+          )
         : [];
     }
 
@@ -303,8 +351,7 @@ export class PatientService {
       caseDetailsResponse,
       mapRelatedCasesToMasterCaseDetails(
         relatedCases.map(
-          (relatedCase) =>
-            relatedCase.toObject() as CaseWithPopulatedPatient,
+          (relatedCase) => relatedCase.toObject() as CaseWithPopulatedPatient,
         ),
       ),
     );
@@ -314,7 +361,10 @@ export class PatientService {
     const session = await mongoose.startSession();
     try {
       await session.withTransaction(async () => {
-        const existingCase = await getCaseBySerialIdOrThrow(dto.caseId, session);
+        const existingCase = await getCaseBySerialIdOrThrow(
+          dto.caseId,
+          session,
+        );
         const dateUpdates: ICase["dates"] = {
           ...existingCase.dates,
           stitchesRemovalDate:
@@ -327,11 +377,19 @@ export class PatientService {
               : toCanonicalJerusalemDate(dto.nextInspectionDate),
         };
 
-        await caseRepository.release(existingCase._id, userId, {
-          dates: dateUpdates,
-        }, session);
+        await caseRepository.release(
+          existingCase._id,
+          userId,
+          {
+            dates: dateUpdates,
+          },
+          session,
+        );
 
-        await patientMedicineRepository.deleteMany({ caseId: existingCase._id }, { session });
+        await patientMedicineRepository.deleteMany(
+          { caseId: existingCase._id },
+          { session },
+        );
 
         for (const med of dto.medicines) {
           const medData = mapReleaseMedicineToData(
@@ -364,7 +422,6 @@ export class PatientService {
     }
   }
 
-
   async archivePatientCase(
     caseId: string,
     shouldArchive: boolean,
@@ -374,10 +431,9 @@ export class PatientService {
     try {
       await session.withTransaction(async () => {
         const existingCase = await getCaseBySerialIdOrThrow(caseId, session);
-        const isManuallyUnarchived =
-          shouldArchive
-            ? false
-            : shouldPersistManualProcedureUnarchive(
+        const isManuallyUnarchived = shouldArchive
+          ? false
+          : shouldPersistManualProcedureUnarchive(
               existingCase.flags,
               existingCase.dates,
             );
@@ -433,9 +489,18 @@ export class PatientService {
           storageKey: document.storageKey,
         }));
 
-        await documentRepository.deleteMany({ caseId: existingCase._id }, { session });
-        await anesthesiaFormRepository.deleteMany({ caseId: existingCase._id }, { session });
-        await patientMedicineRepository.deleteMany({ caseId: existingCase._id }, { session });
+        await documentRepository.deleteMany(
+          { caseId: existingCase._id },
+          { session },
+        );
+        await anesthesiaFormRepository.deleteMany(
+          { caseId: existingCase._id },
+          { session },
+        );
+        await patientMedicineRepository.deleteMany(
+          { caseId: existingCase._id },
+          { session },
+        );
         await caseRepository.deleteById(existingCase._id, { session });
 
         if (existingCase.masterCaseId) {
@@ -628,8 +693,7 @@ export class PatientService {
         patient._id.toString(),
         uploadedAsset.secureUrl,
         new Date(),
-      ) ??
-      uploadedAsset.secureUrl
+      ) ?? uploadedAsset.secureUrl
     );
   }
 
@@ -785,41 +849,42 @@ export class PatientService {
       },
     );
 
-    return buildCalendarMonthResponse(cases as CalendarCaseSource[], year, month);
+    return buildCalendarMonthResponse(
+      cases as CalendarCaseSource[],
+      year,
+      month,
+    );
   }
 
   async getDailyPlan(): Promise<DailyPlanDetailDTO[]> {
     const todayProcedureDateFilter = getTodayProcedureDateFilter();
     const dailyPlanFilter = todayProcedureDateFilter
       ? {
-        isDeleted: false,
-        isArchived: false,
-        $or: [
-          { "flags.isProcedure": { $ne: true } },
-          {
-            "flags.isProcedure": true,
-            $or: [
-              { "dates.procedureDate": todayProcedureDateFilter },
-              { isManuallyUnarchived: true },
-            ],
-          },
-        ],
-      }
+          isDeleted: false,
+          isArchived: false,
+          $or: [
+            { "flags.isProcedure": { $ne: true } },
+            {
+              "flags.isProcedure": true,
+              $or: [
+                { "dates.procedureDate": todayProcedureDateFilter },
+                { isManuallyUnarchived: true },
+              ],
+            },
+          ],
+        }
       : {
-        isDeleted: false,
-        isArchived: false,
-      };
-    const cases = await caseRepository.findMany(
-      dailyPlanFilter,
-      {
-        sort: { createdAt: -1 },
-        populate: [
-          "patientId",
-          "caseDetailsGrid.examinations.typeId",
-          "caseDetailsGrid.procedures.typeId",
-        ],
-      },
-    );
+          isDeleted: false,
+          isArchived: false,
+        };
+    const cases = await caseRepository.findMany(dailyPlanFilter, {
+      sort: { createdAt: -1 },
+      populate: [
+        "patientId",
+        "caseDetailsGrid.examinations.typeId",
+        "caseDetailsGrid.procedures.typeId",
+      ],
+    });
     return cases
       .map((caseDoc) => mapCaseToDailyPlanDetail(caseDoc.toObject()))
       .sort((left, right) => {
@@ -847,12 +912,11 @@ export class PatientService {
 
         await Promise.all(
           updates.map(async ([caseId, update]) => {
-            const targetCase =
-              /^[a-fA-F0-9]{24}$/.test(caseId)
-                ? await getCaseByIdOrThrow(caseId, session)
-                : update.caseId
-                  ? await getCaseBySerialIdOrThrow(update.caseId, session)
-                  : await getCaseByIdOrThrow(caseId, session);
+            const targetCase = /^[a-fA-F0-9]{24}$/.test(caseId)
+              ? await getCaseByIdOrThrow(caseId, session)
+              : update.caseId
+                ? await getCaseBySerialIdOrThrow(update.caseId, session)
+                : await getCaseByIdOrThrow(caseId, session);
 
             const comments = update.comment ?? update.comments ?? "";
             await caseRepository.updateById(
