@@ -9,6 +9,19 @@ import {
 
 dotenv.config();
 
+const GROQ_STRUCTURED_OUTPUT_MODELS = [
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-120b",
+] as const;
+
+const optionalBooleanSchema = z.preprocess((value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value !== "string") return value;
+  if (value.toLowerCase() === "true") return true;
+  if (value.toLowerCase() === "false") return false;
+  return value;
+}, z.boolean());
+
 const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().min(1),
@@ -31,6 +44,23 @@ const envSchema = z.object({
   CLINICA_URL: z.string().url(),
   CLINIC_USERNAME: z.string().optional(),
   CLINIC_PASSWORD: z.string().optional(),
+  AI_CASE_SUGGESTIONS_ENABLED: optionalBooleanSchema.default(false),
+  GROQ_API_KEY: z.string().trim().optional().default(""),
+  GROQ_MODEL: z
+    .preprocess(
+      (value) => (typeof value === "string" ? value.trim() : value),
+      z.enum(GROQ_STRUCTURED_OUTPUT_MODELS),
+    )
+    .default("openai/gpt-oss-20b"),
+  GROQ_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(30_000).default(8_000),
+}).superRefine((environment, context) => {
+  if (environment.AI_CASE_SUGGESTIONS_ENABLED && !environment.GROQ_API_KEY) {
+    context.addIssue({
+      code: "custom",
+      path: ["GROQ_API_KEY"],
+      message: "GROQ_API_KEY is required when AI case suggestions are enabled",
+    });
+  }
 });
 
 type ParsedEnv = z.infer<typeof envSchema>;
@@ -83,4 +113,8 @@ export const ENV = {
   clinicaBaseUrl: envs.CLINICA_URL,
   clinicUsername: envs.CLINIC_USERNAME ?? "",
   clinicPassword: envs.CLINIC_PASSWORD ?? "",
+  aiCaseSuggestionsEnabled: envs.AI_CASE_SUGGESTIONS_ENABLED,
+  groqApiKey: envs.GROQ_API_KEY,
+  groqModel: envs.GROQ_MODEL,
+  groqTimeoutMs: envs.GROQ_TIMEOUT_MS,
 } as const;
