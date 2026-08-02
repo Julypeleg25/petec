@@ -355,6 +355,39 @@
   margin: 0.75em auto 0 0;
 }
 
+.case-details-medicine-modal .case-item-suggestions,
+.case-details-options-modal .case-item-suggestions {
+  margin: 1.15rem 0 0.35rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d5e1e6;
+  border-radius: 0.8rem;
+  background: #f8fafb;
+  box-shadow: 0 1px 3px rgb(36 53 63 / 6%);
+}
+
+.case-details-medicine-modal .case-item-suggestions__heading,
+.case-details-options-modal .case-item-suggestions__heading {
+  padding: 0.25rem 0;
+}
+
+.case-details-medicine-modal .case-item-suggestions__content,
+.case-details-options-modal .case-item-suggestions__content {
+  max-height: min(360px, 42vh);
+  padding: 0.15rem 0.1rem 0.25rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.case-details-medicine-modal .case-item-suggestions__list,
+.case-details-options-modal .case-item-suggestions__list {
+  grid-template-columns: 1fr;
+}
+
+.case-details-medicine-modal .case-item-suggestions + .confirm-medicine-btn,
+.case-details-options-modal .case-item-suggestions + .confirm-option-btn {
+  margin-top: 0.85rem;
+}
+
 .case-details-medicine-modal .form-input-container,
 .case-details-medicine-modal .form-select,
 .case-details-medicine-modal .form-textarea-container,

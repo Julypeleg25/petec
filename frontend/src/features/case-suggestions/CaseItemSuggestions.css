@@ -1,0 +1,236 @@
+.case-item-suggestions {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.7rem 0.75rem;
+  background: #f6f9fb;
+  border-block: 1px solid #dce5ea;
+  color: #24353f;
+  font-family: inherit;
+  text-align: right;
+}
+
+.case-item-suggestions__heading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0.35rem 0;
+  text-align: right;
+  cursor: pointer;
+}
+
+.case-item-suggestions__heading:focus-visible,
+.case-item-suggestions button:focus-visible {
+  outline: 2px solid #28728d;
+  outline-offset: 2px;
+}
+
+.case-item-suggestions__heading-icon {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: #e2f0f4;
+  color: #17657d;
+}
+
+.case-item-suggestions__heading-copy {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.case-item-suggestions__heading-copy strong {
+  font-size: 0.95rem;
+}
+
+.case-item-suggestions__heading-copy small {
+  margin-top: 0.1rem;
+  color: #61747e;
+  font-size: 0.75rem;
+}
+
+.case-item-suggestions__content {
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.case-item-suggestions__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.35rem 0 0.65rem;
+  font-weight: 700;
+}
+
+.case-item-suggestions__refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #b8ccd5;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #285363;
+  padding: 0.4rem 0.65rem;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.case-item-suggestions__status,
+.case-item-suggestions__notice,
+.case-item-suggestions__missing {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.6rem;
+  background: #fff;
+  border: 1px solid #d7e2e7;
+  font-size: 0.84rem;
+}
+
+.case-item-suggestions__status,
+.case-item-suggestions__notice--warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.case-item-suggestions__notice--warning,
+.case-item-suggestions__card-warning {
+  color: #8b3d13;
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.case-item-suggestions__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #bad3dc;
+  border-top-color: #17657d;
+  border-radius: 50%;
+  animation: case-suggestion-spin 0.8s linear infinite;
+}
+
+@keyframes case-suggestion-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.case-item-suggestions__missing ul {
+  margin: 0.35rem 0 0;
+  padding-inline-start: 1.2rem;
+}
+
+.case-item-suggestions__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 0.7rem;
+}
+
+.case-item-suggestions__card {
+  position: relative;
+  padding: 0.8rem;
+  border: 1px solid #ccdbe1;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 2px 7px rgb(36 53 63 / 8%);
+}
+
+.case-item-suggestions__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.case-item-suggestions__actions {
+  display: flex;
+  gap: 0.35rem;
+  direction: ltr;
+}
+
+.case-item-suggestions__actions button {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.case-item-suggestions__add-button {
+  border: 1px solid #17657d;
+  background: #17657d;
+  color: #fff;
+}
+
+.case-item-suggestions__add-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.case-item-suggestions__details {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.65rem 0 0;
+  font-size: 0.78rem;
+}
+
+.case-item-suggestions__details div {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.case-item-suggestions__details dt {
+  color: #5f737c;
+}
+
+.case-item-suggestions__details dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.case-item-suggestions__card-warning {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0.45rem;
+  border-radius: 0.45rem;
+  font-size: 0.74rem;
+}
+
+.case-item-suggestions__selected-message {
+  margin: 0.65rem 0 0;
+  color: #23663c;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.case-item-suggestions__footer-warning {
+  margin: 0.65rem 0 0;
+  color: #5b6870;
+  font-size: 0.74rem;
+}
+
+.case-item-suggestions__current-count {
+  display: block;
+  margin-top: 0.45rem;
+  color: #71828a;
+  font-size: 0.7rem;
+}
+
+@media (max-width: 700px) {
+  .case-item-suggestions {
+    padding-inline: 0.5rem;
+  }
+
+  .case-item-suggestions__list {
+    grid-template-columns: 1fr;
+  }
+}
