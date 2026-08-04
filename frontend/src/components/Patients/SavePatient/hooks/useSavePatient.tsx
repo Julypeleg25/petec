@@ -21,26 +21,7 @@ import { buildSavePatientChangeSnapshot } from "../utils/savePatientChangeTracki
 import type { NewPatientData } from "../types/savePatient.types";
 import type { ClinicaNewPatientState } from "../../../../features/clinica/types/clinicaNewPatient.types";
 import { mapClinicaStateToNewPatientFormData } from "../../../../features/clinica/mappers/clinicaClientToNewPatient.mapper";
-import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
-
-const normalizeOptionText = (value?: string): string =>
-  value?.trim().replace(/\s+/g, " ").toLowerCase() ?? "";
-
-const findOptionValueByText = (
-  options: readonly SelectOptionObj[],
-  value?: string,
-): string => {
-  const normalizedValue = normalizeOptionText(value);
-
-  if (!normalizedValue) {
-    return "";
-  }
-
-  return (
-    options.find((option) => normalizeOptionText(option.text) === normalizedValue)
-      ?.value ?? ""
-  );
-};
+import { findClinicaLookupValue } from "../../../../features/clinica/utils/clinicaLookup.utils";
 
 export function useSavePatient(
   caseIdString: string,
@@ -109,7 +90,7 @@ export function useSavePatient(
     const prefillStatus = clinicaSelectPrefillRef.current;
 
     if (!prefillStatus.gender && state.selectedGenderType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.genderTypes, snapshot.gender);
+      const value = findClinicaLookupValue(state.genderTypes, snapshot.gender);
       if (value) {
         state.setSelectedGenderType(value);
         prefillStatus.gender = true;
@@ -117,7 +98,7 @@ export function useSavePatient(
     }
 
     if (!prefillStatus.animal && state.selectedAnimalType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.animalTypes, snapshot.species);
+      const value = findClinicaLookupValue(state.animalTypes, snapshot.species);
       if (value) {
         state.setSelectedAnimalType(value);
         getRaceTypes(value);
@@ -126,7 +107,7 @@ export function useSavePatient(
     }
 
     if (!prefillStatus.race && state.selectedRaceType === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.raceTypes, snapshot.breed);
+      const value = findClinicaLookupValue(state.raceTypes, snapshot.breed);
       if (value) {
         state.setSelectedRaceType(value);
         prefillStatus.race = true;
@@ -134,7 +115,7 @@ export function useSavePatient(
     }
 
     if (!prefillStatus.color && state.selectedAnimalColor === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.animalColors, snapshot.color);
+      const value = findClinicaLookupValue(state.animalColors, snapshot.color);
       if (value) {
         state.setSelectedAnimalColor(value);
         prefillStatus.color = true;
@@ -142,7 +123,7 @@ export function useSavePatient(
     }
 
     if (!prefillStatus.insurance && state.selectedInsurance === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.insuranceList, snapshot.insurance);
+      const value = findClinicaLookupValue(state.insuranceList, snapshot.insurance);
       if (value) {
         state.setSelectedInsurance(value);
         prefillStatus.insurance = true;
@@ -150,7 +131,7 @@ export function useSavePatient(
     }
 
     if (!prefillStatus.doctor && state.selectedDoctor === SAVE_PATIENT_DEFAULTS.EMPTY_VALUE) {
-      const value = findOptionValueByText(state.doctors, snapshot.treatingDoctor);
+      const value = findClinicaLookupValue(state.doctors, snapshot.treatingDoctor);
       if (value) {
         state.setSelectedDoctor(value);
         prefillStatus.doctor = true;

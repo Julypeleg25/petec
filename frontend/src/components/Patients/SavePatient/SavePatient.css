@@ -165,9 +165,14 @@
   border-bottom: 0;
 }
 
-.clinica-prefill-search-result:hover {
+.clinica-prefill-search-result:hover:not(:disabled) {
   background: rgba(177, 89, 205, 0.08);
   box-shadow: none;
+}
+
+.clinica-prefill-search-result:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .clinica-prefill-search-result-text {

@@ -21,6 +21,7 @@ import { resolveChildCaseRoute } from "./utils/savePatientNavigation.utils";
 import type { ClinicaNewPatientState } from "../../../features/clinica/types/clinicaNewPatient.types";
 import { mapClinicaStateToNewPatientFormData } from "../../../features/clinica/mappers/clinicaClientToNewPatient.mapper";
 import { ClinicaPatientSearchPrefill } from "../../../features/clinica/components/ClinicaPatientSearchPrefill";
+import { ClinicaVisitsTable } from "../../../features/clinica/components/ClinicaVisitsTable";
 
 interface SavePatientProps {
   beforeNavigation?: () => void;
@@ -325,7 +326,6 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 selectedCaseDate={selectedCaseDate}
                 setSelectedCaseDate={setSelectedCaseDate}
                 onCaseDateChange={handleCaseDateChange}
-                handleInputChange={handleInputChange}
                 isSaveButtonsDisabled={isSaveButtonsDisabled}
                 hasChanges={hasPendingSave}
                 isArchived={isArchived}
@@ -338,6 +338,13 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 addNewCaseDailyDetails={addNewCaseDailyDetails}
                 deleteSelectedCaseDailyDetails={deleteSelectedCaseDailyDetails}
                 onSavePatientChanges={handleSaveFromMenu}
+              />
+            )}
+            {isEdit && (
+              <ClinicaVisitsTable
+                externalPatientId={formData.caseId ?? ""}
+                ownerPhone={formData.owner?.phone}
+                patientName={formData.name}
               />
             )}
             {isEdit && (

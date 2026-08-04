@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { FaBars, FaInfoCircle, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
-import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
 import type { SelectOptionObj } from "../../../../utils/FormSelect/FormSelect.types";
 import type { NewPatientData } from "../types/savePatient.types";
 import type { CaseDetailsData } from "../../CaseDetailsTable/CaseDetailsTable.types";
-import type {
-  SavePatientActionEvent,
-  SavePatientInputChangeHandler,
-} from "./types/savePatientSections.types";
+import type { SavePatientActionEvent } from "./types/savePatientSections.types";
 import { buildCaseDetailsDateOptions } from "./utils/savePatientSections.utils";
 
 interface SavePatientDailyDetailsSectionProps {
@@ -20,7 +16,6 @@ interface SavePatientDailyDetailsSectionProps {
   selectedCaseDate: string;
   setSelectedCaseDate: React.Dispatch<React.SetStateAction<string>>;
   onCaseDateChange: (value: string) => void;
-  handleInputChange: SavePatientInputChangeHandler;
   isSaveButtonsDisabled: boolean;
   hasChanges: boolean;
   isArchived: boolean;
@@ -42,7 +37,6 @@ function SavePatientDailyDetailsSection({
   selectedCaseDate,
   setSelectedCaseDate,
   onCaseDateChange,
-  handleInputChange,
   isSaveButtonsDisabled,
   hasChanges,
   isArchived,
@@ -112,16 +106,6 @@ function SavePatientDailyDetailsSection({
           </div>
         </div>
       </div>
-      <FormTextarea
-        labelText=":הערות"
-        name="comments"
-        state={formData.comments ?? ""}
-        setState={handleInputChange}
-        height="70px"
-        width="300px"
-        maxWidth="300px"
-        maxLength={2000}
-      />
       <div className="daily-details-btns-container">
         <div className="case-daily-details-date-controls">
           {shouldShowCaseDatePicker && (
