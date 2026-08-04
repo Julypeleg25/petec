@@ -18,6 +18,7 @@ import { MdPersonAddAlt } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 import { ClinicaClient } from "../types/clinicaClient.types";
+import { getClinicaPetKey } from "../utils/clinicaPet.utils";
 
 type Props = {
   clients: ClinicaClient[];
@@ -25,6 +26,8 @@ type Props = {
   page: number;
   rowsPerPage: number;
   isLoading: boolean;
+  isCreateCaseDisabled?: boolean;
+  creatingClientId?: string;
   onPageChange: (page: number) => void;
   onCreateCase: (client: ClinicaClient) => void;
 };
@@ -33,17 +36,22 @@ type CreateCaseButtonProps = {
   client: ClinicaClient;
   onCreateCase: (client: ClinicaClient) => void;
   compact?: boolean;
+  disabled?: boolean;
+  isLoading?: boolean;
 };
 
 const CreateCaseButton = ({
   client,
   onCreateCase,
   compact = false,
+  disabled = false,
+  isLoading = false,
 }: CreateCaseButtonProps) => (
   <Button
     size="small"
     variant="outlined"
     onClick={() => onCreateCase(client)}
+    disabled={disabled || client.pets.length === 0}
     sx={{
       minWidth: compact ? 132 : 168,
       px: compact ? 1.5 : 2.5,
@@ -63,8 +71,12 @@ const CreateCaseButton = ({
         whiteSpace: "nowrap",
       }}
     >
-      <MdPersonAddAlt fontSize="small" />
-      <span>{CLINICA_TEXTS.createCase}</span>
+      {isLoading ? (
+        <CircularProgress size={17} color="inherit" />
+      ) : (
+        <MdPersonAddAlt fontSize="small" />
+      )}
+      <span>{isLoading ? CLINICA_TEXTS.openingCase : CLINICA_TEXTS.createCase}</span>
     </Box>
   </Button>
 );
@@ -75,6 +87,8 @@ export const ClinicaClientsTable = ({
   page,
   rowsPerPage,
   isLoading,
+  isCreateCaseDisabled = false,
+  creatingClientId,
   onPageChange,
   onCreateCase,
 }: Props) => {
@@ -164,6 +178,8 @@ export const ClinicaClientsTable = ({
                         <CreateCaseButton
                           client={client}
                           onCreateCase={onCreateCase}
+                          disabled={isCreateCaseDisabled}
+                          isLoading={creatingClientId === client._id}
                           compact
                         />
                       </Box>
@@ -185,8 +201,12 @@ export const ClinicaClientsTable = ({
                       }}
                     >
                       {client.pets.length > 0 ? (
-                        client.pets.map((pet) => (
-                          <Chip key={pet.name} label={pet.name} size="small" />
+                        client.pets.map((pet, index) => (
+                          <Chip
+                            key={`${getClinicaPetKey(client, pet)}:${index}`}
+                            label={pet.name}
+                            size="small"
+                          />
                         ))
                       ) : (
                         <>-</>
@@ -207,6 +227,8 @@ export const ClinicaClientsTable = ({
                     <CreateCaseButton
                       client={client}
                       onCreateCase={onCreateCase}
+                      disabled={isCreateCaseDisabled}
+                      isLoading={creatingClientId === client._id}
                     />
                   </TableCell>
                 </TableRow>
@@ -229,6 +251,7 @@ export const ClinicaClientsTable = ({
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[rowsPerPage]}
+        disabled={isLoading}
         onPageChange={(_event, nextPage) => onPageChange(nextPage)}
         labelDisplayedRows={({ from, to, count }) =>
           CLINICA_TEXTS.paginationRows(from, to, count)
