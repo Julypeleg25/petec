@@ -7,6 +7,10 @@ import type {
 
 const clinicaClientPetSchema = new Schema(
   {
+    externalPatientId: {
+      type: String,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
@@ -49,6 +53,10 @@ const clinicaClientPetSchema = new Schema(
       type: String,
       trim: true,
     },
+    medicalRecords: {
+      type: [Schema.Types.Mixed],
+      default: [],
+    },
   },
   { _id: false },
 );
@@ -71,8 +79,8 @@ const clinicaClientSchema = new Schema<
     },
     ownerPhone: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
       index: true,
     },
     pets: {
@@ -103,9 +111,15 @@ clinicaClientSchema.index(
   },
 );
 
+clinicaClientSchema.index({ "pets.externalPatientId": 1 }, { sparse: true });
+
 clinicaClientSchema.index(
   { ownerName: 1, ownerPhone: 1 },
-  { unique: true },
+  {
+    unique: true,
+    name: "clinica_owner_phone_unique_nonempty_v2",
+    partialFilterExpression: { ownerPhone: { $gt: "" } },
+  },
 );
 
 export const ClinicaClientModel =

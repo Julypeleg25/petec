@@ -1,6 +1,7 @@
 import type { Document, Types } from "mongoose";
 
 export interface ClinicaClientPet {
+  externalPatientId?: string;
   name: string;
   gender?: string;
   breed?: string;
@@ -12,6 +13,15 @@ export interface ClinicaClientPet {
   insurance?: string;
   treatingDoctor?: string;
   referringDoctor?: string;
+  medicalRecords?: Array<{
+    patientName: string;
+    ownerName: string;
+    ownerPhone: string;
+    recordType: string;
+    rawText: string;
+    table?: { headers: string[]; rows: string[][] };
+    syncedAt: Date;
+  }>;
 }
 
 export interface IClinicaClient {
