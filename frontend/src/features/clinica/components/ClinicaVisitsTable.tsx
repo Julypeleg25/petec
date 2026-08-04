@@ -563,19 +563,23 @@ export function ClinicaVisitsTable({
 
     const loadMatchingClient = async (): Promise<LoadedClinicaPatient | undefined> => {
       if (normalizedPatientName) {
-        const prefixClient = await getClinicaClientByCasePrefix(
-          caseSerialPrefix,
-          patientName ?? "",
-          ownerPhone,
-        ).catch(() => null);
+        // These are independent cache lookups. Running them together avoids a
+        // second network round-trip when older cases need the exact-id fallback.
+        const [prefixClient, exactClient] = await Promise.all([
+          getClinicaClientByCasePrefix(
+            caseSerialPrefix,
+            patientName ?? "",
+            ownerPhone,
+          ).catch(() => null),
+          getClinicaClientByExternalPatientId(
+            cleanExternalPatientId,
+          ).catch(() => null),
+        ]);
         if (prefixClient) {
           const prefixMatch = findMatchingPatient([prefixClient]);
           if (prefixMatch) return prefixMatch;
         }
 
-        const exactClient = await getClinicaClientByExternalPatientId(
-          cleanExternalPatientId,
-        ).catch(() => null);
         if (exactClient) {
           const exactMatch = findMatchingPatient([exactClient]);
           if (exactMatch) return exactMatch;
@@ -615,6 +619,18 @@ export function ClinicaVisitsTable({
         const { client, pet: matchingPet } = match;
         let records = getPetMedicalRecords(client, matchingPet);
         let visitResult = resolveVisitTable(records);
+
+        // Render usable cached data immediately. A structured refresh may take
+        // several seconds because it opens Clinica in a browser, but it should
+        // not block opening the PETEC case or viewing the cached history.
+        if (visitResult) {
+          displayedLookupKeyRef.current = lookupKey;
+          setState({
+            status: "ready",
+            table: visitResult.table,
+            syncedAt: visitResult.syncedAt,
+          });
+        }
 
         if (!hasStructuredVisitTable(records) && !match.visitsWereFetched) {
           try {
