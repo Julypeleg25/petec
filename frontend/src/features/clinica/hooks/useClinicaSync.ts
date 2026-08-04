@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getClinicaSyncStatus,
   syncClinicaClients,
@@ -16,16 +16,39 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const wasSyncingRef = useRef(false);
+  const lastHandledResultRef = useRef<string | null>(null);
+  const statusRequestRunningRef = useRef(false);
 
   const loadSyncStatus = useCallback(async () => {
+    if (statusRequestRunningRef.current) return null;
+    statusRequestRunningRef.current = true;
     try {
       const status = await getClinicaSyncStatus();
+      const syncJustCompleted = wasSyncingRef.current && !status.isSyncRunning;
+      wasSyncingRef.current = status.isSyncRunning;
       setIsSyncing(status.isSyncRunning);
-      if (!status.isSyncRunning && status.lastSyncError?.message) {
+      if (status.isSyncRunning) {
+        setErrorMessage("");
+        setSuccessMessage("");
+      } else if (status.lastSyncError?.message) {
         setErrorMessage(status.lastSyncError.message);
       }
-    } catch {}
-  }, []);
+      if (syncJustCompleted && !status.lastSyncError) {
+        const result = status.lastSyncResult;
+        if (result && lastHandledResultRef.current !== result.syncedAt) {
+          lastHandledResultRef.current = result.syncedAt;
+          setSuccessMessage(CLINICA_TEXTS.syncSuccess(result.created, result.updated));
+        }
+        await onSyncCompleted();
+      }
+      return status.isSyncRunning;
+    } catch {
+      return null;
+    } finally {
+      statusRequestRunningRef.current = false;
+    }
+  }, [onSyncCompleted]);
 
   useEffect(() => {
     loadSyncStatus();
@@ -43,19 +66,19 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
     }
 
     setIsSyncing(true);
+    wasSyncingRef.current = true;
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const result = await syncClinicaClients();
-      setSuccessMessage(CLINICA_TEXTS.syncSuccess(result.created, result.updated));
-      await onSyncCompleted();
+      const status = await syncClinicaClients();
+      wasSyncingRef.current = status.isSyncRunning;
+      setIsSyncing(status.isSyncRunning);
     } catch (error) {
       console.error("Clinica manual sync failed", error);
-      await loadSyncStatus();
+      const syncIsStillRunning = await loadSyncStatus();
+      wasSyncingRef.current = syncIsStillRunning === true;
       setErrorMessage((currentMessage) => currentMessage || CLINICA_TEXTS.syncError);
-    } finally {
-      await loadSyncStatus();
     }
   }, [isSyncing, loadSyncStatus, onSyncCompleted]);
 

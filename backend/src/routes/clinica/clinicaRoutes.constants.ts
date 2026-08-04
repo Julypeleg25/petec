@@ -4,4 +4,7 @@ export const CLINICA_ROUTE_PATHS = {
     syncClients: "/clients/sync",
     syncStatus: "/clients/sync/status",
     clientByExternalPatientId: "/clients/external/:externalPatientId",
+    clientByCasePrefix: "/clients/match/case-prefix",
+    fetchPetVisits: "/clients/:clientId/pets/visits/fetch",
+    fetchCaseVisits: "/clients/visits/fetch-by-case",
   } as const;

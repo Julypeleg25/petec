@@ -6,7 +6,19 @@ import {
 
 import { HTTP_METHODS } from "../../../lib/http.constants";
 
+const ClinicaMedicalRecordSchema = z.object({
+  patientName: z.string().optional(),
+  recordType: z.string().optional(),
+  rawText: z.string().optional(),
+  table: z.object({
+    headers: z.array(z.string()),
+    rows: z.array(z.array(z.string())),
+  }).optional(),
+  syncedAt: z.string().optional(),
+});
+
 const ClinicaPetSchema = z.object({
+  externalPatientId: z.string().optional(),
   name: z.string(),
   gender: z.string().optional(),
   breed: z.string().optional(),
@@ -18,13 +30,8 @@ const ClinicaPetSchema = z.object({
   insurance: z.string().optional(),
   treatingDoctor: z.string().optional(),
   referringDoctor: z.string().optional(),
+  medicalRecords: z.array(ClinicaMedicalRecordSchema).optional(),
 }).passthrough();
-
-const ClinicaMedicalRecordSchema = z.object({
-  recordType: z.string().optional(),
-  rawText: z.string().optional(),
-  syncedAt: z.string().optional(),
-});
 
 const ClinicaRawDataSchema = z.any();
 
@@ -50,19 +57,19 @@ const ClinicaClientsResponseSchema = z.object({
 
 const ClinicaSyncStatusResponseSchema = z.object({
   isSyncRunning: z.boolean(),
+  syncStartedAt: z.string().nullable().optional(),
   lastSyncError: z.object({
     name: z.string(),
     message: z.string(),
     occurredAt: z.string(),
   }).nullable().optional(),
-});
-
-const ClinicaSyncResultSchema = z.object({
-  totalFromClinica: z.number(),
-  created: z.number(),
-  updated: z.number(),
-  skipped: z.number(),
-  syncedAt: z.string(),
+  lastSyncResult: z.object({
+    totalFromClinica: z.number(),
+    created: z.number(),
+    updated: z.number(),
+    skipped: z.number(),
+    syncedAt: z.string(),
+  }).nullable().optional(),
 });
 
 export const getClinicaClients = ({
@@ -87,13 +94,64 @@ export const getClinicaClients = ({
     ClinicaClientsResponseSchema,
   );
 
+export const getClinicaClientByExternalPatientId = (externalPatientId: string) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.GET,
+      url: `/clinica/clients/external/${encodeURIComponent(externalPatientId)}`,
+    },
+    ClinicaClientSchema,
+  );
+
+export const getClinicaClientByCasePrefix = (
+  casePrefix: string,
+  petName: string,
+  ownerPhone?: string,
+) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.GET,
+      url: "/clinica/clients/match/case-prefix",
+      params: { casePrefix, petName, ownerPhone },
+    },
+    ClinicaClientSchema,
+  );
+
+export const fetchClinicaPetVisits = (
+  clientId: string,
+  petName: string,
+  forcePatientDetails = false,
+) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.POST,
+      url: `/clinica/clients/${encodeURIComponent(clientId)}/pets/visits/fetch`,
+      data: { petName, forcePatientDetails },
+    },
+    ClinicaClientSchema,
+  );
+
+export const fetchClinicaVisitsForCase = (
+  casePrefix: string,
+  petName: string,
+  ownerPhone?: string,
+) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.POST,
+      url: "/clinica/clients/visits/fetch-by-case",
+      data: { casePrefix, petName, ownerPhone },
+    },
+    ClinicaClientSchema,
+  );
+
 export const syncClinicaClients = () =>
   requestWithSchema(
     {
       method: HTTP_METHODS.POST,
       url: "/clinica/clients/sync",
     },
-    ClinicaSyncResultSchema,
+    ClinicaSyncStatusResponseSchema,
   );
 
 export const getClinicaSyncStatus = () =>

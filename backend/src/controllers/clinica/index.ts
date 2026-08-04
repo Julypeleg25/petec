@@ -57,16 +57,16 @@ const syncClients = async (
       request_id: req.requestId,
     });
 
-    const result = await clinicaClientService.syncClients();
+    const result = clinicaClientService.startSyncClients();
 
-    logger.info("Manual Clinica sync finished", {
+    logger.info("Manual Clinica sync accepted", {
       module: "clinica",
-      event: "manual_clinica_sync_finished",
+      event: "manual_clinica_sync_accepted",
       request_id: req.requestId,
       result,
     });
 
-    res.status(HttpStatus.OK).json({
+    res.status(202).json({
       success: true,
       data: result,
     });
@@ -96,6 +96,57 @@ const getSyncStatus = async (
   });
 };
 
+const fetchPetVisits = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.fetchMissingVisitDetails(
+      String(req.params.clientId),
+      String(req.body?.petName ?? ""),
+      req.body?.forcePatientDetails === true,
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const fetchCaseVisits = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.fetchVisitsForExistingCase(
+      String(req.body?.casePrefix ?? ""),
+      String(req.body?.petName ?? ""),
+      String(req.body?.ownerPhone ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getClientByCasePrefix = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.findClientForCasePrefix(
+      String(req.query.casePrefix ?? ""),
+      String(req.query.petName ?? ""),
+      String(req.query.ownerPhone ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getDebugConfig = async (
   _req: Request,
   res: Response,
@@ -113,6 +164,9 @@ const getDebugConfig = async (
 };
 
 export const clinicaController = {
+  fetchCaseVisits,
+  fetchPetVisits,
+  getClientByCasePrefix,
   getClientByExternalPatientId,
   getClients,
   getDebugConfig,

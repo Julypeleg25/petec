@@ -1,4 +1,5 @@
 export interface ClinicaPet {
+    externalPatientId?: string;
     name: string;
     gender?: string;
     breed?: string;
@@ -10,12 +11,20 @@ export interface ClinicaPet {
     insurance?: string;
     treatingDoctor?: string;
     referringDoctor?: string;
+    medicalRecords?: ClinicaMedicalRecord[];
   }
 
   export interface ClinicaMedicalRecord {
+    patientName?: string;
     recordType?: string;
     rawText?: string;
+    table?: ClinicaVisitTable;
     syncedAt?: string;
+  }
+
+  export interface ClinicaVisitTable {
+    headers: string[];
+    rows: string[][];
   }
 
   export interface ClinicaClientRawData {
