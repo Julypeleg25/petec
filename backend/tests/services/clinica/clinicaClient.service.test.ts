@@ -3,6 +3,7 @@ import {
   clinicaClientService,
   isClinicaVisitRow,
   mapAggregatesToClients,
+  replaceVisitRecordsForRefresh,
 } from "../../../src/services/clinica/clinicaClient.service.js";
 import type { ImportedClinicaAggregate } from "../../../src/utils/clinica-query.types.js";
 
@@ -275,5 +276,21 @@ describe("Clinica client sync modes", () => {
 
     expect(syncSpy).toHaveBeenCalledWith({ includeMedicalRecords: false });
     syncSpy.mockRestore();
+  });
+});
+
+describe("Clinica forced visit refresh", () => {
+  it("replaces the cached visit table while preserving other record types", () => {
+    const cachedVisit = aggregate("101", "Lucky", "cached visit").medicalRecords[0];
+    const freshVisit = aggregate("101", "Lucky", "fresh visit").medicalRecords[0];
+    const vaccination = { ...cachedVisit, recordType: "vaccinations" };
+
+    const records = replaceVisitRecordsForRefresh(
+      [cachedVisit, vaccination],
+      [freshVisit],
+    );
+
+    expect(records).toEqual([freshVisit, vaccination]);
+    expect(records[0].table?.rows).toEqual([["01/01/2026", "fresh visit"]]);
   });
 });

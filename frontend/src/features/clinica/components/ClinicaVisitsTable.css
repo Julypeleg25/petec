@@ -63,6 +63,7 @@
   white-space: nowrap;
 }
 .clinica-visits__buttons button:hover { border-color: #2f758f; background: #edf7fa; }
+.clinica-visits__buttons button:disabled { opacity: 0.6; cursor: wait; }
 
 .clinica-visits__filters {
   display: flex;
@@ -90,7 +91,6 @@
 .clinica-visits__document-filter svg { color: #2f758f; }
 
 .clinica-visits__scroll {
-  height: 32rem;
   max-height: 65vh;
   overflow: auto;
   background: #fff;
@@ -101,19 +101,19 @@
 .clinica-visits__scroll:focus-visible { outline: 3px solid #5da9c5; outline-offset: -3px; }
 
 .clinica-visits table {
-  width: max(100%, 70rem);
-  min-width: 100%;
-  table-layout: fixed;
+  width: 100%;
+  min-width: 70rem;
+  table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
 }
 
 .clinica-visits th,
 .clinica-visits td {
-  width: 14rem;
-  padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid #e5eaf0;
-  border-inline-end: 1px solid #e5eaf0;
+  min-width: 12rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #dce4ec;
+  border-inline-end: 1px solid #dce4ec;
   text-align: start;
   vertical-align: top;
   white-space: pre-wrap;
@@ -154,9 +154,12 @@
   box-shadow: 0 1px #d4dde5;
 }
 
-.clinica-visits tbody tr:nth-child(even) { background: #fafcfd; }
-.clinica-visits tbody tr:hover { background: #eef7fa; }
+.clinica-visits tbody tr { transition: background-color 120ms ease; }
+.clinica-visits tbody tr:nth-child(even) { background: #f8fbfc; }
+.clinica-visits tbody tr:hover { background: #eaf5f8; }
 .clinica-visits tbody tr:last-child td { border-bottom: 0; }
+.clinica-visits th:last-child,
+.clinica-visits td:last-child { border-inline-end: 0; }
 .clinica-visits td.clinica-visits__empty { width: auto; padding: 2rem; color: #667585; text-align: center; }
 
 .clinica-visits .clinica-visits__action-column { min-width: 6.5rem; width: 6.5rem; text-align: center; }

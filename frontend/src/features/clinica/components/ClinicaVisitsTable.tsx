@@ -504,6 +504,7 @@ export function ClinicaVisitsTable({
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [reload, setReload] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [documentsOnly, setDocumentsOnly] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -669,6 +670,9 @@ export function ClinicaVisitsTable({
             ? current
             : { status: "error" },
         );
+      })
+      .finally(() => {
+        if (active) setIsRefreshing(false);
       });
 
     return () => {
@@ -824,17 +828,25 @@ export function ClinicaVisitsTable({
             <strong>{table.rows.length}</strong> ביקורים
             {syncedAt && (
               <span>
-                סנכרון אחרון: {new Date(syncedAt).toLocaleDateString("he-IL")}
+                סנכרון אחרון: {new Date(syncedAt).toLocaleString("he-IL", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                })}
               </span>
             )}
           </div>
           <div className="clinica-visits__buttons">
             <button
               type="button"
-              onClick={() => setReload((value) => value + 1)}
+              disabled={isRefreshing}
+              onClick={() => {
+                setIsRefreshing(true);
+                setReload((value) => value + 1);
+              }}
               title="טעינה מחדש מהקליניקה"
             >
-              <FaSyncAlt aria-hidden="true" /> טעינה מהקליניקה
+              <FaSyncAlt aria-hidden="true" />
+              {isRefreshing ? "טוען מהקליניקה..." : "טעינה מהקליניקה"}
             </button>
             <button
               type="button"

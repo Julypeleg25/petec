@@ -569,6 +569,21 @@ const mergeMedicalRecords = (
   return merged;
 };
 
+export const replaceVisitRecordsForRefresh = (
+  mergedRecords: NonNullable<ClinicaClientPet["medicalRecords"]>,
+  refreshedRecords: NonNullable<ClinicaClientPet["medicalRecords"]>,
+): NonNullable<ClinicaClientPet["medicalRecords"]> => {
+  const refreshedVisits = refreshedRecords.filter(
+    (record) => record.recordType === "visitDetails",
+  );
+  if (refreshedVisits.length === 0) return mergedRecords;
+
+  return [
+    ...refreshedVisits,
+    ...mergedRecords.filter((record) => record.recordType !== "visitDetails"),
+  ];
+};
+
 const findMatchingPetIndex = (
   pets: ClinicaClientPet[],
   incomingPet: ClinicaClientPet,
@@ -970,7 +985,8 @@ class ClinicaClientService {
     const [items, total] = await Promise.all([
       ClinicaClientModel.find(query)
         .select({ rawData: 0, "pets.medicalRecords": 0 })
-        .sort({ updatedAt: -1 })
+        .sort({ lastSyncedAt: -1, ownerName: 1 })
+        .collation({ locale: "he" })
         .skip(skip)
         .limit(limit)
         .lean(),
@@ -1178,6 +1194,7 @@ class ClinicaClientService {
     const fetchKey = [
       clientId,
       normalizeMatchText(cleanPetName),
+      forcePatientDetails ? "force" : "cached",
     ].join(":");
     const existingFetch = inFlightTargetedFetches.get(fetchKey);
     if (existingFetch) return existingFetch;
@@ -1223,7 +1240,7 @@ class ClinicaClientService {
           throw new NotFoundError("Clinica pet not found");
         }
 
-        latestClient.pets[matchedPetIndex] = mergePet(
+        const refreshedPet = mergePet(
           latestClient.pets[matchedPetIndex],
           {
             externalPatientId: resolvedPetId,
@@ -1241,6 +1258,13 @@ class ClinicaClientService {
             medicalRecords: records,
           },
         );
+        if (forcePatientDetails) {
+          refreshedPet.medicalRecords = replaceVisitRecordsForRefresh(
+            refreshedPet.medicalRecords ?? [],
+            records,
+          );
+        }
+        latestClient.pets[matchedPetIndex] = refreshedPet;
         latestClient.lastSyncedAt = new Date();
         latestClient.markModified("pets");
         await latestClient.save();
