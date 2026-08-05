@@ -3,15 +3,15 @@ import { getCaseSerialPrefix } from "@petec/shared";
 import {
   FaChevronLeft,
   FaChevronRight,
+  FaChevronDown,
+  FaChevronUp,
   FaEye,
+  FaFileAlt,
   FaHospital,
+  FaSyncAlt,
   FaTimes,
 } from "react-icons/fa";
-import {
-  fetchClinicaPetVisits,
-  fetchClinicaVisitsForCase,
-  getClinicaClientByCasePrefix,
-} from "../api/clinica.api";
+import { fetchClinicaVisitsForCase } from "../api/clinica.api";
 import type {
   ClinicaClient,
   ClinicaMedicalRecord,
@@ -32,10 +32,13 @@ type VisitsState =
 
 const DEFAULT_PAGE_SIZE = 10;
 const DATE_PATTERN = /(\d{1,2}[./-]\d{1,2}[./-](?:\d{4}|\d{2}))/;
-const COMPACT_DATE_TIME_PATTERN = /(\d{1,2}[./-]\d{1,2}[./-](?:\d{4}|\d{2}))(?=\d{1,2}:\d{2})/g;
+const COMPACT_DATE_TIME_PATTERN =
+  /(\d{1,2}[./-]\d{1,2}[./-](?:\d{4}|\d{2}))(?=\d{1,2}:\d{2})/g;
 const DOCUMENT_URL_PATTERN = /(https?:\/\/[^\s]+)/gi;
-const BROKEN_DOCUMENT_URL_PATTERN = /https?:\/\/(?:(?:https?):?\/{1,2})?www\.(?:\/)?/i;
-const VETCONNECT_DOCUMENT_PATH_PATTERN = /(?:www\s*\.\s*)?vetconnectplus\s*\.\s*com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/i;
+const BROKEN_DOCUMENT_URL_PATTERN =
+  /https?:\/\/(?:(?:https?):?\/{1,2})?www\.(?:\/)?/i;
+const VETCONNECT_DOCUMENT_PATH_PATTERN =
+  /(?:www\s*\.\s*)?vetconnectplus\s*\.\s*com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/i;
 const buildVetConnectDocumentUrl = (
   diagnosticId: string,
   resultId: string,
@@ -44,7 +47,8 @@ const buildVetConnectDocumentUrl = (
   return `https://${hostname}/diagnostics/${diagnosticId}/${resultId}`;
 };
 const TIME_AND_DAYS_PATTERN = /(\d{1,2}:\d{2})\s*(\d+)\s*(ימים)/g;
-const CLINICA_LABEL_PATTERN = /(הרופא|מבצע המעקב|מעקב|סטטוס|תאריך|טיפול|אבחנה|הערות|סניף|פריטים|סה[״"']?כ):/g;
+const CLINICA_LABEL_PATTERN =
+  /(הרופא|מבצע המעקב|מעקב|סטטוס|תאריך|טיפול|אבחנה|הערות|סניף|פריטים|סה[״"']?כ):/g;
 
 const READABLE_CLINICA_LABEL_PATTERN = new RegExp(
   "(\\u05d4\\u05d9\\u05e1\\u05d8\\u05d5\\u05e8\\u05d9\\u05d4 \\u05d5\\u05e1\\u05d9\\u05d1\\u05ea \\u05d4\\u05d1\\u05d9\\u05e7\\u05d5\\u05e8|" +
@@ -68,17 +72,22 @@ const makeCellReadable = (value: string): string => {
     .replace(/(?<=[A-Za-z\u0590-\u05ff])(?=\d)/g, "\n")
     .replace(/(?<=\))(?=[A-Za-z\u0590-\u05ff])/g, "\n")
     .replace(COMPACT_DATE_TIME_PATTERN, "$1 ")
-    .replace(TIME_AND_DAYS_PATTERN, (_match, time: string, days: string, unit: string) =>
-      `${time}\n${Number(days).toLocaleString("he-IL")} ${unit}`,
+    .replace(
+      TIME_AND_DAYS_PATTERN,
+      (_match, time: string, days: string, unit: string) =>
+        `${time}\n${Number(days).toLocaleString("he-IL")} ${unit}`,
     )
-    .replace(CLINICA_LABEL_PATTERN, (label, _name, offset) =>
-      `${offset > 0 ? "\n" : ""}${label} `,
+    .replace(
+      CLINICA_LABEL_PATTERN,
+      (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
     )
-    .replace(READABLE_CLINICA_LABEL_PATTERN, (label, _name, offset) =>
-      `${offset > 0 ? "\n" : ""}${label} `,
+    .replace(
+      READABLE_CLINICA_LABEL_PATTERN,
+      (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
     )
-    .replace(/(דווח למרפא[הט]):/g, (label, _name, offset) =>
-      `${offset > 0 ? "\n" : ""}${label} `,
+    .replace(
+      /(דווח למרפא[הט]):/g,
+      (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
     )
     .replace(/([.!?])(?=\p{L})/gu, "$1\n")
     .replace(/\n{3,}/g, "\n\n")
@@ -102,10 +111,7 @@ const makeCellReadablePreservingUrls = (value: string): string => {
 };
 
 const normalizeDocumentUrls = (value: string): string => {
-  let normalized = value.replace(
-    /\b(https?)\s*:\s*\/\s*\/\s*/gi,
-    "$1://",
-  );
+  let normalized = value.replace(/\b(https?)\s*:\s*\/\s*\/\s*/gi, "$1://");
   normalized = normalized.replace(
     /\b(https?:\/\/(?:www\.)?)\/\s*(?=(?:[a-z0-9-]+\s*\.\s*)+[a-z]{2,})/gi,
     "$1",
@@ -129,9 +135,13 @@ const normalizeMarpetReportStatus = (value: string): string => {
   const normalized = value.trim().toLocaleLowerCase("he-IL");
   const isCompleted =
     !/\u05dc\u05d0\s+\u05d1\u05d5\u05e6\u05e2/u.test(normalized) &&
-    /(?:\u05d1\u05d5\u05e6\u05e2|\u05db\u05df|true|checked|[✓✔])/u.test(normalized);
+    /(?:\u05d1\u05d5\u05e6\u05e2|\u05db\u05df|true|checked|[✓✔])/u.test(
+      normalized,
+    );
 
-  return isCompleted ? "\u05d1\u05d5\u05e6\u05e2" : "\u05dc\u05d0 \u05d1\u05d5\u05e6\u05e2";
+  return isCompleted
+    ? "\u05d1\u05d5\u05e6\u05e2"
+    : "\u05dc\u05d0 \u05d1\u05d5\u05e6\u05e2";
 };
 
 const normalizeVisitRowDocuments = (row: string[]): string[] => {
@@ -145,12 +155,15 @@ const normalizeVisitRowDocuments = (row: string[]): string[] => {
     .replace(/^(?:www\.)?vetconnectplus\.com(?:\.au)?\/diagnostics\//i, "");
   const [diagnosticId, resultId] = normalizedPath.split("/");
   const documentUrl = buildVetConnectDocumentUrl(diagnosticId, resultId);
-  const preferredCellIndex = row.findIndex(
-    (cell) => /(?:\u05de\u05e1\u05de\u05da|\u05dc\u05d7\u05e5 \u05db\u05d0\u05df)/u.test(cell),
+  const preferredCellIndex = row.findIndex((cell) =>
+    /(?:\u05de\u05e1\u05de\u05da|\u05dc\u05d7\u05e5 \u05db\u05d0\u05df)/u.test(
+      cell,
+    ),
   );
-  const targetCellIndex = preferredCellIndex >= 0
-    ? preferredCellIndex
-    : row.findIndex((cell) => /https?:\/\/www\.\//i.test(cell));
+  const targetCellIndex =
+    preferredCellIndex >= 0
+      ? preferredCellIndex
+      : row.findIndex((cell) => /https?:\/\/www\.\//i.test(cell));
   let linkWasAdded = false;
 
   return row.map((cell, cellIndex) => {
@@ -160,7 +173,10 @@ const normalizeVisitRowDocuments = (row: string[]): string[] => {
     );
     normalizedCell = normalizedCell
       .replace(/(?:www\s*\.\s*)?vetconnectplus\s*\.\s*/gi, "")
-      .replace(/com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/gi, "");
+      .replace(
+        /com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/gi,
+        "",
+      );
     normalizedCell = normalizedCell.replace(
       new RegExp(BROKEN_DOCUMENT_URL_PATTERN.source, "gi"),
       () => {
@@ -216,10 +232,15 @@ const repairDocumentCell = (value: string, documentUrl?: string): string => {
   const repairedValue = value
     .replace(new RegExp(VETCONNECT_DOCUMENT_PATH_PATTERN.source, "gi"), "")
     .replace(/(?:www\s*\.\s*)?vetconnectplus\s*\.\s*/gi, "")
-    .replace(/com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/gi, "")
+    .replace(
+      /com(?:\s*\.\s*au)?\s*\/\s*diagnostics\s*\/\s*\d+\s*\/\s*[\d-]+/gi,
+      "",
+    )
     .trim();
 
-  return /(?:\u05de\u05e1\u05de\u05da|\u05dc\u05d7\u05e5 \u05db\u05d0\u05df)/u.test(value)
+  return /(?:\u05de\u05e1\u05de\u05da|\u05dc\u05d7\u05e5 \u05db\u05d0\u05df)/u.test(
+    value,
+  )
     ? `${repairedValue}\n${documentUrl}`.trim()
     : repairedValue;
 };
@@ -228,14 +249,14 @@ const getSafeDocumentHref = (value: string): string | undefined => {
   try {
     const url = new URL(value.trim());
     if (url.protocol !== "https:" && url.protocol !== "http:") return undefined;
-    if (
-      !url.hostname ||
-      /^(?:www\.?|https?|localhost)$/i.test(url.hostname)
-    ) return undefined;
+    if (!url.hostname || /^(?:www\.?|https?|localhost)$/i.test(url.hostname))
+      return undefined;
     const diagnosticMatch = url.pathname.match(
       /^\/diagnostics\/(\d+)\/([a-z0-9-]+)\/?$/i,
     );
-    const isVetConnect = /^(?:www\.)?vetconnectplus\.com(?:\.au)?$/i.test(url.hostname);
+    const isVetConnect = /^(?:www\.)?vetconnectplus\.com(?:\.au)?$/i.test(
+      url.hostname,
+    );
     if (isVetConnect) {
       if (diagnosticMatch) {
         // Keep the concrete diagnostics route (and its regional host). Sending
@@ -253,7 +274,11 @@ const getSafeDocumentHref = (value: string): string | undefined => {
         /^\/diagnostics\/(\d+)\/([a-z0-9-]+)\/?$/i,
       );
       return returnUrlMatch
-        ? buildVetConnectDocumentUrl(returnUrlMatch[1], returnUrlMatch[2], url.hostname)
+        ? buildVetConnectDocumentUrl(
+            returnUrlMatch[1],
+            returnUrlMatch[2],
+            url.hostname,
+          )
         : undefined;
     }
     return url.href;
@@ -307,10 +332,12 @@ const ReadableCellText = ({
           documentHref &&
           hasDocumentLabel &&
           getSafeDocumentHref(cleanLine) === documentHref
-        ) return null;
-              if (/^[A-Za-z\u05d0-\u05ea]$/u.test(cleanLine)) return null;
+        )
+          return null;
+        if (/^[A-Za-z\u05d0-\u05ea]$/u.test(cleanLine)) return null;
         const colonIndex = cleanLine.indexOf(":");
-        const possibleTitle = colonIndex > 0 ? cleanLine.slice(0, colonIndex).trim() : "";
+        const possibleTitle =
+          colonIndex > 0 ? cleanLine.slice(0, colonIndex).trim() : "";
         const hasFieldTitle =
           colonIndex > 0 &&
           possibleTitle.length <= 80 &&
@@ -319,20 +346,31 @@ const ReadableCellText = ({
           /\p{L}/u.test(possibleTitle);
         if (hasFieldTitle) {
           const fieldValue = cleanLine.slice(colonIndex + 1).trim();
-          const isDocumentField = /^\u05de\u05e1\u05de\u05da$/u.test(possibleTitle);
-          const displayedFieldValue = /^\u05d3\u05d5\u05d5\u05d7 \u05dc\u05de\u05e8\u05e4\u05d0[\u05d4\u05d8]$/u.test(possibleTitle)
-            ? normalizeMarpetReportStatus(fieldValue)
-            : fieldValue;
+          const isDocumentField = /^\u05de\u05e1\u05de\u05da$/u.test(
+            possibleTitle,
+          );
+          const displayedFieldValue =
+            /^\u05d3\u05d5\u05d5\u05d7 \u05dc\u05de\u05e8\u05e4\u05d0[\u05d4\u05d8]$/u.test(
+              possibleTitle,
+            )
+              ? normalizeMarpetReportStatus(fieldValue)
+              : fieldValue;
           return (
-            <span key={`${index}-${cleanLine}`} className="clinica-visits__field-row">
-              <strong className="clinica-visits__field-title">{possibleTitle}:</strong>{" "}
+            <span
+              key={`${index}-${cleanLine}`}
+              className="clinica-visits__field-row"
+            >
+              <strong className="clinica-visits__field-title">
+                {possibleTitle}:
+              </strong>{" "}
               {isDocumentField && documentHref ? (
                 <a
                   href={documentHref}
                   rel="noreferrer external"
                   className="clinica-visits__document-link"
                 >
-                  {displayedFieldValue || "\u05e4\u05ea\u05d9\u05d7\u05ea \u05de\u05e1\u05de\u05da"}
+                  {displayedFieldValue ||
+                    "\u05e4\u05ea\u05d9\u05d7\u05ea \u05de\u05e1\u05de\u05da"}
                 </a>
               ) : displayedFieldValue ? (
                 <span className="clinica-visits__field-value">
@@ -343,7 +381,10 @@ const ReadableCellText = ({
           );
         }
         return (
-          <span key={`${index}-${cleanLine}`} className="clinica-visits__field-value">
+          <span
+            key={`${index}-${cleanLine}`}
+            className="clinica-visits__field-value"
+          >
             <TextWithDocumentLinks text={cleanLine} />
           </span>
         );
@@ -395,13 +436,6 @@ const resolveVisitTable = (
   };
 };
 
-const hasStructuredVisitTable = (records: ClinicaMedicalRecord[]): boolean =>
-  records.some(
-    (record) =>
-      record.recordType === "visitDetails" &&
-      record.table?.rows.some((row) => Boolean(getRowDate(row))),
-  );
-
 type DatedVisitRow = {
   date: string;
   originalIndex: number;
@@ -411,10 +445,6 @@ type DatedVisitRow = {
 type MatchedClinicaPatient = {
   client: ClinicaClient;
   pet: ClinicaClient["pets"][number];
-};
-
-type LoadedClinicaPatient = MatchedClinicaPatient & {
-  visitsWereFetched?: boolean;
 };
 
 const normalizeText = (value?: string): string =>
@@ -475,6 +505,8 @@ export function ClinicaVisitsTable({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [reload, setReload] = useState(0);
   const [selectedDate, setSelectedDate] = useState("");
+  const [documentsOnly, setDocumentsOnly] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedRow, setExpandedRow] = useState<DatedVisitRow | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const displayedLookupKeyRef = useRef("");
@@ -482,8 +514,8 @@ export function ClinicaVisitsTable({
   useEffect(() => {
     let active = true;
     const cleanExternalPatientId = externalPatientId.trim();
-    const caseSerialPrefix = getCaseSerialPrefix(cleanExternalPatientId) ??
-      cleanExternalPatientId;
+    const caseSerialPrefix =
+      getCaseSerialPrefix(cleanExternalPatientId) ?? cleanExternalPatientId;
     const lookupKey = [
       normalizeText(cleanExternalPatientId),
       normalizeName(patientName),
@@ -502,8 +534,7 @@ export function ClinicaVisitsTable({
     }
 
     setState((current) =>
-      current.status === "ready" &&
-      displayedLookupKeyRef.current === lookupKey
+      current.status === "ready" && displayedLookupKeyRef.current === lookupKey
         ? current
         : { status: "loading" },
     );
@@ -549,9 +580,11 @@ export function ClinicaVisitsTable({
 
       if (normalizedOwnerPhone && normalizedPatientName) {
         for (const client of clients) {
-          if (normalizePhone(client.ownerPhone) !== normalizedOwnerPhone) continue;
+          if (normalizePhone(client.ownerPhone) !== normalizedOwnerPhone)
+            continue;
           const pet = client.pets.find(
-            (candidate) => normalizeName(candidate.name) === normalizedPatientName,
+            (candidate) =>
+              normalizeName(candidate.name) === normalizedPatientName,
           );
           if (pet) return { client, pet };
         }
@@ -560,35 +593,25 @@ export function ClinicaVisitsTable({
       return undefined;
     };
 
-    const loadMatchingClient = async (): Promise<LoadedClinicaPatient | undefined> => {
-      if (normalizedPatientName) {
-        const prefixClient = await getClinicaClientByCasePrefix(
-          caseSerialPrefix,
-          patientName ?? "",
-          ownerPhone,
-        ).catch(() => null);
-        if (prefixClient) {
-          const prefixMatch = findMatchingPatient([prefixClient]);
-          if (prefixMatch) return prefixMatch;
-        }
-      }
-
-      // Normal case opening is cache-only; the scheduled Clinica sync hydrates
-      // visit histories ahead of time. A retry is the explicit fallback for a
-      // case that has not reached the cache yet.
-      if (!normalizedPatientName || reload === 0) return undefined;
+    const loadMatchingClient = async (): Promise<
+      MatchedClinicaPatient | undefined
+    > => {
+      // This endpoint is cache-first: it returns an already-hydrated visit
+      // table without opening Clinica, and performs a targeted Clinica fetch
+      // when this case/pet is absent or its visit table is still missing.
       const fetchedCaseClient = await fetchClinicaVisitsForCase(
         caseSerialPrefix,
         patientName ?? "",
         ownerPhone,
+        reload > 0,
       );
       const fetchedMatch = findMatchingPatient([fetchedCaseClient]);
-      if (fetchedMatch) return { ...fetchedMatch, visitsWereFetched: true };
+      if (fetchedMatch) return fetchedMatch;
       const exactNamePet = fetchedCaseClient.pets.find(
         (pet) => normalizeName(pet.name) === normalizedPatientName,
       );
       return exactNamePet
-        ? { client: fetchedCaseClient, pet: exactNamePet, visitsWereFetched: true }
+        ? { client: fetchedCaseClient, pet: exactNamePet }
         : undefined;
     };
 
@@ -618,27 +641,6 @@ export function ClinicaVisitsTable({
             table: visitResult.table,
             syncedAt: visitResult.syncedAt,
           });
-        }
-
-        if (
-          reload > 0 &&
-          !hasStructuredVisitTable(records) &&
-          !match.visitsWereFetched
-        ) {
-          try {
-            const refreshedClient = await fetchClinicaPetVisits(client._id, matchingPet.name);
-            const refreshedPet = refreshedClient.pets.find(
-              (pet) => normalizeName(pet.name) === normalizeName(matchingPet.name),
-            );
-            records = refreshedPet
-              ? getPetMedicalRecords(refreshedClient, refreshedPet)
-              : records;
-            visitResult = resolveVisitTable(records) ?? visitResult;
-          } catch (error) {
-            // A legacy raw-text visit is still useful if refreshing the
-            // structured table temporarily fails.
-            if (!visitResult) throw error;
-          }
         }
 
         if (!visitResult) {
@@ -692,18 +694,21 @@ export function ClinicaVisitsTable({
   const table = state.status === "ready" ? state.table : null;
   const syncedAt = state.status === "ready" ? state.syncedAt : undefined;
   const columnCount = useMemo(
-    () => Math.max(
-      table?.headers.length ?? 0,
-      ...((table?.rows ?? []).map((row) => row.length)),
-    ),
+    () =>
+      Math.max(
+        table?.headers.length ?? 0,
+        ...(table?.rows ?? []).map((row) => row.length),
+      ),
     [table],
   );
   const tableDocumentUrl = useMemo(() => {
-    const documentUrls = Array.from(new Set(
-      (table?.rows ?? [])
-        .map((row) => extractVetConnectDocumentUrl(row))
-        .filter((url): url is string => Boolean(url)),
-    ));
+    const documentUrls = Array.from(
+      new Set(
+        (table?.rows ?? [])
+          .map((row) => extractVetConnectDocumentUrl(row))
+          .filter((url): url is string => Boolean(url)),
+      ),
+    );
     return documentUrls.length === 1 ? documentUrls[0] : undefined;
   }, [table]);
   const datedRows = useMemo<DatedVisitRow[]>(() => {
@@ -714,20 +719,29 @@ export function ClinicaVisitsTable({
       return { date: effectiveDate, originalIndex, row };
     });
     const firstDate = rows.find(({ date }) => date)?.date ?? "";
-    return rows.map((item) => item.date ? item : { ...item, date: firstDate });
+    return rows.map((item) =>
+      item.date ? item : { ...item, date: firstDate },
+    );
   }, [table]);
   const availableDates = useMemo(
-    () => Array.from(new Set(datedRows.map(({ date }) => date).filter(Boolean))),
+    () =>
+      Array.from(new Set(datedRows.map(({ date }) => date).filter(Boolean))),
     [datedRows],
   );
   const filteredRows = useMemo(
-    () => selectedDate
-      ? datedRows.filter(({ date }) => date === selectedDate)
-      : datedRows,
-    [datedRows, selectedDate],
+    () =>
+      datedRows.filter(
+        ({ date, row }) =>
+          (!selectedDate || date === selectedDate) &&
+          (!documentsOnly || Boolean(extractVetConnectDocumentUrl(row))),
+      ),
+    [datedRows, documentsOnly, selectedDate],
   );
   const pageCount = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
-  const visibleRows = filteredRows.slice(page * pageSize, (page + 1) * pageSize);
+  const visibleRows = filteredRows.slice(
+    page * pageSize,
+    (page + 1) * pageSize,
+  );
   const showPagination = filteredRows.length > DEFAULT_PAGE_SIZE;
 
   const changePage = (nextPage: number) => {
@@ -737,15 +751,23 @@ export function ClinicaVisitsTable({
 
   if (state.status === "idle") {
     return (
-      <section className="clinica-visits clinica-visits--status" dir="rtl" aria-live="polite">
-        <span>ממתין לפרטי התיק כדי לטעון ביקורים מקליניקה…</span>
+      <section
+        className="clinica-visits clinica-visits--status"
+        dir="rtl"
+        aria-live="polite"
+      >
+        <span>ממתין לפרטי התיק כדי לטעון ביקורים מהקליניקה…</span>
       </section>
     );
   }
 
   if (state.status === "not-found") {
     return (
-      <section className="clinica-visits clinica-visits--status" dir="rtl" role="status">
+      <section
+        className="clinica-visits clinica-visits--status"
+        dir="rtl"
+        role="status"
+      >
         <span>לא נמצאה היסטוריית ביקורים עבור המטופל בקליניקה.</span>
         <button type="button" onClick={() => setReload((value) => value + 1)}>
           נסו שוב
@@ -756,17 +778,25 @@ export function ClinicaVisitsTable({
 
   if (state.status === "loading") {
     return (
-      <section className="clinica-visits clinica-visits--status" dir="rtl" aria-live="polite">
+      <section
+        className="clinica-visits clinica-visits--status"
+        dir="rtl"
+        aria-live="polite"
+      >
         <span className="clinica-visits__loader" aria-hidden="true" />
-        טוען היסטוריית ביקורים מקליניקה…
+        טוען היסטוריית ביקורים מהקליניקה…
       </section>
     );
   }
 
   if (state.status === "error") {
     return (
-      <section className="clinica-visits clinica-visits--status" dir="rtl" role="status">
-        <span>לא ניתן לטעון כרגע את ביקורי קליניקה.</span>
+      <section
+        className="clinica-visits clinica-visits--status"
+        dir="rtl"
+        role="status"
+      >
+        <span>לא ניתן לטעון כרגע את ביקורי הקליניקה.</span>
         <button type="button" onClick={() => setReload((value) => value + 1)}>
           נסו שוב
         </button>
@@ -777,120 +807,206 @@ export function ClinicaVisitsTable({
   if (!table || columnCount === 0) return null;
 
   return (
-    <section className="clinica-visits" dir="rtl" aria-labelledby="clinica-visits-title">
+    <section
+      className="clinica-visits"
+      dir="rtl"
+      aria-labelledby="clinica-visits-title"
+    >
       <header className="clinica-visits__header">
         <div>
-          <h3 id="clinica-visits-title"><FaHospital aria-hidden="true" /> ביקורים קודמים בקליניקה</h3>
-          <p>המידע מוצג כפי שנקלט מטבלת הביקורים של קליניקה.</p>
+          <h3 id="clinica-visits-title">
+            <FaHospital aria-hidden="true" /> ביקורים קודמים בקליניקה
+          </h3>
+          <p>המידע מוצג כפי שנקלט מטבלת הביקורים של הקליניקה.</p>
         </div>
-        <div className="clinica-visits__meta">
-          <strong>{table.rows.length}</strong> ביקורים
-          {syncedAt && (
-            <span>סנכרון אחרון: {new Date(syncedAt).toLocaleDateString("he-IL")}</span>
-          )}
+        <div className="clinica-visits__header-actions">
+          <div className="clinica-visits__meta">
+            <strong>{table.rows.length}</strong> ביקורים
+            {syncedAt && (
+              <span>
+                סנכרון אחרון: {new Date(syncedAt).toLocaleDateString("he-IL")}
+              </span>
+            )}
+          </div>
+          <div className="clinica-visits__buttons">
+            <button
+              type="button"
+              onClick={() => setReload((value) => value + 1)}
+              title="טעינה מחדש מהקליניקה"
+            >
+              <FaSyncAlt aria-hidden="true" /> טעינה מהקליניקה
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsCollapsed((value) => !value)}
+              aria-expanded={!isCollapsed}
+              aria-controls="clinica-visits-content"
+            >
+              {isCollapsed ? (
+                <FaChevronDown aria-hidden="true" />
+              ) : (
+                <FaChevronUp aria-hidden="true" />
+              )}
+              {isCollapsed ? "הצגה" : "מזעור"}
+            </button>
+          </div>
         </div>
       </header>
 
-      {availableDates.length > 0 && (
-        <div className="clinica-visits__filters">
-          <label htmlFor="clinica-visits-date">מעבר לתאריך</label>
-          <select
-            id="clinica-visits-date"
-            value={selectedDate}
-            onChange={(event) => {
-              setSelectedDate(event.target.value);
-              setPage(0);
-            }}
+      {!isCollapsed && (
+        <div id="clinica-visits-content">
+          <div className="clinica-visits__filters">
+            {availableDates.length > 0 && (
+              <>
+                <label htmlFor="clinica-visits-date">מעבר לתאריך</label>
+                <select
+                  id="clinica-visits-date"
+                  value={selectedDate}
+                  onChange={(event) => {
+                    setSelectedDate(event.target.value);
+                    setPage(0);
+                  }}
+                >
+                  <option value="">כל התאריכים</option>
+                  {availableDates.map((date) => (
+                    <option key={date} value={date}>
+                      {date}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+            <label className="clinica-visits__document-filter">
+              <input
+                type="checkbox"
+                checked={documentsOnly}
+                onChange={(event) => {
+                  setDocumentsOnly(event.target.checked);
+                  setPage(0);
+                }}
+              />
+              <FaFileAlt aria-hidden="true" /> מסמכים בלבד
+            </label>
+            {(selectedDate || documentsOnly) && (
+              <span>{filteredRows.length} רשומות תואמות</span>
+            )}
+          </div>
+
+          <div
+            ref={scrollRef}
+            className="clinica-visits__scroll"
+            tabIndex={0}
+            role="region"
+            aria-label="טבלת ביקורים קודמים; ניתן לגלול לצדדים"
           >
-            <option value="">כל התאריכים</option>
-            {availableDates.map((date) => (
-              <option key={date} value={date}>{date}</option>
-            ))}
-          </select>
-          {selectedDate && <span>{filteredRows.length} רשומות בתאריך שנבחר</span>}
+            <table>
+              <thead>
+                <tr>
+                  {Array.from({ length: columnCount }, (_, index) => (
+                    <th key={index} scope="col">
+                      {table.headers[index] ?? ""}
+                    </th>
+                  ))}
+                  <th scope="col" className="clinica-visits__action-column">
+                    פרטים
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleRows.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={columnCount + 1}
+                      className="clinica-visits__empty"
+                    >
+                      לא נמצאו רשומות שמתאימות לסינון.
+                    </td>
+                  </tr>
+                )}
+                {visibleRows.map((visitRow) => {
+                  const { date, originalIndex, row } = visitRow;
+                  const rowDocumentUrl =
+                    extractVetConnectDocumentUrl(row) ?? tableDocumentUrl;
+                  return (
+                    <tr key={originalIndex}>
+                      {Array.from({ length: columnCount }, (_, cellIndex) => (
+                        <td key={cellIndex}>
+                          <span className="clinica-visits__cell-content">
+                            <ReadableCellText
+                              documentUrl={rowDocumentUrl}
+                              value={row[cellIndex] ?? ""}
+                            />
+                          </span>
+                        </td>
+                      ))}
+                      <td className="clinica-visits__action-column">
+                        <button
+                          type="button"
+                          className="clinica-visits__open"
+                          onClick={() => setExpandedRow(visitRow)}
+                          aria-label={`פתיחת פרטי ביקור ${date}`.trim()}
+                        >
+                          <FaEye aria-hidden="true" /> צפייה
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {showPagination && (
+            <footer
+              className="clinica-visits__pagination"
+              aria-label="דפדוף בביקורים"
+            >
+              <label>
+                שורות בעמוד
+                <select
+                  value={pageSize}
+                  onChange={(event) => {
+                    setPageSize(Number(event.target.value));
+                    setPage(0);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </label>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => changePage(page - 1)}
+                  disabled={page === 0}
+                  aria-label="העמוד הקודם"
+                >
+                  <FaChevronRight aria-hidden="true" /> הקודם
+                </button>
+                <span aria-live="polite">
+                  עמוד {page + 1} מתוך {pageCount}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => changePage(page + 1)}
+                  disabled={page + 1 >= pageCount}
+                  aria-label="העמוד הבא"
+                >
+                  הבא <FaChevronLeft aria-hidden="true" />
+                </button>
+              </div>
+            </footer>
+          )}
         </div>
       )}
 
-      <div
-        ref={scrollRef}
-        className="clinica-visits__scroll"
-        tabIndex={0}
-        role="region"
-        aria-label="טבלת ביקורים קודמים; ניתן לגלול לצדדים"
-      >
-        <table>
-          <thead>
-            <tr>
-              {Array.from({ length: columnCount }, (_, index) => (
-                <th key={index} scope="col">{table.headers[index] ?? ""}</th>
-              ))}
-              <th scope="col" className="clinica-visits__action-column">פרטים</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleRows.map((visitRow) => {
-              const { date, originalIndex, row } = visitRow;
-              const rowDocumentUrl =
-                extractVetConnectDocumentUrl(row) ?? tableDocumentUrl;
-              return (
-              <tr key={originalIndex}>
-                {Array.from({ length: columnCount }, (_, cellIndex) => (
-                  <td key={cellIndex}>
-                    <span className="clinica-visits__cell-content">
-                      <ReadableCellText
-                        documentUrl={rowDocumentUrl}
-                        value={row[cellIndex] ?? ""}
-                      />
-                    </span>
-                  </td>
-                ))}
-                <td className="clinica-visits__action-column">
-                  <button
-                    type="button"
-                    className="clinica-visits__open"
-                    onClick={() => setExpandedRow(visitRow)}
-                    aria-label={`פתיחת פרטי ביקור ${date}`.trim()}
-                  >
-                    <FaEye aria-hidden="true" /> צפייה
-                  </button>
-                </td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {showPagination && (
-        <footer className="clinica-visits__pagination" aria-label="דפדוף בביקורים">
-          <label>
-            שורות בעמוד
-            <select
-              value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value));
-                setPage(0);
-              }}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </label>
-          <div>
-            <button type="button" onClick={() => changePage(page - 1)} disabled={page === 0} aria-label="העמוד הקודם">
-              <FaChevronRight aria-hidden="true" /> הקודם
-            </button>
-            <span aria-live="polite">עמוד {page + 1} מתוך {pageCount}</span>
-            <button type="button" onClick={() => changePage(page + 1)} disabled={page + 1 >= pageCount} aria-label="העמוד הבא">
-              הבא <FaChevronLeft aria-hidden="true" />
-            </button>
-          </div>
-        </footer>
-      )}
-
       {expandedRow && (
-        <div className="clinica-visit-modal" role="presentation" onMouseDown={() => setExpandedRow(null)}>
+        <div
+          className="clinica-visit-modal"
+          role="presentation"
+          onMouseDown={() => setExpandedRow(null)}
+        >
           <section
             role="dialog"
             aria-modal="true"
@@ -903,7 +1019,11 @@ export function ClinicaVisitsTable({
                 <h3 id="clinica-visit-modal-title">פרטי ביקור</h3>
                 {expandedRow.date && <span>{expandedRow.date}</span>}
               </div>
-              <button type="button" onClick={() => setExpandedRow(null)} aria-label="סגירת פרטי הביקור">
+              <button
+                type="button"
+                onClick={() => setExpandedRow(null)}
+                aria-label="סגירת פרטי הביקור"
+              >
                 <FaTimes aria-hidden="true" />
               </button>
             </header>
@@ -913,7 +1033,9 @@ export function ClinicaVisitsTable({
                 if (!value.trim()) return null;
                 return (
                   <div key={index} className="clinica-visit-modal__field">
-                    <strong>{table.headers[index] || `פרט ${index + 1}`}</strong>
+                    <strong>
+                      {table.headers[index] || `פרט ${index + 1}`}
+                    </strong>
                     <p>
                       <ReadableCellText
                         documentUrl={

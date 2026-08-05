@@ -145,12 +145,13 @@ export const fetchClinicaVisitsForCase = (
   casePrefix: string,
   petName: string,
   ownerPhone?: string,
+  forceRefresh = false,
 ) =>
   requestWithSchema(
     {
       method: HTTP_METHODS.POST,
       url: "/clinica/clients/visits/fetch-by-case",
-      data: { casePrefix, petName, ownerPhone },
+      data: { casePrefix, petName, ownerPhone, forceRefresh },
     },
     ClinicaClientSchema,
   );

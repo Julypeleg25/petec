@@ -17,7 +17,7 @@ export const CLINICA_ROUTES = {
 } as const;
 
 export const CLINICA_TEXTS = {
-  pageTitle: "לקוחות מקליניקה אונליין",
+  pageTitle: "לקוחות מהקליניקה אונליין",
   searchPlaceholder: "חיפוש לפי מספר תיק, שם בעלים, טלפון או שם חיה",
   manualSync: "סנכרון ידני",
   syncing: "מסנכרן...",
@@ -31,8 +31,9 @@ export const CLINICA_TEXTS = {
   openingCase: "טוען פרטים...",
   hydratePatientError: "לא הצלחנו לטעון את פרטי החיה מהקליניקה. נסו שוב.",
   noClients: "לא נמצאו לקוחות",
-  prefillSearchTitle: "חיפוש מקליניקה אונליין",
-  prefillSearchDescription: "אפשר לחפש לפי מספר תיק, שם חיה או שם בעלים ולמלא את הטופס מהמידע שסונכרן.",
+  prefillSearchTitle: "חיפוש מהקליניקה אונליין",
+  prefillSearchDescription:
+    "אפשר לחפש לפי מספר תיק, שם חיה או שם בעלים ולמלא את הטופס מהמידע שסונכרן.",
   prefillSearchPlaceholder: "חיפוש לפי מספר תיק / שם חיה / שם בעלים",
   prefillSearchLoading: "מחפש...",
   prefillSearchEmpty: "לא נמצאו התאמות",
@@ -44,7 +45,7 @@ export const CLINICA_TEXTS = {
   choosePetTitle: "בחירת חיה לפתיחת תיק",
   choosePetDescription: "ללקוח הזה יש כמה חיות. בחרי עבור מי לפתוח תיק.",
   cancel: "ביטול",
-  prefillCommentsTitle: "מידע שיובא מקליניקה אונליין",
+  prefillCommentsTitle: "מידע שיובא מהקליניקה אונליין",
   prefillMedicalRecordsTitle: "רשומות רפואיות מהקליניקה",
   prefillCommentLabels: {
     clinicaCaseId: "מספר תיק קליניקה",

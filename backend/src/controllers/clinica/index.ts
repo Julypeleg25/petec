@@ -139,6 +139,7 @@ const fetchCaseVisits = async (
       String(req.body?.casePrefix ?? ""),
       String(req.body?.petName ?? ""),
       String(req.body?.ownerPhone ?? ""),
+      req.body?.forceRefresh === true,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {
