@@ -27,7 +27,7 @@
   font-size: 1.08rem;
 }
 
-.clinica-visits h3 svg { color: #2f758f; }
+.clinica-visits h3 svg { width: 1.25rem; height: 1.25rem; color: #526475; }
 .clinica-visits__header p { margin: 0.3rem 0 0; color: #667585; font-size: 0.88rem; }
 
 .clinica-visits__meta {
@@ -55,14 +55,15 @@
   gap: 0.35rem;
   min-height: 2.3rem;
   padding: 0.4rem 0.7rem;
-  border: 1px solid #b9c7d3;
-  border-radius: 0.4rem;
+  border: 1px solid #c5ced6;
+  border-radius: 6px;
   background: #fff;
-  color: #27677e;
+  color: #344b5b;
   cursor: pointer;
   white-space: nowrap;
 }
-.clinica-visits__buttons button:hover { border-color: #2f758f; background: #edf7fa; }
+.clinica-visits__buttons button svg { width: 1.15rem; height: 1.15rem; }
+.clinica-visits__buttons button:hover { border-color: #8796a3; background: #f3f6f8; }
 .clinica-visits__buttons button:disabled { opacity: 0.6; cursor: wait; }
 
 .clinica-visits__filters {
@@ -88,7 +89,7 @@
   cursor: pointer;
 }
 .clinica-visits__document-filter input { width: 1rem; height: 1rem; }
-.clinica-visits__document-filter svg { color: #2f758f; }
+.clinica-visits__document-filter svg { width: 1.1rem; height: 1.1rem; color: #526475; }
 
 .clinica-visits__scroll {
   max-height: 65vh;
@@ -163,8 +164,9 @@
 .clinica-visits td.clinica-visits__empty { width: auto; padding: 2rem; color: #667585; text-align: center; }
 
 .clinica-visits .clinica-visits__action-column { min-width: 6.5rem; width: 6.5rem; text-align: center; }
-.clinica-visits__open { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid #2f758f; border-radius: 0.4rem; padding: 0.4rem 0.65rem; background: #fff; color: #27677e; cursor: pointer; white-space: nowrap; }
-.clinica-visits__open:hover { background: #edf7fa; }
+.clinica-visits__open { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid #c5ced6; border-radius: 6px; padding: 0.4rem 0.65rem; background: #fff; color: #344b5b; cursor: pointer; white-space: nowrap; }
+.clinica-visits__open svg { width: 1.1rem; height: 1.1rem; }
+.clinica-visits__open:hover { border-color: #8796a3; background: #f3f6f8; }
 
 .clinica-visits__pagination {
   display: flex;
@@ -204,7 +206,6 @@
 }
 
 .clinica-visits--status button { border: 1px solid #2f758f; border-radius: 0.4rem; padding: 0.4rem 0.8rem; background: #fff; color: #27677e; cursor: pointer; }
-.clinica-visits__loader { width: 1.15rem; height: 1.15rem; border: 2px solid #c6d5df; border-top-color: #2f758f; border-radius: 50%; animation: clinica-visits-spin 0.8s linear infinite; }
 
 .clinica-visit-modal { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 1rem; background: rgb(15 28 38 / 60%); }
 .clinica-visit-modal__content { width: min(46rem, 100%); max-height: min(85vh, 52rem); overflow: hidden; border-radius: 0.8rem; background: #fff; box-shadow: 0 20px 60px rgb(0 0 0 / 28%); }
@@ -220,7 +221,6 @@
 .clinica-visit-modal__field .clinica-visits__field-title { display: inline; margin: 0; }
 .clinica-visit-modal__field p { margin: 0; color: #263746; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
 
-@keyframes clinica-visits-spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 650px) {
   .clinica-visits__header,
@@ -232,8 +232,4 @@
   .clinica-visits__pagination > div { justify-content: space-between; }
   .clinica-visits th,
   .clinica-visits td { min-width: 7.5rem; padding: 0.65rem; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .clinica-visits__loader { animation-duration: 1.6s; }
 }

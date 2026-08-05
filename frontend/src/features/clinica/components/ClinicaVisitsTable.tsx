@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCaseSerialPrefix } from "@petec/shared";
+import { CircularProgress } from "@mui/material";
 import {
-  FaChevronLeft,
-  FaChevronRight,
-  FaChevronDown,
-  FaChevronUp,
-  FaEye,
-  FaFileAlt,
-  FaHospital,
-  FaSyncAlt,
-  FaTimes,
-} from "react-icons/fa";
+  CalendarMonthOutlined,
+  ChevronLeft,
+  ChevronRight,
+  Close,
+  DescriptionOutlined,
+  ExpandLess,
+  ExpandMore,
+  Refresh,
+  VisibilityOutlined,
+} from "@mui/icons-material";
 import { fetchClinicaVisitsForCase } from "../api/clinica.api";
 import type {
   ClinicaClient,
@@ -787,8 +788,8 @@ export function ClinicaVisitsTable({
         dir="rtl"
         aria-live="polite"
       >
-        <span className="clinica-visits__loader" aria-hidden="true" />
-        טוען היסטוריית ביקורים מהקליניקה…
+        <CircularProgress size={18} thickness={4} aria-hidden="true" />
+        מביא את הביקורים מהקליניקה. זה עשוי לקחת רגע.
       </section>
     );
   }
@@ -819,9 +820,8 @@ export function ClinicaVisitsTable({
       <header className="clinica-visits__header">
         <div>
           <h3 id="clinica-visits-title">
-            <FaHospital aria-hidden="true" /> ביקורים קודמים בקליניקה
+            <CalendarMonthOutlined aria-hidden="true" /> ביקורים קודמים בקליניקה
           </h3>
-          <p>המידע מוצג כפי שנקלט מטבלת הביקורים של הקליניקה.</p>
         </div>
         <div className="clinica-visits__header-actions">
           <div className="clinica-visits__meta">
@@ -845,8 +845,8 @@ export function ClinicaVisitsTable({
               }}
               title="טעינה מחדש מהקליניקה"
             >
-              <FaSyncAlt aria-hidden="true" />
-              {isRefreshing ? "טוען מהקליניקה..." : "טעינה מהקליניקה"}
+              <Refresh aria-hidden="true" />
+              {isRefreshing ? "מעדכן..." : "טעינה מהקליניקה"}
             </button>
             <button
               type="button"
@@ -855,9 +855,9 @@ export function ClinicaVisitsTable({
               aria-controls="clinica-visits-content"
             >
               {isCollapsed ? (
-                <FaChevronDown aria-hidden="true" />
+                <ExpandMore aria-hidden="true" />
               ) : (
-                <FaChevronUp aria-hidden="true" />
+                <ExpandLess aria-hidden="true" />
               )}
               {isCollapsed ? "הצגה" : "מזעור"}
             </button>
@@ -897,7 +897,7 @@ export function ClinicaVisitsTable({
                   setPage(0);
                 }}
               />
-              <FaFileAlt aria-hidden="true" /> מסמכים בלבד
+              <DescriptionOutlined aria-hidden="true" /> מסמכים בלבד
             </label>
             {(selectedDate || documentsOnly) && (
               <span>{filteredRows.length} רשומות תואמות</span>
@@ -958,7 +958,7 @@ export function ClinicaVisitsTable({
                           onClick={() => setExpandedRow(visitRow)}
                           aria-label={`פתיחת פרטי ביקור ${date}`.trim()}
                         >
-                          <FaEye aria-hidden="true" /> צפייה
+                          <VisibilityOutlined aria-hidden="true" /> צפייה
                         </button>
                       </td>
                     </tr>
@@ -994,7 +994,7 @@ export function ClinicaVisitsTable({
                   disabled={page === 0}
                   aria-label="העמוד הקודם"
                 >
-                  <FaChevronRight aria-hidden="true" /> הקודם
+                  <ChevronRight aria-hidden="true" /> הקודם
                 </button>
                 <span aria-live="polite">
                   עמוד {page + 1} מתוך {pageCount}
@@ -1005,7 +1005,7 @@ export function ClinicaVisitsTable({
                   disabled={page + 1 >= pageCount}
                   aria-label="העמוד הבא"
                 >
-                  הבא <FaChevronLeft aria-hidden="true" />
+                  הבא <ChevronLeft aria-hidden="true" />
                 </button>
               </div>
             </footer>
@@ -1036,7 +1036,7 @@ export function ClinicaVisitsTable({
                 onClick={() => setExpandedRow(null)}
                 aria-label="סגירת פרטי הביקור"
               >
-                <FaTimes aria-hidden="true" />
+                <Close aria-hidden="true" />
               </button>
             </header>
             <div className="clinica-visit-modal__body">
