@@ -162,6 +162,72 @@ const validateClinicaSyncEnv = (): void => {
 const normalizeValue = (value?: string): string =>
   value?.trim().replace(/\s+/g, " ") ?? "";
 
+const looksLikeAddress = (value: string): boolean => {
+  const normalized = normalizeValue(value);
+  return (
+    /\d/.test(normalized) ||
+    /\([^)]*(?:\u05d4\u05d0\u05d5\u05e1|\u05de\u05e8\u05db\u05d6|\u05e1\u05e0\u05d9\u05e3)[^)]*\)/u.test(normalized) ||
+    /(?:\u05e8\u05d7(?:\u05d5\u05d1)?|\u05e9\u05d3(?:\u05e8\u05d5\u05ea)?|\u05ea\.?\u05d3\.?|\u05de\u05d9\u05e7\u05d5\u05d3|street|road|avenue|address)/iu.test(normalized)
+  );
+};
+
+const isPlausibleIdentityName = (value: string): boolean => {
+  const normalized = normalizeValue(value);
+  return Boolean(normalized) &&
+    normalized.length <= 80 &&
+    !looksLikeAddress(normalized) &&
+    !/:$/.test(normalized) &&
+    !/(?:\u05e1\u05d9\u05e0\u05d5\u05df|\u05d8\u05d5\u05d5\u05d7\s+\u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd|\u05d1\u05d7\u05e8\s+\u05d7\u05d9\u05d9\u05ea\s+\u05de\u05d7\u05de\u05d3)/u.test(normalized) &&
+    !/@|https?:|\b(?:tel|phone)\b/iu.test(normalized);
+};
+
+const getRecordCaseId = (rawText: string): string =>
+  normalizeValue(
+    rawText.match(/\u05ea\u05d9\u05e7\s+\u05dc\u05e7\u05d5\u05d7\s+(\d+)/u)?.[1],
+  );
+
+const getMedicalRecordsForItem = (
+  item: ImportedClinicaAggregate,
+) => {
+  const expectedCaseId = normalizeValue(item.patient.externalClientId);
+  if (!expectedCaseId) return item.medicalRecords;
+  return item.medicalRecords.filter((record) => {
+    const recordCaseId = getRecordCaseId(record.rawText);
+    return !recordCaseId || recordCaseId === expectedCaseId;
+  });
+};
+
+const extractOwnerNameFromRecords = (
+  item: ImportedClinicaAggregate,
+): string => {
+  for (const record of getMedicalRecordsForItem(item)) {
+    const lines = record.rawText
+      .split(/\r?\n/)
+      .map((line) => normalizeValue(line))
+      .filter(Boolean);
+    const expectedCaseId = normalizeValue(item.patient.externalClientId);
+    const caseLineIndex = lines.findIndex((line) =>
+      new RegExp(`\\u05ea\\u05d9\\u05e7\\s+\\u05dc\\u05e7\\u05d5\\u05d7\\s+${expectedCaseId || "\\d+"}`).test(line),
+    );
+    const candidate = caseLineIndex >= 0 ? lines[caseLineIndex + 1] ?? "" : "";
+    if (isPlausibleIdentityName(candidate)) return candidate;
+  }
+  return "";
+};
+
+const extractPetNameFromRecords = (
+  item: ImportedClinicaAggregate,
+): string => {
+  for (const record of getMedicalRecordsForItem(item)) {
+    const match = record.rawText.match(/\u05e9\u05dd\s+\u05d4\u05d7\u05d9\u05d4\s*:\s*([^\r\n\t]+)/u);
+    const candidate = normalizeValue(match?.[1]);
+    if (candidate && candidate !== "*" && isPlausibleIdentityName(candidate)) {
+      return candidate;
+    }
+  }
+  return "";
+};
+
 const normalizePhone = (value?: string): string => {
   const digits = value?.replace(/\D/g, "") ?? "";
 
@@ -288,7 +354,7 @@ const extractWeightKg = (text: string): number | undefined => {
 const extractPetDetailsFromRecords = (
   item: ImportedClinicaAggregate,
 ): Pick<ClinicaClientPet, "weightKg"> => {
-  const rawText = item.medicalRecords
+  const rawText = getMedicalRecordsForItem(item)
     .map((record) => record.rawText)
     .join("\n");
 
@@ -305,11 +371,19 @@ const mapPatientToPet = (
   item: ImportedClinicaAggregate,
 ): ClinicaClientPet | null => {
   const { patient } = item;
-  const petName = normalizeValue(patient.name);
+  const rawPetName = normalizeValue(patient.name);
   const ownerName = normalizeValue(patient.owner.name);
+  const petName =
+    isPlausibleIdentityName(rawPetName) &&
+    normalizeMatchText(rawPetName) !== normalizeMatchText(ownerName)
+      ? rawPetName
+      : extractPetNameFromRecords(item);
   const fallbackDetails = extractPetDetailsFromRecords(item);
 
-  if (!petName || petName.toLocaleLowerCase("he-IL") === ownerName.toLocaleLowerCase("he-IL")) {
+  if (
+    !isPlausibleIdentityName(petName) ||
+    normalizeMatchText(petName) === normalizeMatchText(ownerName)
+  ) {
     return null;
   }
 
@@ -326,7 +400,7 @@ const mapPatientToPet = (
     insurance: sanitizeTextDetail(patient.insurance),
     treatingDoctor: sanitizeTextDetail(patient.treatingDoctor),
     referringDoctor: sanitizeTextDetail(patient.referringDoctor),
-    medicalRecords: item.medicalRecords,
+    medicalRecords: getMedicalRecordsForItem(item),
   };
 };
 
@@ -336,7 +410,9 @@ export const mapAggregatesToClients = (
   const groupedClients = new Map<string, IClinicaClient>();
 
   for (const item of aggregates) {
-    const ownerName = normalizeValue(item.patient.owner.name);
+    const rawOwnerName = normalizeValue(item.patient.owner.name);
+    const ownerName = extractOwnerNameFromRecords(item) ||
+      (isPlausibleIdentityName(rawOwnerName) ? rawOwnerName : "");
     const ownerPhone = normalizePhone(item.patient.owner.phone);
     // externalPatientId on the client document is the Clinica client/case id.
     // A pet id must never be promoted into this field: doing so breaks normal
@@ -672,8 +748,7 @@ const persistMappedClientUnlocked = async (
 ): Promise<{ outcome: PersistClientOutcome; client: ClinicaClientDocument | null }> => {
   if (
     !client.ownerName ||
-    (!client.ownerPhone && !client.externalPatientId) ||
-    client.pets.length === 0
+    (!client.ownerPhone && !client.externalPatientId)
   ) {
     return { outcome: "skipped", client: null };
   }
@@ -695,6 +770,7 @@ const persistMappedClientUnlocked = async (
     const latestClientData = latestClient.toObject();
     const existingPets = (latestClientData.pets as ClinicaClientPet[]).filter(
       (pet: ClinicaClientPet) =>
+        isPlausibleIdentityName(pet.name) &&
         normalizeMatchText(pet.name) !== normalizeMatchText(client.ownerName),
     );
 
@@ -783,7 +859,10 @@ class ClinicaClientService {
 
     // syncClients sets isSyncRunning before its first await, so a second
     // request cannot start another browser while this promise is detached.
-    void this.syncClients({ includeMedicalRecords: true }).catch(() => undefined);
+    // Manual sync is intentionally directory-only so users get fresh cases
+    // and pets quickly. The daily scheduled sync is responsible for eagerly
+    // hydrating every pet's visit history.
+    void this.syncClients({ includeMedicalRecords: false }).catch(() => undefined);
     return this.getSyncStatus();
   }
 
@@ -1020,6 +1099,7 @@ class ClinicaClientService {
     casePrefix: string,
     petName: string,
     ownerPhone?: string,
+    forceRefresh = false,
   ) {
     const masterCaseId =
       normalizeValue(casePrefix).split(/[-\u2013\u2014]/)[0]?.trim() ?? "";
@@ -1063,6 +1143,7 @@ class ClinicaClientService {
     return this.fetchMissingVisitDetails(
       matchedClient._id.toString(),
       petName,
+      forceRefresh,
     );
   }
 

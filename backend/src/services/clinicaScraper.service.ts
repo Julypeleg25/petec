@@ -309,6 +309,36 @@ export class ClinicaScraperService {
     };
   };
 
+  mapDirectoryClientAggregate = (
+    client: ClinicaDirectoryClientPayload,
+  ): ImportedClinicaAggregate | null => {
+    const ownerName = [client.FirstName, client.LastName]
+      .map((value) => String(value ?? "").replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join(" ");
+    const externalClientId = String(client.recordID ?? "").trim();
+    const ownerPhone = this.extractPhone([
+      client.CellPhone ?? "",
+      client.Phone ?? "",
+      client.Phone2 ?? "",
+      client.CellPhone2 ?? "",
+      client.CellPhone3 ?? "",
+    ]);
+
+    if (!ownerName || (!externalClientId && !ownerPhone)) return null;
+
+    return {
+      patient: {
+        externalClientId: externalClientId || undefined,
+        name: "",
+        owner: { name: ownerName, phone: ownerPhone },
+        treatingDoctor: String(client.TreatingTherapist ?? "").trim() || undefined,
+        referringDoctor: String(client.Reffer ?? "").trim() || undefined,
+      },
+      medicalRecords: [],
+    };
+  };
+
   scrapeClientDirectory = async (
     page: Page,
   ): Promise<ImportedClinicaAggregate[]> => {
@@ -356,10 +386,16 @@ export class ClinicaScraperService {
           continue;
         }
 
-        pets.forEach((pet) => {
+        const clientAggregates = pets.flatMap((pet) => {
           const aggregate = this.mapDirectoryPetAggregate(client, pet);
-          if (aggregate) aggregates.push(aggregate);
+          return aggregate ? [aggregate] : [];
         });
+        if (clientAggregates.length > 0) {
+          aggregates.push(...clientAggregates);
+        } else {
+          const clientOnlyAggregate = this.mapDirectoryClientAggregate(client);
+          if (clientOnlyAggregate) aggregates.push(clientOnlyAggregate);
+        }
       }
     };
 
@@ -582,7 +618,8 @@ export class ClinicaScraperService {
         return directoryItems;
       }
 
-      const tasks = directoryItems.map(({ patient }) => ({
+      const clientOnlyItems = directoryItems.filter(({ patient }) => !patient.name);
+      const tasks = directoryItems.filter(({ patient }) => Boolean(patient.name)).map(({ patient }) => ({
         petName: patient.name,
         petIndex: 0,
         row: {
@@ -714,7 +751,7 @@ export class ClinicaScraperService {
         importedCount: results.length,
       });
 
-      return this.removeDuplicates(results);
+      return this.removeDuplicates([...clientOnlyItems, ...results]);
     } finally {
       await context.close().catch(() => undefined);
     }
@@ -2287,6 +2324,16 @@ export class ClinicaScraperService {
     }
 
     if (name.length > 40) {
+      return false;
+    }
+
+    // Clinica occasionally returns the address/branch label in GetPetsNames.
+    // Never treat an address-like directory value as an animal.
+    if (
+      /\d/.test(name) ||
+      /\([^)]*(?:\u05d4\u05d0\u05d5\u05e1|\u05de\u05e8\u05db\u05d6|\u05e1\u05e0\u05d9\u05e3)[^)]*\)/u.test(name) ||
+      /(?:\u05e8\u05d7(?:\u05d5\u05d1)?|\u05e9\u05d3(?:\u05e8\u05d5\u05ea)?|\u05de\u05d9\u05e7\u05d5\u05d3|street|road|avenue|address)/iu.test(name)
+    ) {
       return false;
     }
 

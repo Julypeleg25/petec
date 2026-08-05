@@ -41,4 +41,28 @@ describe("Clinica scraper parsing", () => {
       petNames: ["Rex", "Luna"],
     });
   });
+
+  it("rejects an address returned as a pet name", () => {
+    expect(scraper.isValidPetName("סיטי 13 אשקלון (האוס- מרכז)")).toBe(false);
+    expect(scraper.isValidPetName("כפר מרדכי (האוס- מרכז)")).toBe(false);
+    expect(scraper.isValidPetName("רוקי")).toBe(true);
+  });
+
+  it("creates a client-only aggregate when an owner has no animals", () => {
+    const item = scraper.mapDirectoryClientAggregate({
+      recordID: "18001",
+      FirstName: "Owner",
+      LastName: "Only",
+      CellPhone: "0501234567",
+    });
+
+    expect(item).toMatchObject({
+      patient: {
+        externalClientId: "18001",
+        name: "",
+        owner: { name: "Owner Only", phone: "0501234567" },
+      },
+      medicalRecords: [],
+    });
+  });
 });

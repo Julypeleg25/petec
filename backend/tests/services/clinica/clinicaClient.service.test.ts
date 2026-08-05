@@ -1,4 +1,6 @@
+import { jest } from "@jest/globals";
 import {
+  clinicaClientService,
   isClinicaVisitRow,
   mapAggregatesToClients,
 } from "../../../src/services/clinica/clinicaClient.service.js";
@@ -188,5 +190,90 @@ describe("Clinica client aggregate mapping", () => {
       ownerPhone: "",
       pets: [expect.objectContaining({ name: "Lucky" })],
     });
+  });
+
+  it("recovers the owner from the patient page and rejects address-like pets", () => {
+    const validPet = aggregate("101", "רוקי", "visit");
+    validPet.patient.externalClientId = "15379";
+    validPet.patient.owner.name = "סיטי 13 אשקלון (האוס- מרכז)";
+    validPet.medicalRecords[0].rawText = [
+      "תיק לקוח 15379",
+      "קוסיו סלבוב",
+      "אשקלון סיטי 13",
+    ].join("\n");
+
+    const addressPet = aggregate("102", "סיטי 13 אשקלון (האוס- מרכז)", "visit");
+    addressPet.patient.externalClientId = "15379";
+    addressPet.patient.owner.name = "סיטי 13 אשקלון (האוס- מרכז)";
+    addressPet.medicalRecords[0].rawText = validPet.medicalRecords[0].rawText;
+
+    const [client] = mapAggregatesToClients([validPet, addressPet]);
+
+    expect(client.ownerName).toBe("קוסיו סלבוב");
+    expect(client.pets.map((pet) => pet.name)).toEqual(["רוקי"]);
+  });
+
+  it("recovers a pet name when Clinica returns the owner as the animal", () => {
+    const item = aggregate("101", "אבי אברהם", "visit");
+    item.patient.externalClientId = "13476";
+    item.patient.owner.name = "אבי אברהם";
+    item.medicalRecords[0].rawText = [
+      "תיק לקוח 13476",
+      "אבי אברהם",
+      "כפר מרדכי",
+      "שם החיה: מילקי",
+    ].join("\n");
+
+    const [client] = mapAggregatesToClients([item]);
+
+    expect(client.ownerName).toBe("אבי אברהם");
+    expect(client.pets.map((pet) => pet.name)).toEqual(["מילקי"]);
+  });
+
+  it("never imports identities or records opened from a different Clinica case", () => {
+    const item = aggregate("", "(האוס- מרכז)", "visit");
+    item.patient.externalClientId = "13981";
+    item.patient.owner.name = "(האוס- מרכז)";
+    item.medicalRecords[0].rawText = [
+      "תיק לקוח 5274",
+      "יעל ויינטראוב",
+      "זיקים",
+      "שם החיה: פיקסל",
+    ].join("\n");
+
+    expect(mapAggregatesToClients([item])).toEqual([]);
+  });
+
+  it("maps an owner with no animals without manufacturing a pet", () => {
+    const item = aggregate("", "", "");
+    item.patient.externalClientId = "18001";
+    item.patient.owner.name = "Owner Only";
+    item.medicalRecords = [];
+
+    const [client] = mapAggregatesToClients([item]);
+
+    expect(client).toMatchObject({
+      externalPatientId: "18001",
+      ownerName: "Owner Only",
+      pets: [],
+    });
+  });
+});
+
+describe("Clinica client sync modes", () => {
+  it("keeps a manual sync directory-only", () => {
+    const syncSpy = jest.spyOn(clinicaClientService, "syncClients")
+      .mockResolvedValue({
+        totalFromClinica: 1,
+        created: 0,
+        updated: 1,
+        skipped: 0,
+        syncedAt: new Date("2026-08-05T00:00:00.000Z"),
+      });
+
+    clinicaClientService.startSyncClients();
+
+    expect(syncSpy).toHaveBeenCalledWith({ includeMedicalRecords: false });
+    syncSpy.mockRestore();
   });
 });
