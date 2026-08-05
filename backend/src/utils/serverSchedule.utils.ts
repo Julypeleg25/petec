@@ -43,7 +43,11 @@ export const initializeScheduledJobs = (isProduction: boolean): (() => void) => 
       });
 
       try {
-        const result = await clinicaClientService.syncClients();
+        // The scheduled run may take longer, but it preloads visit histories
+        // so opening a case remains a cache-only operation for users.
+        const result = await clinicaClientService.syncClients({
+          includeMedicalRecords: true,
+        });
 
         logger.info("Clinica daily sync completed", {
           module: "clinica",

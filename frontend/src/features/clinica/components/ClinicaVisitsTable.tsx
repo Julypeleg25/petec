@@ -586,9 +586,10 @@ export function ClinicaVisitsTable({
         }
       }
 
-      // No cached Clinica row matched. Only now perform the targeted live
-      // lookup/scrape, once, using the master case prefix and exact pet name.
-      if (!normalizedPatientName) return undefined;
+      // Normal case opening is cache-only; the scheduled Clinica sync hydrates
+      // visit histories ahead of time. A retry is the explicit fallback for a
+      // case that has not reached the cache yet.
+      if (!normalizedPatientName || reload === 0) return undefined;
       const fetchedCaseClient = await fetchClinicaVisitsForCase(
         caseSerialPrefix,
         patientName ?? "",
@@ -632,7 +633,11 @@ export function ClinicaVisitsTable({
           });
         }
 
-        if (!hasStructuredVisitTable(records) && !match.visitsWereFetched) {
+        if (
+          reload > 0 &&
+          !hasStructuredVisitTable(records) &&
+          !match.visitsWereFetched
+        ) {
           try {
             const refreshedClient = await fetchClinicaPetVisits(client._id, matchingPet.name);
             const refreshedPet = refreshedClient.pets.find(

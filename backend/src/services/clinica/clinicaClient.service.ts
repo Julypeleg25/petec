@@ -33,6 +33,10 @@ type SyncErrorStatus = {
   occurredAt: Date;
 };
 
+type SyncClinicaClientsOptions = {
+  includeMedicalRecords?: boolean;
+};
+
 type ClinicaClientObject = ReturnType<ClinicaClientDocument["toObject"]>;
 
 let isSyncRunning = false;
@@ -41,6 +45,7 @@ let lastSyncResult: SyncClinicaClientsResult | null = null;
 let syncStartedAt: Date | null = null;
 
 const FULL_SYNC_SCRAPE_TIMEOUT_MS = 3 * 60 * 1000;
+const FULL_SYNC_WITH_VISITS_TIMEOUT_MS = 90 * 60 * 1000;
 const TARGETED_SCRAPE_TIMEOUT_MS = 2 * 60 * 1000;
 const SCRAPER_CLOSE_TIMEOUT_MS = 15 * 1000;
 const PERSISTENCE_WORKER_COUNT = 8;
@@ -782,7 +787,9 @@ class ClinicaClientService {
     return this.getSyncStatus();
   }
 
-  async syncClients(): Promise<SyncClinicaClientsResult> {
+  async syncClients(
+    options: SyncClinicaClientsOptions = {},
+  ): Promise<SyncClinicaClientsResult> {
     if (isSyncRunning) {
       throw new BadRequestError("Clinica sync is already running");
     }
@@ -795,6 +802,7 @@ class ClinicaClientService {
       logger.info("Clinica clients sync started", {
         module: MODULE,
         event: "clinica_clients_sync_started",
+        includeMedicalRecords: options.includeMedicalRecords === true,
       });
 
       logger.info("Clinica sync env validation started", {
@@ -812,12 +820,12 @@ class ClinicaClientService {
         hasClinicPassword: Boolean(ENV.clinicPassword),
       });
 
-      // A full sync indexes the Clinica directory only. Scraping five medical
-      // tabs for every pet made a 1,000-pet sync effectively unbounded. Full
-      // details and visits are fetched and cached by the targeted endpoints.
+      const includeMedicalRecords = options.includeMedicalRecords === true;
       const aggregates = await useScraper(
-        () => clinicaScraperService.scrapeClients({ includeMedicalRecords: false }),
-        FULL_SYNC_SCRAPE_TIMEOUT_MS,
+        () => clinicaScraperService.scrapeClients({ includeMedicalRecords }),
+        includeMedicalRecords
+          ? FULL_SYNC_WITH_VISITS_TIMEOUT_MS
+          : FULL_SYNC_SCRAPE_TIMEOUT_MS,
       );
 
       logger.info("Clinica scraper returned aggregates", {

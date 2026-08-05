@@ -5,7 +5,9 @@ const errorMock = jest.fn();
 const scheduleMock = jest.fn();
 const stopMock = jest.fn();
 const syncProcedureArchiveStatusMock = jest.fn<(date: Date) => Promise<void>>();
-const syncClientsMock = jest.fn<() => Promise<{ synced: number }>>();
+const syncClientsMock = jest.fn<
+  (options?: { includeMedicalRecords?: boolean }) => Promise<{ synced: number }>
+>();
 
 jest.unstable_mockModule("node-cron", () => ({
   default: {
@@ -59,7 +61,7 @@ describe("serverSchedule.utils", () => {
     cleanup();
   });
 
-  it("runs procedure archive sync at startup and schedules daily production jobs", () => {
+  it("runs procedure archive sync at startup and schedules daily production jobs", async () => {
     const now = new Date("2026-04-19T08:00:00.000Z");
     jest.useFakeTimers().setSystemTime(now);
 
@@ -90,6 +92,13 @@ describe("serverSchedule.utils", () => {
 
     expect(syncProcedureArchiveStatusMock).toHaveBeenCalledTimes(2);
     expect(syncProcedureArchiveStatusMock).toHaveBeenNthCalledWith(2, nextRun);
+
+    const clinicaCallback = scheduleMock.mock.calls[1][1] as () => Promise<void>;
+    await clinicaCallback();
+
+    expect(syncClientsMock).toHaveBeenCalledWith({
+      includeMedicalRecords: true,
+    });
 
     cleanup();
 
