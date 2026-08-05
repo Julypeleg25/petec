@@ -11,7 +11,6 @@ import {
   fetchClinicaPetVisits,
   fetchClinicaVisitsForCase,
   getClinicaClientByCasePrefix,
-  getClinicaClientByExternalPatientId,
 } from "../api/clinica.api";
 import type {
   ClinicaClient,
@@ -563,26 +562,14 @@ export function ClinicaVisitsTable({
 
     const loadMatchingClient = async (): Promise<LoadedClinicaPatient | undefined> => {
       if (normalizedPatientName) {
-        // These are independent cache lookups. Running them together avoids a
-        // second network round-trip when older cases need the exact-id fallback.
-        const [prefixClient, exactClient] = await Promise.all([
-          getClinicaClientByCasePrefix(
-            caseSerialPrefix,
-            patientName ?? "",
-            ownerPhone,
-          ).catch(() => null),
-          getClinicaClientByExternalPatientId(
-            cleanExternalPatientId,
-          ).catch(() => null),
-        ]);
+        const prefixClient = await getClinicaClientByCasePrefix(
+          caseSerialPrefix,
+          patientName ?? "",
+          ownerPhone,
+        ).catch(() => null);
         if (prefixClient) {
           const prefixMatch = findMatchingPatient([prefixClient]);
           if (prefixMatch) return prefixMatch;
-        }
-
-        if (exactClient) {
-          const exactMatch = findMatchingPatient([exactClient]);
-          if (exactMatch) return exactMatch;
         }
       }
 

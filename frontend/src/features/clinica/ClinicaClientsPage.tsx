@@ -23,11 +23,17 @@ import { useClinicaClients } from "./hooks/useClinicaClients";
 import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "./types/clinicaClient.types";
+import { getClinicaCachedPet } from "./api/clinica.api";
+import { findHydratedClinicaPet, getClinicaPetKey } from "./utils/clinicaPet.utils";
+
+type LoadingPet = { clientId: string; petKey: string };
 
 const ClinicaClientsPageContent = () => {
   const navigate = useNavigate();
   const [clientForPetSelection, setClientForPetSelection] =
     useState<ClinicaClient | null>(null);
+  const [loadingPet, setLoadingPet] = useState<LoadingPet | null>(null);
+  const [caseOpenError, setCaseOpenError] = useState("");
   const {
     clients,
     errorMessage: clientsErrorMessage,
@@ -48,10 +54,23 @@ const ClinicaClientsPageContent = () => {
   } = useClinicaSync({ onSyncCompleted: loadClients });
 
   const openNewPatientPage = useCallback(
-    (client: ClinicaClient, pet: ClinicaPet) => {
-      navigate(AppRoutes.Patients.NewPatient, {
-        state: mapClinicaClientToNewPatientState(client, pet),
-      });
+    async (client: ClinicaClient, pet: ClinicaPet) => {
+      setLoadingPet({ clientId: client._id, petKey: getClinicaPetKey(client, pet) });
+      setCaseOpenError("");
+      try {
+        const cachedClient = await getClinicaCachedPet(client._id, pet.name);
+        const cachedPet = findHydratedClinicaPet(cachedClient, pet);
+        if (!cachedPet) throw new Error("Cached Clinica pet was not returned");
+        navigate(AppRoutes.Patients.NewPatient, {
+          state: mapClinicaClientToNewPatientState(cachedClient, cachedPet),
+        });
+        return true;
+      } catch {
+        setCaseOpenError(CLINICA_TEXTS.hydratePatientError);
+        return false;
+      } finally {
+        setLoadingPet(null);
+      }
     },
     [navigate],
   );
@@ -63,7 +82,7 @@ const ClinicaClientsPageContent = () => {
         return;
       }
       if (pets.length === 1) {
-        openNewPatientPage(client, pets[0]);
+        void openNewPatientPage(client, pets[0]);
         return;
       }
 
@@ -73,18 +92,18 @@ const ClinicaClientsPageContent = () => {
   );
 
   const handlePetSelected = useCallback(
-    (pet: ClinicaPet) => {
+    async (pet: ClinicaPet) => {
       if (!clientForPetSelection) {
         return;
       }
 
-      openNewPatientPage(clientForPetSelection, pet);
-      setClientForPetSelection(null);
+      const didOpen = await openNewPatientPage(clientForPetSelection, pet);
+      if (didOpen) setClientForPetSelection(null);
     },
     [clientForPetSelection, openNewPatientPage],
   );
 
-  const errorMessage = clientsErrorMessage || syncErrorMessage;
+  const errorMessage = caseOpenError || clientsErrorMessage || syncErrorMessage;
 
   return (
     <Box
@@ -125,7 +144,7 @@ const ClinicaClientsPageContent = () => {
         <ClinicaClientsControls
           search={search}
           isSyncing={isSyncing}
-          isSyncDisabled={false}
+          isSyncDisabled={Boolean(loadingPet)}
           onSearchChange={handleSearchChange}
           onSync={handleSync}
         />
@@ -169,7 +188,8 @@ const ClinicaClientsPageContent = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               isLoading={isLoading}
-              isCreateCaseDisabled={false}
+              isCreateCaseDisabled={Boolean(loadingPet)}
+              creatingClientId={loadingPet?.clientId}
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
             />
@@ -179,10 +199,12 @@ const ClinicaClientsPageContent = () => {
 
       <ClinicaPetSelectionDialog
         client={clientForPetSelection}
-        hydratingPetKey=""
-        errorMessage=""
+        hydratingPetKey={loadingPet?.petKey}
+        errorMessage={caseOpenError}
         onClose={() => {
+          if (loadingPet) return;
           setClientForPetSelection(null);
+          setCaseOpenError("");
         }}
         onPetSelected={handlePetSelected}
       />

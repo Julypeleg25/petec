@@ -117,6 +117,16 @@ export const getClinicaClientByCasePrefix = (
     ClinicaClientSchema,
   );
 
+export const getClinicaCachedPet = (clientId: string, petName: string) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.GET,
+      url: `/clinica/clients/${encodeURIComponent(clientId)}/pets/cached`,
+      params: { petName },
+    },
+    ClinicaClientSchema,
+  );
+
 export const fetchClinicaPetVisits = (
   clientId: string,
   petName: string,

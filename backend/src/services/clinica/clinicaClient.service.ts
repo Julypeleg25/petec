@@ -890,6 +890,7 @@ class ClinicaClientService {
 
     const [items, total] = await Promise.all([
       ClinicaClientModel.find(query)
+        .select({ rawData: 0, "pets.medicalRecords": 0 })
         .sort({ updatedAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -925,6 +926,25 @@ class ClinicaClientService {
     }
 
     return client;
+  }
+
+  async getCachedPet(clientId: string, petName: string) {
+    const cleanPetName = normalizeValue(petName);
+    if (!cleanPetName) throw new BadRequestError("Clinica pet name is required");
+
+    const client = await ClinicaClientModel.findById(clientId).lean();
+    if (!client) throw new NotFoundError("Clinica client not found");
+
+    const normalizedPetName = normalizeMatchText(cleanPetName);
+    const pet = client.pets.find(
+      (candidate) => normalizeMatchText(candidate.name) === normalizedPetName,
+    );
+    if (!pet) throw new NotFoundError("Clinica pet not found");
+
+    // A case needs one complete pet, not every sibling pet or the duplicated
+    // raw scraper payload stored for diagnostics.
+    const { rawData: _rawData, ...clientWithoutRawData } = client;
+    return { ...clientWithoutRawData, pets: [pet] };
   }
 
   async findClientForCasePrefix(
@@ -981,7 +1001,19 @@ class ClinicaClientService {
     }
 
     if (!client) throw new NotFoundError("Clinica patient match not found");
-    return client;
+    const matchingPet = client.pets.find(
+      (pet) => normalizeMatchText(pet.name) === normalizedPetName,
+    );
+    if (!matchingPet) throw new NotFoundError("Clinica patient match not found");
+
+    const { rawData: _rawData, ...clientWithoutRawData } = client;
+    const visitRecords = matchingPet.medicalRecords?.filter(
+      (record) => record.recordType === "visitDetails" || Boolean(record.table),
+    );
+    return {
+      ...clientWithoutRawData,
+      pets: [{ ...matchingPet, medicalRecords: visitRecords }],
+    };
   }
 
   async fetchVisitsForExistingCase(

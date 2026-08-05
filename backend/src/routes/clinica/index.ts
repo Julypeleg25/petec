@@ -47,6 +47,12 @@ router.get(
   clinicaController.getClientByCasePrefix,
 );
 
+router.get(
+  CLINICA_ROUTE_PATHS.cachedPet,
+  requirePermission(Permission.READ_PATIENT),
+  clinicaController.getCachedPet,
+);
+
 router.post(
   CLINICA_ROUTE_PATHS.fetchCaseVisits,
   requirePermission(Permission.READ_PATIENT),

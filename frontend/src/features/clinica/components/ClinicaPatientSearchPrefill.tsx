@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { getClinicaClients } from "../api/clinica.api";
+import { getClinicaCachedPet, getClinicaClients } from "../api/clinica.api";
 import {
   CLINICA_PREFILL_SEARCH_DEBOUNCE_MS,
   CLINICA_PREFILL_SEARCH_LIMIT,
@@ -9,7 +9,7 @@ import {
 import { mapClinicaClientToNewPatientState } from "../mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "../types/clinicaClient.types";
 import type { ClinicaNewPatientState } from "../types/clinicaNewPatient.types";
-import { getClinicaPetKey } from "../utils/clinicaPet.utils";
+import { findHydratedClinicaPet, getClinicaPetKey } from "../utils/clinicaPet.utils";
 
 interface ClinicaPatientSearchPrefillProps {
   onClear?: () => void;
@@ -39,6 +39,8 @@ export function ClinicaPatientSearchPrefill({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [hasSelectedClient, setHasSelectedClient] = useState(false);
+  const [loadingPetKey, setLoadingPetKey] = useState("");
+  const selectionSequenceRef = useRef(0);
 
   useEffect(() => {
     const trimmedSearch = search.trim();
@@ -105,19 +107,37 @@ export function ClinicaPatientSearchPrefill({
     !errorMessage &&
     options.length === 0;
 
-  const handleSelect = (client: ClinicaClient, pet: ClinicaPet) => {
+  const handleSelect = async (client: ClinicaClient, pet: ClinicaPet) => {
+    const selectionSequence = ++selectionSequenceRef.current;
+    setLoadingPetKey(getClinicaPetKey(client, pet));
     setErrorMessage("");
-    onSelect(mapClinicaClientToNewPatientState(client, pet));
-    setSearch(`${pet.name || "-"} / ${client.ownerName}`);
-    setClients([]);
-    setHasSelectedClient(true);
+    try {
+      const cachedClient = await getClinicaCachedPet(client._id, pet.name);
+      if (selectionSequenceRef.current !== selectionSequence) return;
+      const cachedPet = findHydratedClinicaPet(cachedClient, pet);
+      if (!cachedPet) throw new Error("Cached Clinica pet was not returned");
+      onSelect(mapClinicaClientToNewPatientState(cachedClient, cachedPet));
+      setSearch(`${pet.name || "-"} / ${client.ownerName}`);
+      setClients([]);
+      setHasSelectedClient(true);
+    } catch {
+      if (selectionSequenceRef.current === selectionSequence) {
+        setErrorMessage(CLINICA_TEXTS.prefillHydrationError);
+      }
+    } finally {
+      if (selectionSequenceRef.current === selectionSequence) {
+        setLoadingPetKey("");
+      }
+    }
   };
 
   const handleClear = () => {
+    selectionSequenceRef.current += 1;
     setSearch("");
     setClients([]);
     setErrorMessage("");
     setHasSelectedClient(false);
+    setLoadingPetKey("");
     onClear?.();
   };
 
@@ -132,10 +152,12 @@ export function ClinicaPatientSearchPrefill({
           value={search}
           placeholder={CLINICA_TEXTS.prefillSearchPlaceholder}
           onChange={(event) => {
+            selectionSequenceRef.current += 1;
             setSearch(event.target.value);
             setClients([]);
             setErrorMessage("");
             setHasSelectedClient(false);
+            setLoadingPetKey("");
           }}
         />
         {search && (
@@ -151,6 +173,11 @@ export function ClinicaPatientSearchPrefill({
       {isLoading && (
         <div className="clinica-prefill-search-status">
           {CLINICA_TEXTS.prefillSearchLoading}
+        </div>
+      )}
+      {loadingPetKey && (
+        <div className="clinica-prefill-search-status">
+          {CLINICA_TEXTS.openingCase}
         </div>
       )}
       {errorMessage && (
@@ -170,7 +197,8 @@ export function ClinicaPatientSearchPrefill({
               key={key}
               type="button"
               className="clinica-prefill-search-result"
-              onClick={() => handleSelect(client, pet)}
+              onClick={() => void handleSelect(client, pet)}
+              disabled={Boolean(loadingPetKey)}
             >
               <span className="clinica-prefill-search-result-text">
                 <span className="clinica-prefill-search-result-main">
@@ -181,7 +209,9 @@ export function ClinicaPatientSearchPrefill({
                 </span>
               </span>
               <span className="clinica-prefill-search-result-action">
-                {CLINICA_TEXTS.prefillSelectAction}
+                {loadingPetKey === getClinicaPetKey(client, pet)
+                  ? CLINICA_TEXTS.openingCase
+                  : CLINICA_TEXTS.prefillSelectAction}
               </span>
             </button>
           ))}

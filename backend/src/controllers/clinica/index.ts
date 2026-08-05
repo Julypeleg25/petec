@@ -96,6 +96,22 @@ const getSyncStatus = async (
   });
 };
 
+const getCachedPet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.getCachedPet(
+      String(req.params.clientId),
+      String(req.query.petName ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const fetchPetVisits = async (
   req: Request,
   res: Response,
@@ -168,6 +184,7 @@ export const clinicaController = {
   fetchPetVisits,
   getClientByCasePrefix,
   getClientByExternalPatientId,
+  getCachedPet,
   getClients,
   getDebugConfig,
   getSyncStatus,
