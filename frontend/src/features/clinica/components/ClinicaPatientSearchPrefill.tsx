@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { fetchClinicaPetVisits, getClinicaClients } from "../api/clinica.api";
+import { getClinicaClients } from "../api/clinica.api";
 import {
   CLINICA_PREFILL_SEARCH_DEBOUNCE_MS,
   CLINICA_PREFILL_SEARCH_LIMIT,
@@ -9,10 +9,7 @@ import {
 import { mapClinicaClientToNewPatientState } from "../mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "../types/clinicaClient.types";
 import type { ClinicaNewPatientState } from "../types/clinicaNewPatient.types";
-import {
-  findHydratedClinicaPet,
-  getClinicaPetKey,
-} from "../utils/clinicaPet.utils";
+import { getClinicaPetKey } from "../utils/clinicaPet.utils";
 
 interface ClinicaPatientSearchPrefillProps {
   onClear?: () => void;
@@ -42,8 +39,6 @@ export function ClinicaPatientSearchPrefill({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [hasSelectedClient, setHasSelectedClient] = useState(false);
-  const [hydratingPetKey, setHydratingPetKey] = useState("");
-  const hydrationSequenceRef = useRef(0);
 
   useEffect(() => {
     const trimmedSearch = search.trim();
@@ -110,44 +105,19 @@ export function ClinicaPatientSearchPrefill({
     !errorMessage &&
     options.length === 0;
 
-  const handleSelect = async (client: ClinicaClient, pet: ClinicaPet) => {
-    const hydrationSequence = ++hydrationSequenceRef.current;
-    const petKey = getClinicaPetKey(client, pet);
-    setHydratingPetKey(petKey);
+  const handleSelect = (client: ClinicaClient, pet: ClinicaPet) => {
     setErrorMessage("");
-    try {
-      const hydratedClient = await fetchClinicaPetVisits(
-        client._id,
-        pet.name,
-        true,
-      );
-      if (hydrationSequenceRef.current !== hydrationSequence) return;
-
-      const hydratedPet = findHydratedClinicaPet(hydratedClient, pet);
-      if (!hydratedPet) throw new Error("Selected Clinica pet was not returned");
-      onSelect(mapClinicaClientToNewPatientState(hydratedClient, hydratedPet));
-      setSearch(`${pet.name || "-"} / ${client.ownerName}`);
-      setClients([]);
-      setErrorMessage("");
-      setHasSelectedClient(true);
-    } catch {
-      if (hydrationSequenceRef.current === hydrationSequence) {
-        setErrorMessage(CLINICA_TEXTS.prefillHydrationError);
-      }
-    } finally {
-      if (hydrationSequenceRef.current === hydrationSequence) {
-        setHydratingPetKey("");
-      }
-    }
+    onSelect(mapClinicaClientToNewPatientState(client, pet));
+    setSearch(`${pet.name || "-"} / ${client.ownerName}`);
+    setClients([]);
+    setHasSelectedClient(true);
   };
 
   const handleClear = () => {
-    hydrationSequenceRef.current += 1;
     setSearch("");
     setClients([]);
     setErrorMessage("");
     setHasSelectedClient(false);
-    setHydratingPetKey("");
     onClear?.();
   };
 
@@ -162,12 +132,10 @@ export function ClinicaPatientSearchPrefill({
           value={search}
           placeholder={CLINICA_TEXTS.prefillSearchPlaceholder}
           onChange={(event) => {
-            hydrationSequenceRef.current += 1;
             setSearch(event.target.value);
             setClients([]);
             setErrorMessage("");
             setHasSelectedClient(false);
-            setHydratingPetKey("");
           }}
         />
         {search && (
@@ -183,11 +151,6 @@ export function ClinicaPatientSearchPrefill({
       {isLoading && (
         <div className="clinica-prefill-search-status">
           {CLINICA_TEXTS.prefillSearchLoading}
-        </div>
-      )}
-      {hydratingPetKey && (
-        <div className="clinica-prefill-search-status">
-          {CLINICA_TEXTS.prefillHydrating}
         </div>
       )}
       {errorMessage && (
@@ -207,8 +170,7 @@ export function ClinicaPatientSearchPrefill({
               key={key}
               type="button"
               className="clinica-prefill-search-result"
-              onClick={() => void handleSelect(client, pet)}
-              disabled={Boolean(hydratingPetKey)}
+              onClick={() => handleSelect(client, pet)}
             >
               <span className="clinica-prefill-search-result-text">
                 <span className="clinica-prefill-search-result-main">
@@ -219,9 +181,7 @@ export function ClinicaPatientSearchPrefill({
                 </span>
               </span>
               <span className="clinica-prefill-search-result-action">
-                {hydratingPetKey === getClinicaPetKey(client, pet)
-                  ? CLINICA_TEXTS.openingCase
-                  : CLINICA_TEXTS.prefillSelectAction}
+                {CLINICA_TEXTS.prefillSelectAction}
               </span>
             </button>
           ))}

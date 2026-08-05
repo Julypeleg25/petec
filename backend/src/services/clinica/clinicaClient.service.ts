@@ -783,7 +783,7 @@ class ClinicaClientService {
 
     // syncClients sets isSyncRunning before its first await, so a second
     // request cannot start another browser while this promise is detached.
-    void this.syncClients().catch(() => undefined);
+    void this.syncClients({ includeMedicalRecords: true }).catch(() => undefined);
     return this.getSyncStatus();
   }
 

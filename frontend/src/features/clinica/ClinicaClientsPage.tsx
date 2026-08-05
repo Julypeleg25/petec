@@ -23,23 +23,11 @@ import { useClinicaClients } from "./hooks/useClinicaClients";
 import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "./types/clinicaClient.types";
-import { fetchClinicaPetVisits } from "./api/clinica.api";
-import {
-  findHydratedClinicaPet,
-  getClinicaPetKey,
-} from "./utils/clinicaPet.utils";
-
-type HydratingPet = {
-  clientId: string;
-  petKey: string;
-};
 
 const ClinicaClientsPageContent = () => {
   const navigate = useNavigate();
   const [clientForPetSelection, setClientForPetSelection] =
     useState<ClinicaClient | null>(null);
-  const [hydratingPet, setHydratingPet] = useState<HydratingPet | null>(null);
-  const [hydrationErrorMessage, setHydrationErrorMessage] = useState("");
   const {
     clients,
     errorMessage: clientsErrorMessage,
@@ -60,66 +48,43 @@ const ClinicaClientsPageContent = () => {
   } = useClinicaSync({ onSyncCompleted: loadClients });
 
   const openNewPatientPage = useCallback(
-    async (client: ClinicaClient, pet: ClinicaPet) => {
-      setHydratingPet({
-        clientId: client._id,
-        petKey: getClinicaPetKey(client, pet),
+    (client: ClinicaClient, pet: ClinicaPet) => {
+      navigate(AppRoutes.Patients.NewPatient, {
+        state: mapClinicaClientToNewPatientState(client, pet),
       });
-      setHydrationErrorMessage("");
-      try {
-        const hydratedClient = await fetchClinicaPetVisits(
-          client._id,
-          pet.name,
-          true,
-        );
-        const hydratedPet = findHydratedClinicaPet(hydratedClient, pet);
-        if (!hydratedPet) throw new Error("Selected Clinica pet was not returned");
-
-        navigate(AppRoutes.Patients.NewPatient, {
-          state: mapClinicaClientToNewPatientState(hydratedClient, hydratedPet),
-        });
-        return true;
-      } catch {
-        setHydrationErrorMessage(CLINICA_TEXTS.hydratePatientError);
-        return false;
-      } finally {
-        setHydratingPet(null);
-      }
     },
     [navigate],
   );
 
   const handleCreateCase = useCallback(
     (client: ClinicaClient) => {
-      if (isSyncing || hydratingPet) return;
       const pets = client.pets;
       if (pets.length === 0) {
         return;
       }
       if (pets.length === 1) {
-        void openNewPatientPage(client, pets[0]);
+        openNewPatientPage(client, pets[0]);
         return;
       }
 
       setClientForPetSelection(client);
     },
-    [hydratingPet, isSyncing, openNewPatientPage],
+    [openNewPatientPage],
   );
 
   const handlePetSelected = useCallback(
-    async (pet: ClinicaPet) => {
+    (pet: ClinicaPet) => {
       if (!clientForPetSelection) {
         return;
       }
 
-      const didOpen = await openNewPatientPage(clientForPetSelection, pet);
-      if (didOpen) setClientForPetSelection(null);
+      openNewPatientPage(clientForPetSelection, pet);
+      setClientForPetSelection(null);
     },
     [clientForPetSelection, openNewPatientPage],
   );
 
-  const errorMessage =
-    hydrationErrorMessage || clientsErrorMessage || syncErrorMessage;
+  const errorMessage = clientsErrorMessage || syncErrorMessage;
 
   return (
     <Box
@@ -160,7 +125,7 @@ const ClinicaClientsPageContent = () => {
         <ClinicaClientsControls
           search={search}
           isSyncing={isSyncing}
-          isSyncDisabled={Boolean(hydratingPet)}
+          isSyncDisabled={false}
           onSearchChange={handleSearchChange}
           onSync={handleSync}
         />
@@ -204,8 +169,7 @@ const ClinicaClientsPageContent = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               isLoading={isLoading}
-              isCreateCaseDisabled={isSyncing || Boolean(hydratingPet)}
-              creatingClientId={hydratingPet?.clientId}
+              isCreateCaseDisabled={false}
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
             />
@@ -215,12 +179,10 @@ const ClinicaClientsPageContent = () => {
 
       <ClinicaPetSelectionDialog
         client={clientForPetSelection}
-        hydratingPetKey={hydratingPet?.petKey}
-        errorMessage={hydrationErrorMessage}
+        hydratingPetKey=""
+        errorMessage=""
         onClose={() => {
-          if (hydratingPet) return;
           setClientForPetSelection(null);
-          setHydrationErrorMessage("");
         }}
         onPetSelected={handlePetSelected}
       />
