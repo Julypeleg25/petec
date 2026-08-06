@@ -125,10 +125,12 @@ export const columnsGeneratorWithSearch = <T extends RowData = RowData>(
           React.createElement(
             "div",
             { key: i, className: "table-search-input-container" },
-            React.createElement("div", null, String(colName)),
+            !isDateSearch && React.createElement("div", null, String(colName)),
             showSearch &&
             React.createElement("input", {
-              className: "table-search-input",
+              className: isDateSearch
+                ? "table-search-input table-search-date-input"
+                : "table-search-input",
               type: isDateSearch ? "date" : "search",
               value: searchObj[searchObjField] ?? "",
               style: (searchObj[searchObjField] ?? searchDefaultVal) !== undefined && (searchObj[searchObjField] ?? searchDefaultVal) !== "" ? { color: "black" } : {},
