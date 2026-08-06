@@ -1275,7 +1275,7 @@
 
   .case-daily-details-date-picker .form-select {
     align-items: stretch;
-    width: min(170px, 48vw);
+    width: min(220px, 60vw) !important;
   }
 
   .case-daily-details-date-picker .form-select-label {

@@ -139,9 +139,27 @@
 }
 
 .table-search-input-container input[type="date"] {
-  border: 2px solid black;
-  padding: 0 0.5em;
-  color: transparent;
+  width: 150px;
+  min-width: 150px;
+  height: 36px;
+  box-sizing: border-box;
+  border: 1px solid #b8b8b8;
+  border-radius: 4px;
+  padding: 0.25rem 0.45rem;
+  color: #222;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+.table-search-input-container:has(.table-search-date-input) {
+  width: 150px;
+}
+
+.table-search-input-container input[type="date"]:focus {
+  border-color: var(--color-main);
+  box-shadow: 0 0 0 2px rgba(177, 89, 205, 0.12);
 }
 
 .table-cards-section {
