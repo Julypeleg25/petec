@@ -1,8 +1,8 @@
 import {
   Box,
-  Button,
   Chip,
   CircularProgress,
+  IconButton,
   Paper,
   Stack,
   Table,
@@ -12,12 +12,15 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  Tooltip,
 } from "@mui/material";
 
-import { MdPersonAddAlt } from "react-icons/md";
+import { MdPersonAddAlt, MdRefresh } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 import { ClinicaClient } from "../types/clinicaClient.types";
+
+const MAX_VISIBLE_PETS = 2;
 
 type Props = {
   clients: ClinicaClient[];
@@ -25,48 +28,56 @@ type Props = {
   page: number;
   rowsPerPage: number;
   isLoading: boolean;
+  updatingClientId: string | null;
   onPageChange: (page: number) => void;
   onCreateCase: (client: ClinicaClient) => void;
+  onUpdateClient: (client: ClinicaClient) => void;
 };
 
 type CreateCaseButtonProps = {
   client: ClinicaClient;
   onCreateCase: (client: ClinicaClient) => void;
-  compact?: boolean;
 };
 
-const CreateCaseButton = ({
-  client,
-  onCreateCase,
-  compact = false,
-}: CreateCaseButtonProps) => (
-  <Button
-    size="small"
-    variant="outlined"
-    onClick={() => onCreateCase(client)}
-    sx={{
-      minWidth: compact ? 132 : 168,
-      px: compact ? 1.5 : 2.5,
-      py: 0.65,
-      justifyContent: "center",
-      whiteSpace: "nowrap",
-    }}
-  >
-    <Box
-      component="span"
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 1,
-        direction: "rtl",
-        whiteSpace: "nowrap",
-      }}
+const CreateCaseButton = ({ client, onCreateCase }: CreateCaseButtonProps) => (
+  <Tooltip title={CLINICA_TEXTS.createCase}>
+    <IconButton
+      size="small"
+      onClick={() => onCreateCase(client)}
+      sx={{ color: CLINICA_COLORS.primary }}
     >
       <MdPersonAddAlt fontSize="small" />
-      <span>{CLINICA_TEXTS.createCase}</span>
-    </Box>
-  </Button>
+    </IconButton>
+  </Tooltip>
+);
+
+type UpdateClientButtonProps = {
+  client: ClinicaClient;
+  isUpdating: boolean;
+  onUpdateClient: (client: ClinicaClient) => void;
+};
+
+const UpdateClientButton = ({
+  client,
+  isUpdating,
+  onUpdateClient,
+}: UpdateClientButtonProps) => (
+  <Tooltip title={CLINICA_TEXTS.updateClient}>
+    <span>
+      <IconButton
+        size="small"
+        disabled={!client.externalPatientId || isUpdating}
+        onClick={() => onUpdateClient(client)}
+        sx={{ color: CLINICA_COLORS.primary }}
+      >
+        {isUpdating ? (
+          <CircularProgress size={16} sx={{ color: CLINICA_COLORS.primary }} />
+        ) : (
+          <MdRefresh fontSize="small" />
+        )}
+      </IconButton>
+    </span>
+  </Tooltip>
 );
 
 export const ClinicaClientsTable = ({
@@ -75,8 +86,10 @@ export const ClinicaClientsTable = ({
   page,
   rowsPerPage,
   isLoading,
+  updatingClientId,
   onPageChange,
   onCreateCase,
+  onUpdateClient,
 }: Props) => {
   return (
     <>
@@ -160,13 +173,25 @@ export const ClinicaClientsTable = ({
                   <TableCell sx={{ pr: 4 }}>
                     <Stack spacing={1.25} sx={{ alignItems: "flex-start" }}>
                       <Box>{client.externalPatientId || "-"}</Box>
-                      <Box sx={{ display: { xs: "block", md: "none" } }}>
+                      <Stack
+                        direction="row"
+                        spacing={3}
+                        sx={{
+                          alignItems: "center",
+                          direction: "rtl",
+                          display: { xs: "flex", md: "none" },
+                        }}
+                      >
                         <CreateCaseButton
                           client={client}
                           onCreateCase={onCreateCase}
-                          compact
                         />
-                      </Box>
+                        <UpdateClientButton
+                          client={client}
+                          isUpdating={updatingClientId === client.externalPatientId}
+                          onUpdateClient={onUpdateClient}
+                        />
+                      </Stack>
                     </Stack>
                   </TableCell>
 
@@ -179,15 +204,51 @@ export const ClinicaClientsTable = ({
                       direction="row"
                       spacing={1}
                       sx={{
-                        flexWrap: "wrap",
+                        alignItems: "center",
+                        flexWrap: "nowrap",
                         gap: 1,
                         direction: "rtl",
+                        overflow: "hidden",
+                        minWidth: 0,
                       }}
                     >
                       {client.pets.length > 0 ? (
-                        client.pets.map((pet) => (
-                          <Chip key={pet.name} label={pet.name} size="small" />
-                        ))
+                        <>
+                          {client.pets.slice(0, MAX_VISIBLE_PETS).map((pet, index) => (
+                            <Chip
+                              key={`${pet.name}-${index}`}
+                              label={pet.name}
+                              size="small"
+                              sx={{
+                                maxWidth: 86,
+                                "& .MuiChip-label": {
+                                  display: "block",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                },
+                              }}
+                            />
+                          ))}
+
+                          {client.pets.length > MAX_VISIBLE_PETS && (
+                            <Tooltip
+                              title={client.pets
+                                .slice(MAX_VISIBLE_PETS)
+                                .map((pet) => pet.name)
+                                .join(", ")}
+                              placement="top"
+                              arrow
+                            >
+                              <Chip
+                                label={`+${client.pets.length - MAX_VISIBLE_PETS}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ flexShrink: 0, fontWeight: 700 }}
+                              />
+                            </Tooltip>
+                          )}
+                        </>
                       ) : (
                         <>-</>
                       )}
@@ -204,10 +265,21 @@ export const ClinicaClientsTable = ({
                       display: { xs: "none", md: "table-cell" },
                     }}
                   >
-                    <CreateCaseButton
-                      client={client}
-                      onCreateCase={onCreateCase}
-                    />
+                    <Stack
+                      direction="row"
+                      spacing={3}
+                      sx={{ alignItems: "center", direction: "rtl" }}
+                    >
+                      <CreateCaseButton
+                        client={client}
+                        onCreateCase={onCreateCase}
+                      />
+                      <UpdateClientButton
+                        client={client}
+                        isUpdating={updatingClientId === client.externalPatientId}
+                        onUpdateClient={onUpdateClient}
+                      />
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}

@@ -20,6 +20,7 @@ import { ClinicaClientsControls } from "./components/ClinicaClientsControls";
 import { ClinicaClientsTable } from "./components/ClinicaClientsTable";
 import { ClinicaPetSelectionDialog } from "./components/ClinicaPetSelectionDialog";
 import { useClinicaClients } from "./hooks/useClinicaClients";
+import { useClinicaClientUpdate } from "./hooks/useClinicaClientUpdate";
 import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "./types/clinicaClient.types";
@@ -46,6 +47,11 @@ const ClinicaClientsPageContent = () => {
     isSyncing,
     successMessage,
   } = useClinicaSync({ onSyncCompleted: loadClients });
+  const {
+    errorMessage: updateClientErrorMessage,
+    handleUpdateClient,
+    updatingClientId,
+  } = useClinicaClientUpdate({ onUpdated: loadClients });
 
   const openNewPatientPage = useCallback(
     (client: ClinicaClient, pet: ClinicaPet) => {
@@ -80,7 +86,8 @@ const ClinicaClientsPageContent = () => {
     [clientForPetSelection, openNewPatientPage],
   );
 
-  const errorMessage = clientsErrorMessage || syncErrorMessage;
+  const errorMessage =
+    clientsErrorMessage || syncErrorMessage || updateClientErrorMessage;
 
   return (
     <Box
@@ -164,8 +171,10 @@ const ClinicaClientsPageContent = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               isLoading={isLoading}
+              updatingClientId={updatingClientId}
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
+              onUpdateClient={handleUpdateClient}
             />
           </CardContent>
         </Card>

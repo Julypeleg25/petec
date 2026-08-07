@@ -3,7 +3,7 @@ import { logger } from "../config/logger.js";
 import { clinicaClientService } from "../services/clinica/clinicaClient.service.js";
 import { syncProcedureArchiveStatus } from "../services/scheduledJobs/procedureArchiveSyncJob.js";
 
-const CLINICA_DAILY_SYNC_CRON = "0 6 * * *";
+const CLINICA_DAILY_SYNC_CRON = "0 4 * * *";
 const PROCEDURE_ARCHIVE_SYNC_CRON = "0 8 * * *";
 const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
 

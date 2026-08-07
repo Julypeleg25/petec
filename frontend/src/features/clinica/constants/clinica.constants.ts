@@ -26,6 +26,8 @@ export const CLINICA_TEXTS = {
   syncSuccess: (created: number, updated: number) =>
     `הסנכרון הסתיים בהצלחה: ${created} נוצרו, ${updated} עודכנו`,
   syncError: "הסנכרון נכשל",
+  updateClient: "עדכן לקוח",
+  updateClientError: "עדכון הלקוח נכשל",
   loadClientsError: "לא הצלחנו לטעון את הלקוחות מהקליניקה",
   createCase: "פתיחת תיק",
   noClients: "לא נמצאו לקוחות",
