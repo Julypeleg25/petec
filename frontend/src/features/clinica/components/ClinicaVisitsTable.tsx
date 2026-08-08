@@ -66,31 +66,18 @@ const makeCellReadable = (value: string): string => {
   return value
     .replace(/(\d)\.\s+(?=\d)/g, "$1.")
     .replace(/\b(\d+(?:\.\d+)?)\s*-(?=\s*(?:;|$))/g, "-$1")
-    .replace(/(?<=[a-z])(?=[A-Z])/g, "\n")
-    .replace(/(?<=[A-Za-z])(?=[\u0590-\u05ff])/g, "\n")
-    .replace(/(?<=[\u0590-\u05ff])(?=[A-Za-z])/g, "\n")
-    .replace(/(?<=\d)(?=[A-Za-z\u0590-\u05ff])/g, "\n")
-    .replace(/(?<=[A-Za-z\u0590-\u05ff])(?=\d)/g, "\n")
-    .replace(/(?<=\))(?=[A-Za-z\u0590-\u05ff])/g, "\n")
     .replace(COMPACT_DATE_TIME_PATTERN, "$1 ")
     .replace(
       TIME_AND_DAYS_PATTERN,
       (_match, time: string, days: string, unit: string) =>
         `${time}\n${Number(days).toLocaleString("he-IL")} ${unit}`,
     )
-    .replace(
-      CLINICA_LABEL_PATTERN,
-      (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
-    )
-    .replace(
-      READABLE_CLINICA_LABEL_PATTERN,
-      (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
-    )
+    .replace(CLINICA_LABEL_PATTERN, "$&")
+    .replace(READABLE_CLINICA_LABEL_PATTERN, "$&")
     .replace(
       /(דווח למרפא[הט]):/g,
       (label, _name, offset) => `${offset > 0 ? "\n" : ""}${label} `,
     )
-    .replace(/([.!?])(?=\p{L})/gu, "$1\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 };
@@ -119,8 +106,6 @@ const normalizeDocumentUrls = (value: string): string => {
   );
   let previousValue = "";
 
-  // Clinica sometimes wraps a URL after a dot, slash, or query separator.
-  // Join only those URL continuations so ordinary words remain untouched.
   while (previousValue !== normalized) {
     previousValue = normalized;
     normalized = normalized.replace(
@@ -260,9 +245,6 @@ const getSafeDocumentHref = (value: string): string | undefined => {
     );
     if (isVetConnect) {
       if (diagnosticMatch) {
-        // Keep the concrete diagnostics route (and its regional host). Sending
-        // every result through /login caused VetConnect to discard returnUrl
-        // in some login flows and land on the home page instead.
         return buildVetConnectDocumentUrl(
           diagnosticMatch[1],
           diagnosticMatch[2],
@@ -328,7 +310,15 @@ const ReadableCellText = ({
     <span className="clinica-visits__formatted-text">
       {lines.map((line, index) => {
         const cleanLine = line.trim();
-        if (!cleanLine) return null;
+        if (!cleanLine) {
+          return (
+            <span
+              key={`spacer-${index}`}
+              className="clinica-visits__paragraph-space"
+              aria-hidden="true"
+            />
+          );
+        }
         if (
           documentHref &&
           hasDocumentLabel &&
@@ -346,7 +336,10 @@ const ReadableCellText = ({
           !possibleTitle.includes(";") &&
           /\p{L}/u.test(possibleTitle);
         if (hasFieldTitle) {
-          const fieldValue = cleanLine.slice(colonIndex + 1).trim();
+          const fieldValue = cleanLine
+            .slice(colonIndex + 1)
+            .trim()
+            .replace(/^(?:\s*:\s*)+/, "");
           const isDocumentField = /^\u05de\u05e1\u05de\u05da$/u.test(
             possibleTitle,
           );
@@ -464,38 +457,6 @@ const normalizePhone = (value?: string): string => {
   return digits.startsWith("972") ? `0${digits.slice(3)}` : digits;
 };
 
-const getPetMedicalRecords = (
-  client: ClinicaClient,
-  pet: ClinicaClient["pets"][number],
-): ClinicaMedicalRecord[] => {
-  const targetName = normalizeName(pet.name);
-  const rawPatientName = normalizeName(client.rawData?.original?.patient?.name);
-  const legacyRecords = [
-    ...(client.rawData?.original?.patient?.medicalRecords ?? []),
-    ...(client.rawData?.original?.medicalRecords ?? []),
-  ];
-  const scopedLegacyRecords = legacyRecords.filter((record) => {
-    const recordPatientName = normalizeName(record.patientName);
-    if (recordPatientName) return recordPatientName === targetName;
-    if (rawPatientName) return rawPatientName === targetName;
-    return client.pets.length === 1;
-  });
-
-  const records = [...(pet.medicalRecords ?? []), ...scopedLegacyRecords];
-  const seen = new Set<string>();
-  return records.filter((record) => {
-    const key = JSON.stringify({
-      patientName: normalizeName(record.patientName),
-      recordType: record.recordType,
-      rawText: record.rawText,
-      table: record.table,
-    });
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
-
 export function ClinicaVisitsTable({
   externalPatientId,
   ownerPhone,
@@ -545,8 +506,6 @@ export function ClinicaVisitsTable({
     const normalizedPatientName = normalizeName(patientName);
     const normalizedOwnerPhone = normalizePhone(ownerPhone);
 
-    // The master/client id can belong to several animals. Wait for the PETEC
-    // case payload instead of ever selecting a Clinica pet by id alone.
     if (!normalizedPatientName) {
       return () => {
         active = false;
@@ -565,9 +524,6 @@ export function ClinicaVisitsTable({
         if (pet) return { client, pet };
       }
 
-      // Normal PETEC cases use values such as 12345-2. Clinica keeps the
-      // master/client number as 12345, so require that prefix together with
-      // the pet name to avoid selecting another animal belonging to the owner.
       for (const client of clients) {
         const clientMatchesPrefix =
           normalizeText(client.externalPatientId) === normalizedPrefix;
@@ -598,14 +554,10 @@ export function ClinicaVisitsTable({
     const loadMatchingClient = async (): Promise<
       MatchedClinicaPatient | undefined
     > => {
-      // This endpoint is cache-first: it returns an already-hydrated visit
-      // table without opening Clinica, and performs a targeted Clinica fetch
-      // when this case/pet is absent or its visit table is still missing.
       const fetchedCaseClient = await fetchClinicaVisitsForCase(
         caseSerialPrefix,
         patientName ?? "",
         ownerPhone,
-        reload > 0,
       );
       const fetchedMatch = findMatchingPatient([fetchedCaseClient]);
       if (fetchedMatch) return fetchedMatch;
@@ -629,13 +581,10 @@ export function ClinicaVisitsTable({
           );
           return;
         }
-        const { client, pet: matchingPet } = match;
-        let records = getPetMedicalRecords(client, matchingPet);
-        let visitResult = resolveVisitTable(records);
+        const { client } = match;
+        const records = client.visits ?? [];
+        const visitResult = resolveVisitTable(records);
 
-        // Render usable cached data immediately. A structured refresh may take
-        // several seconds because it opens Clinica in a browser, but it should
-        // not block opening the PETEC case or viewing the cached history.
         if (visitResult) {
           displayedLookupKeyRef.current = lookupKey;
           setState({
@@ -942,7 +891,10 @@ export function ClinicaVisitsTable({
                   return (
                     <tr key={originalIndex}>
                       {Array.from({ length: columnCount }, (_, cellIndex) => (
-                        <td key={cellIndex}>
+                        <td
+                          key={cellIndex}
+                          data-label={table.headers[cellIndex] ?? ""}
+                        >
                           <span className="clinica-visits__cell-content">
                             <ReadableCellText
                               documentUrl={rowDocumentUrl}
@@ -951,7 +903,10 @@ export function ClinicaVisitsTable({
                           </span>
                         </td>
                       ))}
-                      <td className="clinica-visits__action-column">
+                      <td
+                        className="clinica-visits__action-column"
+                        data-label="פעולות"
+                      >
                         <button
                           type="button"
                           className="clinica-visits__open"
