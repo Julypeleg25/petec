@@ -1,4 +1,6 @@
 import { useForm } from "react-hook-form";
+import { CircularProgress } from "@mui/material";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 import { getSharedResolver } from "../../../../utils/form";
 import { useUserApi } from "../../../../features/system-management";
@@ -45,7 +47,7 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
         password: values.password,
         role: values.role,
       },
-      { onSuccess: onClose },
+      { onSettled: onClose },
     );
   });
 
@@ -56,7 +58,6 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
         if (!open) onClose();
       }}
-      closeWhenClickOutside={true}
       size="lg"
       className="system-management-modal save-user-create-modal"
       overlayClassName="save-user-modal-overlay"
@@ -191,22 +192,30 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
               </div>
 
               <div className="save-user-dialog__actions">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-active save-user-dialog__cancel-btn"
+                  active
+                  className="save-user-dialog__cancel-btn"
                   onClick={onClose}
                   disabled={isPending}
                 >
                   ביטול
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn save-user-dialog__submit-btn"
+                  className="save-user-dialog__submit-btn"
                   disabled={isPending}
                   aria-busy={isPending}
                 >
-                  {isPending ? "...יוצר" : "צור משתמש"}
-                </button>
+                  {isPending ? (
+                    <>
+                      <CircularProgress size={16} thickness={5} sx={{ color: "inherit", marginLeft: "0.5em" }} />
+                      יוצר...
+                    </>
+                  ) : (
+                    "צור משתמש"
+                  )}
+                </Button>
               </div>
             </form>
           </div>

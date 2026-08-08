@@ -6,6 +6,7 @@ import {
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { Button } from "../../utils/Button/Button";
 import SearchBar from "../../utils/SearchBar/SearchBar";
 import TableGenerator from "../../utils/TableGenerator/TableGenerator";
 import { TABLE_SORT_DIRECTIONS } from "../../utils/TableGenerator/TableGenerator.types";
@@ -18,7 +19,6 @@ import "./Patients.css";
 import {
   buildCaseSearchFilters,
   buildProcedureSearchFilters,
-  getButtonClassName,
 } from "../../features/patients/utils/patients.utils";
 import { PATIENTS_NAV_TYPES } from "../../features/patients/constants/patients.constants";
 
@@ -74,19 +74,21 @@ function Patients({ patientsNavType }: PatientsProps) {
         createPortal(
         <>
         <div className="patients-mobile-nav">
-          <button
+          <Button
             type="button"
-            className={`btn btn-small patients-mobile-nav__btn ${
+            ghost
+            className={`patients-mobile-nav__btn ${
               patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN ? "patients-mobile-nav__btn--active" : ""
             }`}
             onClick={() => navigate(AppRoutes.Patients.DailyPlan)}
             disabled={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
           >
             יומי plan
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`btn btn-small patients-mobile-nav__btn ${
+            ghost
+            className={`patients-mobile-nav__btn ${
               isArchive ? "patients-mobile-nav__btn--active" : ""
             }`}
             onClick={() => {
@@ -96,20 +98,22 @@ function Patients({ patientsNavType }: PatientsProps) {
             disabled={isArchive}
           >
             ארכיון
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`btn btn-small patients-mobile-nav__btn ${
+            ghost
+            className={`patients-mobile-nav__btn ${
               patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT ? "patients-mobile-nav__btn--active" : ""
             }`}
             onClick={() => navigate(AppRoutes.Patients.NewPatient)}
             disabled={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
           >
             הוספת מטופל
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`btn btn-small patients-mobile-nav__btn ${
+            ghost
+            className={`patients-mobile-nav__btn ${
               patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "patients-mobile-nav__btn--active" : ""
             }`}
             onClick={() => {
@@ -119,28 +123,30 @@ function Patients({ patientsNavType }: PatientsProps) {
             disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
           >
             רשימת מטופלים
-          </button>
+          </Button>
         </div>
         <div className="patients-mobile-menu">
-          <button
+          <Button
             type="button"
-            className={`btn btn-small patients-mobile-home-btn ${
+            ghost
+            className={`patients-mobile-home-btn ${
               patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ? "patients-mobile-home-btn--active" : ""
             }`}
             onClick={() => { resetPatientCards(false); navigate(AppRoutes.Patients.List); }}
             disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
           >
             רשימת מטופלים
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn patients-mobile-menu__trigger"
+            ghost
+            className="patients-mobile-menu__trigger"
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="patients-mobile-menu-panel"
           >
             {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-          </button>
+          </Button>
           {isMobileMenuOpen && (
             <div id="patients-mobile-menu-panel" className="patients-mobile-menu__panel">
               <button
@@ -182,10 +188,9 @@ function Patients({ patientsNavType }: PatientsProps) {
       headerMenuContainer,
     )}
       <nav className="navbar patients-navbar">
-        <button
-          className={getButtonClassName(
-            patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN,
-          )}
+        <Button
+          active={patientsNavType !== PATIENTS_NAV_TYPES.DAILY_PLAN}
+          selected={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
           title="יומי plan"
           onClick={() => {
             navigate(AppRoutes.Patients.DailyPlan);
@@ -193,9 +198,10 @@ function Patients({ patientsNavType }: PatientsProps) {
           disabled={patientsNavType === PATIENTS_NAV_TYPES.DAILY_PLAN}
         >
           יומי plan
-        </button>
-        <button
-          className={getButtonClassName(isArchive)}
+        </Button>
+        <Button
+          active={!isArchive}
+          selected={isArchive}
           title="ארכיון"
           onClick={() => {
             resetPatientCards(true);
@@ -204,20 +210,19 @@ function Patients({ patientsNavType }: PatientsProps) {
           disabled={isArchive}
         >
           ארכיון
-        </button>
-        <button
-          className={getButtonClassName(false)}
+        </Button>
+        <Button
+          active
           title="קליניקה"
           onClick={() => {
             navigate(AppRoutes.Clinica);
           }}
         >
           קליניקה
-        </button>
-        <button
-          className={getButtonClassName(
-            patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT,
-          )}
+        </Button>
+        <Button
+          active={patientsNavType !== PATIENTS_NAV_TYPES.NEW_PATIENT}
+          selected={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
           title="הוספת מטופל"
           onClick={() => {
             navigate(AppRoutes.Patients.NewPatient);
@@ -225,11 +230,10 @@ function Patients({ patientsNavType }: PatientsProps) {
           disabled={patientsNavType === PATIENTS_NAV_TYPES.NEW_PATIENT}
         >
           הוספת מטופל
-        </button>
-        <button
-          className={getButtonClassName(
-            patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST,
-          )}
+        </Button>
+        <Button
+          active={patientsNavType !== PATIENTS_NAV_TYPES.PATIENTS_LIST}
+          selected={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
           title="רשימת מטופלים"
           onClick={() => {
             resetPatientCards(false);
@@ -238,7 +242,7 @@ function Patients({ patientsNavType }: PatientsProps) {
           disabled={patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST}
         >
           רשימת מטופלים
-        </button>
+        </Button>
       </nav>
       {isShowOneTable &&
         (patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
@@ -316,7 +320,7 @@ function Patients({ patientsNavType }: PatientsProps) {
                     reload={reloadProceduresCards}
                     isCards={true}
                     customCard={patientCard}
-                    hiddenCardWidth="230px"
+                    hiddenCardWidth="255px"
                     hiddenCardMargin="1em"
                   />
                 </div>
@@ -374,7 +378,7 @@ function Patients({ patientsNavType }: PatientsProps) {
                     reload={reloadPatientsCards}
                     isCards={true}
                     customCard={patientCard}
-                    hiddenCardWidth="230px"
+                    hiddenCardWidth="255px"
                     hiddenCardMargin="1em"
                   />
                 </div>

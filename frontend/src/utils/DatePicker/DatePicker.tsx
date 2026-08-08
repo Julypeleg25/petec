@@ -1,36 +1,23 @@
-import {
-  getDateForInput,
-  getFormattedDateFromDBdate,
-} from "../DateFormattingUtil";
-import "./DatePicker.css";
+import { Box } from "@mui/material";
+import { LocalizationProvider, DatePicker as MuiDatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { Dayjs } from "dayjs";
+import "dayjs/locale/he";
+
+import { muiTheme } from "../../theme/muiTheme";
 
 import { DatePickerProps } from "./DatePicker.types";
 
-const toInputDateValue = (value?: string | Date | null): string => {
+const DB_DATE_FORMAT = "YYYY-MM-DD";
+const DISPLAY_DATE_FORMAT = "DD/MM/YYYY";
+
+const toDayjsValue = (value?: string | Date | null): Dayjs | null => {
   if (!value) {
-    return "";
+    return null;
   }
 
-  if (value instanceof Date) {
-    return Number.isFinite(value.getTime()) ? getDateForInput(value) : "";
-  }
-
-  const trimmedValue = value.trim();
-  if (!trimmedValue) {
-    return "";
-  }
-
-  const [datePart] = trimmedValue.split("T");
-  if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
-    return datePart;
-  }
-
-  const parsedDate = new Date(trimmedValue);
-  if (!Number.isFinite(parsedDate.getTime())) {
-    return "";
-  }
-
-  return getDateForInput(parsedDate);
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed : null;
 };
 
 function DatePicker({
@@ -49,38 +36,51 @@ function DatePicker({
   afterChange,
 }: DatePickerProps) {
   return (
-    <div className="form-input-container" style={{ width: width }}>
+    <Box className="form-input-container" sx={{ width }}>
       {labelText && (
         <label className="form-input-label">
           {labelText}
           {isRequired && !placeholder ? " *" : ""}
         </label>
       )}
-      <div className="date-picker-form-input">
-        <div className="date-picker-value">
-          {getFormattedDateFromDBdate(state)}
-        </div>
-        <input
-          id={id}
-          type={"date"}
-          placeholder={placeholder + (isRequired ? " *" : "")}
-          name={name}
-          required={isRequired}
-          value={toInputDateValue(state)}
-          onChange={(e) => {
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="he">
+        <MuiDatePicker
+          value={toDayjsValue(state)}
+          format={DISPLAY_DATE_FORMAT}
+          minDate={min ? dayjs(min) : undefined}
+          maxDate={max ? dayjs(max) : undefined}
+          disabled={disabled !== undefined ? disabled : false}
+          onChange={(nextValue) => {
+            const nextDateString =
+              nextValue && nextValue.isValid()
+                ? nextValue.format(DB_DATE_FORMAT)
+                : "";
+
             if (setState) {
               const params = setStateParams ?? name;
-              setState(e.target.value, params, name);
+              setState(nextDateString, params, name);
             }
 
-            if (afterChange) afterChange(e.target.value);
+            if (afterChange) afterChange(nextDateString);
           }}
-          min={min}
-          max={max}
-          disabled={disabled !== undefined ? disabled : false}
+          slotProps={{
+            textField: {
+              id,
+              name,
+              required: isRequired,
+              fullWidth: true,
+              size: "small",
+              sx: {
+                mt: "0.5em",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: `${muiTheme.shape.borderRadius}px`,
+                },
+              },
+            },
+          }}
         />
-      </div>
-    </div>
+      </LocalizationProvider>
+    </Box>
   );
 }
 

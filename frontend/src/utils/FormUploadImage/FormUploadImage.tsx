@@ -6,6 +6,7 @@ import { MdOutlineCameraswitch } from "react-icons/md";
 import toast from "react-hot-toast";
 import { DEFAULT_IMAGE_MIME_TYPE, IMAGE_MIME_TYPES, UPLOAD } from "@petec/shared";
 
+import { Button } from "../Button/Button";
 import { FormUploadImageProps } from "./FormUploadImage.types";
 
 const FACING_MODE_USER = "user";
@@ -158,12 +159,13 @@ function FormUploadImage({
       <div className={`upload-image-container ${isLarge ? "upload-image-container-large" : ""}`}>
         {showWebcam ? (
           <div className="upload-image-webcam">
-            <button
-              className="btn btn-round upload-image-webcam-swap-camera-button"
+            <Button
+              round
+              className="upload-image-webcam-swap-camera-button"
               onClick={swapCameras}
             >
               <MdOutlineCameraswitch size={22} />
-            </button>
+            </Button>
             <Webcam
               key={facingMode}
               audio={false}
@@ -246,13 +248,13 @@ function FormUploadImage({
 
       {!disabled && (
         showWebcam ? (
-          <button className="btn capture-image-btn" onClick={capture} disabled={!isCameraReady}>
+          <Button className="capture-image-btn" onClick={capture} disabled={!isCameraReady}>
             צלם
-          </button>
+          </Button>
         ) : (
-          <button className="btn capture-image-btn" onClick={handleOpenCamera}>
+          <Button className="capture-image-btn" onClick={handleOpenCamera}>
              {displaySrc ? "צלם תמונה שוב" : "צלם תמונה"}
-          </button>
+          </Button>
         )
       )}
     </div>

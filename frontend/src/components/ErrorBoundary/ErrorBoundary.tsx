@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { ENV } from "../../config/config";
+import { Button } from "../../utils/Button/Button";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -39,9 +40,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div className="error-boundary">
           <h2>משהו השתבש</h2>
           <p>אירעה שגיאה בלתי צפויה. אנא נסה שוב.</p>
-          <button className="btn btn-primary" onClick={this.handleReset}>
+          <Button onClick={this.handleReset}>
             נסה שוב
-          </button>
+          </Button>
         </div>
       );
     }

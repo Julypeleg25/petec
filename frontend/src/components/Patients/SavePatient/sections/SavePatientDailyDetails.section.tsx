@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaBars, FaInfoCircle, FaPlus, FaTimes, FaTrash } from "react-icons/fa";
+import { Button } from "../../../../utils/Button/Button";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
@@ -138,69 +139,71 @@ function SavePatientDailyDetailsSection({
             </div>
           )}
           <div className="case-daily-details-date-actions">
-            <button
+            <Button
               type="button"
               onClick={deleteSelectedCaseDailyDetails}
-              className="btn btn-small delete-case-daily-details-btn"
+              className="delete-case-daily-details-btn"
               disabled={isArchived || !canDeleteSelectedCaseDay}
               title="מחיקת יום אשפוז"
             >
               <FaTrash />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={addNewCaseDailyDetails}
-              className="btn btn-small add-new-case-daily-details-btn"
+              className="add-new-case-daily-details-btn"
             >
               <FaPlus />
-            </button>
+            </Button>
           </div>
         </div>
         <div className="daily-details-btns daily-details-btns-desktop">
-          <button
+          <Button
             type="submit"
-            className="btn btn-small daily-details-save-btn"
+            className="daily-details-save-btn"
             form="save-patient-form"
             disabled={isSaveDisabled}
           >
             שמור
-          </button>
-          <button
+          </Button>
+          <Button
             id="paintButton"
             type="button"
             onClick={handlePaintingModeButtonClick}
-            className="btn btn-small paint-button"
+            className="paint-button"
+            sx={{ width: "auto", whiteSpace: "nowrap" }}
           >
             {paintingMode ? "עצור סימון" : "סימון שדות חובה"}
-          </button>
-          <button
+          </Button>
+          <Button
             id="setEditableFieldsButton"
             type="button"
             onClick={handleSetEditableFieldsButtonClick}
-            className="btn btn-small paint-button"
+            className="paint-button"
+            sx={{ width: "auto", whiteSpace: "nowrap" }}
           >
             {editableFieldsMode ? "עצור סימון" : "סימון ביטול שדות"}
-          </button>
+          </Button>
         </div>
         <div className="daily-details-mobile-actions">
-          <button
+          <Button
             type="submit"
-            className="btn btn-small daily-details-save-btn"
+            className="daily-details-save-btn"
             form="save-patient-form"
             disabled={isSaveDisabled}
           >
             שמור
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn daily-details-mobile-actions__trigger"
+            className="daily-details-mobile-actions__trigger"
             onClick={() => setIsMobileActionsOpen((prev) => !prev)}
             aria-expanded={isMobileActionsOpen}
             aria-controls="daily-details-mobile-actions-panel"
           >
             {isMobileActionsOpen ? <FaTimes /> : <FaBars />}
             פעולות טבלה
-          </button>
+          </Button>
           {isMobileActionsOpen && (
             <div
               id="daily-details-mobile-actions-panel"

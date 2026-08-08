@@ -59,11 +59,10 @@ const CreateCaseButton = ({
         alignItems: "center",
         justifyContent: "center",
         gap: 1,
-        direction: "rtl",
         whiteSpace: "nowrap",
       }}
     >
-      <MdPersonAddAlt fontSize="small" />
+      <MdPersonAddAlt size={18} />
       <span>{CLINICA_TEXTS.createCase}</span>
     </Box>
   </Button>
@@ -83,18 +82,14 @@ export const ClinicaClientsTable = ({
       <TableContainer
         component={Paper}
         variant="outlined"
-        dir="rtl"
         sx={{
           overflowX: "auto",
-          direction: "rtl",
         }}
       >
         <Table
-          dir="rtl"
           sx={{
             minWidth: { xs: 760, md: 1180 },
             tableLayout: "fixed",
-            direction: "rtl",
             "& th, & td": {
               textAlign: "right",
               verticalAlign: "middle",
@@ -181,7 +176,6 @@ export const ClinicaClientsTable = ({
                       sx={{
                         flexWrap: "wrap",
                         gap: 1,
-                        direction: "rtl",
                       }}
                     >
                       {client.pets.length > 0 ? (

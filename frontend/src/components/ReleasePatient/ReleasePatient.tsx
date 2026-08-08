@@ -1,5 +1,6 @@
 import { Controller } from "react-hook-form";
 import MedicinePicker from "../MedicinePicker/MedicinePicker";
+import { Button } from "../../utils/Button/Button";
 import DatePicker from "../../utils/DatePicker/DatePicker";
 import FormInput from "../../utils/FormInput/FormInput";
 import MyLoader from "../../utils/MyLoader/MyLoader";
@@ -146,20 +147,21 @@ function ReleasePatient({
               </div>
 
               <div className="release-patient-dialog__actions">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-active release-patient-dialog__cancel-btn"
+                  active
+                  className="release-patient-dialog__cancel-btn"
                   onClick={() => setShowReleasePatientModal(false)}
                 >
                   ביטול
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn release-patient-dialog__submit-btn"
+                  className="release-patient-dialog__submit-btn"
                   form="release-patient-form"
                 >
                   שחרר
-                </button>
+                </Button>
               </div>
             </form>
           </>

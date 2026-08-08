@@ -1,6 +1,7 @@
 import "./ResetPassword.css";
 import { useForm } from "react-hook-form";
 import { useParams, Link } from "react-router-dom";
+import { Button } from "../../utils/Button/Button";
 import FormInput from "../../utils/FormInput/FormInput";
 import { useResetPassword } from "../../features/auth/hooks/useResetPassword";
 import { getSharedResolver } from "../../utils/form";
@@ -87,13 +88,15 @@ const ResetPassword = () => {
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-large login-btn"
+            appSize="large"
+            className="login-btn"
             disabled={isLoading}
+            sx={{ mt: 3, mb: 1.5 }}
           >
             {isLoading ? "...שולח" : "שמירה"}
-          </button>
+          </Button>
 
           <Link
             className="back-to-login-link"

@@ -73,7 +73,7 @@ export const ENV = {
   isProduction: envs.NODE_ENV === "production",
   isDevelopment: envs.NODE_ENV === "development",
   isTest: envs.NODE_ENV === "test",
-  frontendUrl: envs.FRONTEND_URL,
+  frontendUrl: "http://localhost:5173",
   mailAdmin: envs.MAIL_ADMIN ?? "",
   jwtAccessSecret: envs.JWT_ACCESS_SECRET,
   jwtRefreshSecret: envs.JWT_REFRESH_SECRET,

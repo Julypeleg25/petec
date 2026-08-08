@@ -2,6 +2,7 @@ import Modal from "../Modal/Modal";
 import "./UploadFile.css";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { Button } from "../Button/Button";
 
 import { UploadFileProps } from "./UploadFile.types";
 
@@ -55,7 +56,6 @@ function UploadFile({
   return (
     <Modal
       setIsOpen={setIsOpen}
-      closeWhenClickOutside={true}
       className={["upload-file-modal", modalClassName].filter(Boolean).join(" ")}
       overlayClassName="save-user-modal-overlay"
       component={
@@ -69,8 +69,9 @@ function UploadFile({
               {message}
             </h3>
           )}
-          <button
-            className="btn table-btn btn-active upload-file-btn"
+          <Button
+            active
+            className="table-btn upload-file-btn"
             onClick={handleClick}
           >
             העלה קובץ
@@ -85,13 +86,14 @@ function UploadFile({
                 setIsUploading(false);
               }}
             />
-          </button>
+          </Button>
           {fileName !== "" && fileName}
           {selectedFile && (
             <div>
-              <button
+              <Button
                 id="upload-file-btn"
-                className="btn table-btn btn-active upload-file-btn"
+                active
+                className="table-btn upload-file-btn"
                 disabled={!selectedFile || isUploading}
                 onClick={() => {
                   upload()
@@ -104,7 +106,7 @@ function UploadFile({
                 }}
               >
                 אישור
-              </button>
+              </Button>
             </div>
           )}
         </div>

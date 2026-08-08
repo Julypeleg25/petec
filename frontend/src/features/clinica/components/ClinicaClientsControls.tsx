@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { MdSearch, MdSync } from "react-icons/md";
 
+import { muiTheme } from "../../../theme/muiTheme";
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 
 type ClinicaClientsControlsProps = {
@@ -69,7 +70,7 @@ export const ClinicaClientsControls = ({
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <MdSearch color="primary" />
+                  <MdSearch color={muiTheme.palette.primary.main} size={20} />
                 </InputAdornment>
               ),
             },
@@ -110,7 +111,7 @@ export const ClinicaClientsControls = ({
             {isSyncing ? (
               <CircularProgress size={18} color="inherit" />
             ) : (
-              <MdSync fontSize="small" />
+              <MdSync size={18} />
             )}
             <span>
               {isSyncing ? CLINICA_TEXTS.syncing : CLINICA_TEXTS.manualSync}

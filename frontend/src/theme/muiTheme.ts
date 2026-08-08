@@ -9,6 +9,12 @@ export const muiTheme = createTheme({
       light: "#cf91e1",
       contrastText: "#ffffff",
     },
+    error: {
+      main: "rgb(211, 2, 2)",
+    },
+    info: {
+      main: "rgb(16, 16, 196)",
+    },
     background: {
       default: "#ffffff",
       paper: "#ffffff",

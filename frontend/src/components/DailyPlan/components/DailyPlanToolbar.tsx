@@ -1,5 +1,6 @@
 import { FaPrint } from "react-icons/fa";
 
+import { Button } from "../../../utils/Button/Button";
 import {
   DAILY_PLAN_PRINT_BUTTON,
   DAILY_PLAN_SAVE_BUTTON,
@@ -17,23 +18,25 @@ export function DailyPlanToolbar({
 }: DailyPlanToolbarProps) {
   return (
     <div className="daily-plan-toolbar">
-      <button
-        className="btn btn-small daily-plan-print-btn"
+      <Button
+        className="daily-plan-print-btn"
         onClick={printDailyPlan}
         title={DAILY_PLAN_PRINT_BUTTON}
         type="button"
+        sx={{ width: "auto", px: 2.5, py: 0.5, fontSize: "0.9rem" }}
       >
         <FaPrint aria-hidden="true" />
         <span>{DAILY_PLAN_PRINT_BUTTON}</span>
-      </button>
-      <button
-        className="btn btn-small save-daily-plan-btn"
+      </Button>
+      <Button
+        className="save-daily-plan-btn"
         onClick={onSave}
         disabled={!hasDailyPlanChanges}
         type="button"
+        sx={{ width: "auto", px: 2.5, py: 0.5, fontSize: "0.9rem" }}
       >
         {DAILY_PLAN_SAVE_BUTTON}
-      </button>
+      </Button>
     </div>
   );
 }

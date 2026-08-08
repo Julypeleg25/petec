@@ -1,5 +1,6 @@
 import React from "react";
 import { FaPlus } from "react-icons/fa";
+import { Button } from "../../../../utils/Button/Button";
 import { DAILY_CASE_TABLE_COLUMN_COUNT } from "../CaseDetailsTable.constants";
 
 interface CaseDetailsAddSectionRowProps {
@@ -18,15 +19,16 @@ export const CaseDetailsAddSectionRow = ({
           key={index}
           className="case-details-table-body-row-cell case-details-table-body-row-cell-title case-details-table-body-row-cell-title-clickable"
         >
-          <button
-            className="btn btn-icon-only btn-active"
+          <Button
+            iconOnly
+            active
             onClick={(e) => {
               e.preventDefault();
               onAddClick();
             }}
           >
             <FaPlus />
-          </button>
+          </Button>
           {title}
         </div>
       ) : (

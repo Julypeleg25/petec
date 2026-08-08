@@ -1,6 +1,7 @@
 import "./ForgotPassword.css";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { Button } from "../../utils/Button/Button";
 import FormInput from "../../utils/FormInput/FormInput";
 import { ForgotPasswordDTOSchema, type ForgotPasswordDTO } from "@petec/shared";
 import { useForgotPassword } from "../../features/auth/hooks/useForgotPassword";
@@ -58,13 +59,15 @@ const ForgotPassword = () => {
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-large login-btn"
+            appSize="large"
+            className="login-btn"
             disabled={isLoading}
+            sx={{ mt: 3, mb: 1.5 }}
           >
             {isLoading ? "...שולח" : "שלח/י"}
-          </button>
+          </Button>
 
           <Link
             className="back-to-login-link"

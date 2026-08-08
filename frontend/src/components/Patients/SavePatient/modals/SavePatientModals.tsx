@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 import ReleasePatient from "../../../ReleasePatient/ReleasePatient";
 import DeletePatient from "../../../DeletePatient/DeletePatient";
@@ -89,7 +90,6 @@ export function SavePatientModals({
               animalWeight={weightKg}
             />
           }
-          closeWhenClickOutside={true}
         />
       )}
       {showDeletePatientCaseModal && (
@@ -135,15 +135,16 @@ export function SavePatientModals({
                   ? "?האם אתה בטוח שאת/ה רוצה להוציא את המטופל מהארכיון"
                   : "?האם אתה בטוח שאת/ה רוצה להעביר את המטופל לארכיון"}
               </div>
-              <button
+              <Button
+                appSize="small"
                 onClick={(e) => {
                   e.preventDefault();
                   archivePatient();
                 }}
-                className="btn btn-small save-entity-form-btn"
+                className="save-entity-form-btn"
               >
                 אישור
-              </button>
+              </Button>
             </div>
           }
         />

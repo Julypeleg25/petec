@@ -5,6 +5,7 @@ import type { CalendarPatientItemDTO } from "@petec/shared";
 import { AppRoutes } from "../../../config/appRoutes";
 import { patientsApi } from "../../../features/patients/patients.api";
 import { patientKeys } from "../../../features/patients/hooks/patient.keys";
+import { Button } from "../../../utils/Button/Button";
 import MyLoader from "../../../utils/MyLoader/MyLoader";
 import CalendarAgendaDay from "./components/CalendarAgendaDay";
 import CalendarDayListModal from "./components/CalendarDayListModal";
@@ -179,15 +180,15 @@ function Calendar() {
         <div className="calendar-empty-state">
           <h3>לא הצלחנו לטעון את היומן</h3>
           <p>אפשר לנסות שוב. הנתונים לא נפגעו.</p>
-          <button
+          <Button
             type="button"
-            className="btn calendar-retry-btn"
+            className="calendar-retry-btn"
             onClick={() => {
               void refetch();
             }}
           >
             טען מחדש
-          </button>
+          </Button>
         </div>
       </div>
     );

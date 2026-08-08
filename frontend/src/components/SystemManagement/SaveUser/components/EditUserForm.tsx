@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { CircularProgress } from "@mui/material";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 import { getSharedResolver } from "../../../../utils/form";
 import { useUserApi } from "../../../../features/system-management";
@@ -65,7 +67,7 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
           role: values.role as Role,
         },
       },
-      { onSuccess: onClose },
+      { onSettled: onClose },
     );
   });
 
@@ -76,7 +78,6 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
         if (!open) onClose();
       }}
-      closeWhenClickOutside={true}
       size="lg"
       className="system-management-modal save-user-create-modal"
       overlayClassName="save-user-modal-overlay"
@@ -181,22 +182,30 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
               </div>
 
               <div className="save-user-dialog__actions">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-active save-user-dialog__cancel-btn"
+                  active
+                  className="save-user-dialog__cancel-btn"
                   onClick={onClose}
                   disabled={isPending}
                 >
                   ביטול
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn save-user-dialog__submit-btn"
+                  className="save-user-dialog__submit-btn"
                   disabled={isPending || !editForm.formState.isDirty}
                   aria-busy={isPending}
                 >
-                  {isPending ? "...שומר" : "שמור"}
-                </button>
+                  {isPending ? (
+                    <>
+                      <CircularProgress size={16} thickness={5} sx={{ color: "inherit", marginLeft: "0.5em" }} />
+                      שומר...
+                    </>
+                  ) : (
+                    "שמור"
+                  )}
+                </Button>
               </div>
             </form>
           </div>

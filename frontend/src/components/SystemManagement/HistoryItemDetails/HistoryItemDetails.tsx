@@ -1,4 +1,5 @@
 import { FaArrowRight } from "react-icons/fa";
+import { Button } from "../../../utils/Button/Button";
 import FormInput from "../../../utils/FormInput/FormInput";
 import "./HistoryItemDetails.css";
 import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
@@ -25,14 +26,16 @@ function HistoryItemDetails({
 }: HistoryItemDetailsProps) {
   return (
     <div className="HistoryItemDetails">
-      <button
-        className="btn btn-active btn-round back-btn"
+      <Button
+        active
+        round
+        className="back-btn"
         onClick={() => {
           setShowHistoryDetails(false);
         }}
       >
         <FaArrowRight />
-      </button>
+      </Button>
       <div className="history-form-container">
         <h2 className="history-form-title">פרטים</h2>
         <form className="history-form">

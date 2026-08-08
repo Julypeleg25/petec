@@ -13,6 +13,7 @@ import {
 } from "@petec/shared";
 import { patientsApi } from "../../features/patients/patients.api";
 import { useActiveSystemTypes } from "../../features/system-management";
+import { Button } from "../../utils/Button/Button";
 import FormUploadImage from "../../utils/FormUploadImage/FormUploadImage";
 import Modal from "../../utils/Modal/Modal";
 import AnesthesiaProcedureForm from "../AnesthesiaProcedureForm/AnesthesiaProcedureForm";
@@ -147,12 +148,9 @@ const PatientDocuments = ({
         }`}
       >
         <nav className="navbar patients-navbar">
-          <button
-            className={`btn ${
-              navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          <Button
+            active={navType !== PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE}
+            selected={navType === PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE}
             title="anesthesia-procedure"
             onClick={() => {
               setNavType(PATIENT_DOCUMENT_NAV_TYPES.ANESTHESIA_PROCEDURE);
@@ -162,13 +160,10 @@ const PatientDocuments = ({
             }
           >
             טופס הסכמה לפרוצדורה בהרדמה
-          </button>
-          <button
-            className={`btn ${
-              navType === PATIENT_DOCUMENT_NAV_TYPES.XRAY
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          </Button>
+          <Button
+            active={navType !== PATIENT_DOCUMENT_NAV_TYPES.XRAY}
+            selected={navType === PATIENT_DOCUMENT_NAV_TYPES.XRAY}
             title="xray"
             onClick={() => {
               setNavType(PATIENT_DOCUMENT_NAV_TYPES.XRAY);
@@ -176,13 +171,10 @@ const PatientDocuments = ({
             disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.XRAY}
           >
             צילומי רנטגן
-          </button>
-          <button
-            className={`btn ${
-              navType === PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          </Button>
+          <Button
+            active={navType !== PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS}
+            selected={navType === PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS}
             title="blood-tests"
             onClick={() => {
               setNavType(PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS);
@@ -190,7 +182,7 @@ const PatientDocuments = ({
             disabled={navType === PATIENT_DOCUMENT_NAV_TYPES.BLOOD_TESTS}
           >
             בדיקות דם
-          </button>
+          </Button>
         </nav>
         <label className="form-label patient-documents-label">
           {getPatientDocumentLabel(navType)}
@@ -206,9 +198,10 @@ const PatientDocuments = ({
                 currentImage={"#"}
                 disabled={isDocumentUploadDisabled || isUploadingDocument}
               />
-              <button
+              <Button
                 type="submit"
-                className="btn btn-small upload-patient-documents-image-btn"
+                appSize="small"
+                className="upload-patient-documents-image-btn"
                 disabled={
                   isDocumentUploadDisabled ||
                   isUploadingDocument ||
@@ -216,7 +209,7 @@ const PatientDocuments = ({
                 }
               >
                 {isUploadingDocument ? "...מעלה" : "העלה"}
-              </button>
+              </Button>
             </form>
           </section>
         )}
@@ -250,15 +243,16 @@ const PatientDocuments = ({
                       src={assetUrl}
                       alt="patient-document"
                     />
-                    <button
-                      className="btn btn-small btn-round patient-document-delete-btn"
+                    <Button
+                      round
+                      className="patient-document-delete-btn"
                       onClick={() => {
                         setDeletedDocumentId(document.id);
                         setShowDeleteModal(true);
                       }}
                     >
                       <FaTrash />
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
@@ -276,12 +270,13 @@ const PatientDocuments = ({
                 האם את/ה בטוח שאת/ה רוצה למחוק את המסמך?
               </p>
               <div className="patient-documents-delete-modal__actions">
-                <button
-                  className="btn btn-large patient-documents-delete-modal__confirm-btn"
+                <Button
+                  appSize="large"
+                  className="patient-documents-delete-modal__confirm-btn"
                   onClick={deletePatientDocument}
                 >
                   מחק
-                </button>
+                </Button>
               </div>
             </div>
           }

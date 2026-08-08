@@ -5,6 +5,7 @@ import { FaEdit, FaPlus, FaTrash, FaUsers } from "react-icons/fa";
 import SaveUser from "../SaveUser/SaveUser";
 import type { TableBtnConfig } from "../../../utils/TableGenerator/TableGenerator";
 import { useUserApi } from "../../../features/system-management";
+import { Button } from "../../../utils/Button/Button";
 import Modal from "../../../utils/Modal/Modal";
 import "./UsersTab.css";
 
@@ -88,9 +89,9 @@ export default function UsersTab() {
           </div>
         </div>
 
-        <button
+        <Button
           type="button"
-          className="btn users-tab__create-btn"
+          className="users-tab__create-btn"
           onClick={() => {
             setUser(undefined);
             setShowSaveUser(true);
@@ -98,7 +99,7 @@ export default function UsersTab() {
         >
           <FaPlus />
           <span>יצירת משתמש</span>
-        </button>
+        </Button>
       </div>
 
       <div className="users-tab__table-card">
@@ -125,7 +126,6 @@ export default function UsersTab() {
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
-          closeWhenClickOutside={true}
           className="system-management-modal"
           component={
             <div className="users-delete-modal" dir="rtl">
@@ -137,23 +137,24 @@ export default function UsersTab() {
               </p>
 
               <div className="users-delete-modal__actions">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-active users-delete-modal__cancel-btn"
+                  active
+                  className="users-delete-modal__cancel-btn"
                   onClick={() => setShowDeleteModal(false)}
                   disabled={deleteUser.isPending}
                 >
                   ביטול
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
-                  className="btn users-delete-modal__confirm-btn"
+                  className="users-delete-modal__confirm-btn"
                   onClick={handleDelete}
                   disabled={deleteUser.isPending}
                 >
                   {deleteUser.isPending ? "...מוחק" : "מחק"}
-                </button>
+                </Button>
               </div>
             </div>
           }

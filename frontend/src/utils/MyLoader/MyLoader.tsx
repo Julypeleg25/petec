@@ -1,19 +1,26 @@
-import { RotatingLines } from "react-loader-spinner";
-import "./MyLoader.css";
+import { Box, CircularProgress } from "@mui/material";
+
+import { muiTheme } from "../../theme/muiTheme";
 import { MyLoaderProps } from "./MyLoader.types";
 
 function MyLoader({ size = "70" }: MyLoaderProps) {
   return (
-    <div className="MyLoader">
-      <RotatingLines
-        visible={true}
-        width={size}
-        strokeWidth="5"
-        animationDuration="0.75"
-        ariaLabel="rotating-lines-loading"
-        strokeColor="var(--color-main)"
+    <Box
+      className="MyLoader"
+      sx={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        transform: "translate(-50%, -50%)",
+      }}
+    >
+      <CircularProgress
+        size={Number(size)}
+        thickness={3}
+        sx={{ color: muiTheme.palette.primary.main }}
+        aria-label="rotating-lines-loading"
       />
-    </div>
+    </Box>
   );
 }
 

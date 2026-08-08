@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { formatOwnerPhone, getPatientImageSrc, handlePatientImageLoadError } from "../../../../features/patients";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 import {
   BADGE_LABELS,
@@ -100,9 +101,8 @@ function CalendarDetailsModal({
           ) : null}
 
           <div className="calendar-details-actions">
-            <button
+            <Button
               type="button"
-              className="btn"
               onClick={() => {
                 onNavigateToCase(
                   selectedEntry.patient.caseId,
@@ -112,7 +112,7 @@ function CalendarDetailsModal({
               }}
             >
               פתח תיק מלא
-            </button>
+            </Button>
           </div>
         </div>
       }

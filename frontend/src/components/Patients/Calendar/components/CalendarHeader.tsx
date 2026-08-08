@@ -1,4 +1,5 @@
 import { FaChevronLeft, FaChevronRight, FaSyncAlt } from "react-icons/fa";
+import { Button } from "../../../../utils/Button/Button";
 import type { CalendarMonthCursor } from "../utils/calendar.utils";
 import { CALENDAR_WEEKDAY_LABELS, getMonthLabel } from "../utils/calendar.utils";
 import { BADGE_LABELS, getBadgeIcon } from "../constants/calendar.constants";
@@ -38,14 +39,14 @@ function CalendarHeader({
     <section className="calendar-hero">
       <div className="calendar-hero-row">
         <div className="calendar-hero-nav">
-          <button
+          <Button
             type="button"
-            className="btn calendar-nav-btn"
+            className="calendar-nav-btn"
             onClick={() => onMoveMonth(1)}
             aria-label="חודש הבא"
           >
             <FaChevronLeft aria-hidden="true" />
-          </button>
+          </Button>
           <select
             className="calendar-select calendar-select-month"
             aria-label="בחר חודש"
@@ -58,14 +59,14 @@ function CalendarHeader({
               </option>
             ))}
           </select>
-          <button
+          <Button
             type="button"
-            className="btn calendar-nav-btn"
+            className="calendar-nav-btn"
             onClick={() => onMoveMonth(-1)}
             aria-label="חודש קודם"
           >
             <FaChevronRight aria-hidden="true" />
-          </button>
+          </Button>
           <button
             type="button"
             className={`calendar-today-btn${isViewingCurrentMonth ? " calendar-today-btn-current" : ""}`}

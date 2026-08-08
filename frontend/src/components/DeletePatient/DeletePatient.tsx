@@ -1,5 +1,6 @@
 import "./DeletePatient.css";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "../../utils/Button/Button";
 import { patientsApi } from "../../features/patients/patients.api";
 import { patientKeys } from "../../features/patients/hooks/patient.keys";
 import { tableKeys } from "../../features/table/hooks/table.keys";
@@ -43,9 +44,9 @@ function DeletePatient({
         ?האם אתה בטוח שאת/ה רוצה למחוק את המטופל
       </div>
 
-      <button type="submit" className="btn btn-small" onClick={deletePatient}>
+      <Button type="submit" appSize="small" onClick={deletePatient}>
         מחק
-      </button>
+      </Button>
     </div>
   );
 }

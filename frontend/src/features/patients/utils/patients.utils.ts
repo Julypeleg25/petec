@@ -42,9 +42,6 @@ export const formatOwnerPhone = (phone?: string): string => {
   return `${phone.substring(0, 3)}-${phone.substring(3)}`;
 };
 
-export const getButtonClassName = (isCurrent: boolean): string =>
-  isCurrent ? "btn btn-selected" : "btn btn-active";
-
 export const getInitialViewportWidth = (): number =>
   typeof window === "undefined" ? 0 : window.innerWidth;
 

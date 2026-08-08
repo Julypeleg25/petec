@@ -5,7 +5,6 @@ export const CLINICA_PREFILL_SEARCH_DEBOUNCE_MS = 300;
 export const CLINICA_PREFILL_SEARCH_LIMIT = 8;
 
 export const CLINICA_COLORS = {
-  primary: "#B65AD8",
   primarySoft: "rgba(177, 89, 205, 0.08)",
   primaryFaint: "rgba(177, 89, 205, 0.04)",
   border: "rgba(177, 89, 205, 0.28)",

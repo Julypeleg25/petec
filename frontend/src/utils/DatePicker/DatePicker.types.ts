@@ -11,5 +11,5 @@ export interface DatePickerProps {
     id?: string;
     disabled?: boolean;
     setStateParams?: object | string | number;
-    afterChange?: (value: string) => void;
+    afterChange?: (value: string) => void; 
 }

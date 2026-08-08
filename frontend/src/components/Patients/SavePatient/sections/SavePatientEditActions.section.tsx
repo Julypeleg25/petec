@@ -1,4 +1,5 @@
 import { FaArrowRight } from "react-icons/fa";
+import { Button } from "../../../../utils/Button/Button";
 import SavePatientActionsMenu, {
   type SavePatientActions,
 } from "./SavePatientActionsMenu";
@@ -18,14 +19,16 @@ function SavePatientEditActionsSection({
           menuId="edit-patient-actions-menu-panel"
           variant="desktop"
         />
-        <button
+        <Button
           type="button"
-          className="btn btn-active btn-round edit-patient-back-btn"
+          active
+          round
+          className="edit-patient-back-btn"
           onClick={actions.onBack}
           aria-label="חזרה"
         >
           <FaArrowRight />
-        </button>
+        </Button>
       </div>
     </div>
   );

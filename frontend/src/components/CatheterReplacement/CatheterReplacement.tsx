@@ -10,10 +10,11 @@ function CatheterReplacement({ catheterDate }: CatheterReplacementProps) {
   return (
     <div className="CatheterReplacement">
       <FiAlertTriangle size={60} color="var(--color-main)" />
-      <div className="catheter-replacement-text">
+      <div className="catheter-replacement-text" dir="rtl">
         <div>דרושה החלפת קטטר</div>
-        {getFormattedDateFromDBdate(catheterDate)} :תאריך הכנסת קטטר אחרון
-        <div></div>
+        <div>
+          תאריך הכנסת קטטר אחרון: {getFormattedDateFromDBdate(catheterDate)}
+        </div>
       </div>
     </div>
   );

@@ -475,7 +475,7 @@
 }
 
 .paint-button {
-  width: 170px;
+  min-width: 170px;
 }
 
 .add-new-case-daily-details-btn,

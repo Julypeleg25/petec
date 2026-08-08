@@ -11,6 +11,7 @@ import {
   FaStethoscope,
   FaSyncAlt,
 } from "react-icons/fa";
+import { Button } from "../../../../utils/Button/Button";
 import {
   CLINICAL_SUMMARY_ERROR_MESSAGE,
   CLINICAL_SUMMARY_WARNING,
@@ -82,9 +83,9 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
             <p>תמונת מצב מרוכזת מהרשומה העדכנית</p>
           </div>
         </div>
-        <button
+        <Button
           type="button"
-          className="btn btn-small"
+          appSize="small"
           onClick={() => void generateSummary(selectedDate || undefined)}
           disabled={isLoading}
         >
@@ -97,7 +98,7 @@ export function AiCaseSummary({ patientId }: AiCaseSummaryProps) {
             : summary
               ? "רענון הסיכום"
               : "יצירת סיכום"}
-        </button>
+        </Button>
       </header>
 
       {errorMessage && (

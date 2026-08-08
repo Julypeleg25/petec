@@ -1,4 +1,5 @@
 import type { FormEventHandler, ReactNode } from "react";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 
 interface SystemTypeEditorShellProps {
@@ -45,7 +46,6 @@ export function SystemTypeEditorShell({
       setIsOpen={(open: boolean | ((prevState: boolean) => boolean)) => {
          if (!open) onClose();
       }}
-      closeWhenClickOutside={true}
       size={size}
       className={modalClassName}
       overlayClassName={overlayClassName}
@@ -68,22 +68,23 @@ export function SystemTypeEditorShell({
               {children}
 
               <div className="system-type-editor__actions">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-active system-type-editor__cancel-btn"
+                  active
+                  className="system-type-editor__cancel-btn"
                   onClick={onClose}
                   disabled={isPending}
                 >
                   ביטול
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="btn save-entity-form-btn system-type-editor__submit-btn"
+                  className="save-entity-form-btn system-type-editor__submit-btn"
                   disabled={isPending || submitDisabled}
                   aria-busy={isPending}
                 >
                   {isPending ? "...שומר" : "שמור"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

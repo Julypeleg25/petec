@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 
 import { AppRoutes } from "../../config/appRoutes";
-import { MuiRtlProvider } from "../../theme/MuiRtlProvider";
 import {
   CLINICA_COLORS,
   CLINICA_TEXTS,
@@ -24,7 +23,7 @@ import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "./types/clinicaClient.types";
 
-const ClinicaClientsPageContent = () => {
+const ClinicaClientsPage = () => {
   const navigate = useNavigate();
   const [clientForPetSelection, setClientForPetSelection] =
     useState<ClinicaClient | null>(null);
@@ -179,11 +178,5 @@ const ClinicaClientsPageContent = () => {
     </Box>
   );
 };
-
-const ClinicaClientsPage = () => (
-  <MuiRtlProvider>
-    <ClinicaClientsPageContent />
-  </MuiRtlProvider>
-);
 
 export default ClinicaClientsPage;

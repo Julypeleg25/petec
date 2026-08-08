@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { Button } from "../../utils/Button/Button";
 import { useAuth } from "../../features/auth/AuthProvider";
 import { authApi } from "../../features/auth/auth.api";
 import { roles } from "@petec/shared";
@@ -46,14 +47,15 @@ function Header({ type, patientsNavType }: HeaderProps) {
         <div className="hello-user">
           <span>,שלום</span> <span>{user?.fullName}</span>
         </div>
-        <button
-          className="btn logout-btn btn-active"
+        <Button
+          active
+          className="logout-btn"
           title="Logout"
           onClick={() => doLogout()}
           disabled={isPending}
         >
           התנתקות
-        </button>
+        </Button>
       </div>
       <div className="logo-and-navbar-container">
         <img
@@ -63,12 +65,9 @@ function Header({ type, patientsNavType }: HeaderProps) {
         />
         <nav className="navbar header-navbar">
           {user?.role === roles.ADMIN && (
-            <button
-              className={`btn ${
-                type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT
-                  ? "btn-selected"
-                  : "btn-active"
-              }`}
+            <Button
+              active={type !== MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT}
+              selected={type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT}
               title="system-management"
               onClick={() => {
                 navigate(AppRoutes.SystemManagement.Users);
@@ -76,14 +75,11 @@ function Header({ type, patientsNavType }: HeaderProps) {
               disabled={type === MAIN_PAGE_TYPES.SYSTEM_MANAGEMENT}
             >
               ניהול מערכת
-            </button>
+            </Button>
           )}
-          <button
-            className={`btn ${
-              type === MAIN_PAGE_TYPES.CLINICA
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          <Button
+            active={type !== MAIN_PAGE_TYPES.CLINICA}
+            selected={type === MAIN_PAGE_TYPES.CLINICA}
             title="clinica"
             onClick={() => {
               navigate(AppRoutes.Clinica);
@@ -91,13 +87,10 @@ function Header({ type, patientsNavType }: HeaderProps) {
             disabled={type === MAIN_PAGE_TYPES.CLINICA}
           >
             קליניקה
-          </button>
-          <button
-            className={`btn ${
-              type === MAIN_PAGE_TYPES.CALENDAR
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          </Button>
+          <Button
+            active={type !== MAIN_PAGE_TYPES.CALENDAR}
+            selected={type === MAIN_PAGE_TYPES.CALENDAR}
             title="calendar"
             onClick={() => {
               navigate(AppRoutes.Patients.Calendar);
@@ -105,13 +98,10 @@ function Header({ type, patientsNavType }: HeaderProps) {
             disabled={type === MAIN_PAGE_TYPES.CALENDAR}
           >
             יומן
-          </button>
-          <button
-            className={`btn ${
-              type === MAIN_PAGE_TYPES.PATIENTS
-                ? "btn-selected"
-                : "btn-active"
-            }`}
+          </Button>
+          <Button
+            active={type !== MAIN_PAGE_TYPES.PATIENTS}
+            selected={type === MAIN_PAGE_TYPES.PATIENTS}
             title="patients"
             onClick={() => {
               navigate(AppRoutes.Patients.List);
@@ -119,20 +109,21 @@ function Header({ type, patientsNavType }: HeaderProps) {
             disabled={type === MAIN_PAGE_TYPES.PATIENTS}
           >
             מטופלים
-          </button>
+          </Button>
         </nav>
       </div>
       <div className="header-mobile-menu">
-        <button
+        <Button
           type="button"
-          className="btn header-mobile-menu__trigger"
+          ghost
+          className="header-mobile-menu__trigger"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
           aria-expanded={isMobileMenuOpen}
           aria-controls="header-mobile-menu-panel"
         >
           {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
           <span>תפריט</span>
-        </button>
+        </Button>
         <div id="header-contextual-menu" />
         {isMobileMenuOpen && (
           <div id="header-mobile-menu-panel" className="header-mobile-menu__panel">

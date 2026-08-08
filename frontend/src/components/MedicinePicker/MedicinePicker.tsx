@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import type { MouseEvent } from "react";
 import { FaEdit, FaPlus } from "react-icons/fa";
+import { Button } from "../../utils/Button/Button";
 import FormSelect from "../../utils/FormSelect/FormSelect";
 import FormInput from "../../utils/FormInput/FormInput";
 import FormTextarea from "../../utils/FormTextarea/FormTextarea";
@@ -144,10 +145,10 @@ function MedicinePicker({
             />
             <div className="medicine-dose-row">
               <div className="medicine-dose-action-slot">
-                <button
+                <Button
                   id="medicine-dose-action-button"
                   type="button"
-                  className="btn medicine-dose-action-btn"
+                  className="medicine-dose-action-btn"
                   disabled={isMedicineActionDisabled}
                   onClick={addMedicine}
                   title={
@@ -160,7 +161,7 @@ function MedicinePicker({
                   }
                 >
                   {editingMedicineIndex === null ? <FaPlus /> : <FaEdit />}
-                </button>
+                </Button>
               </div>
               <FormInput
                 name="doseAmount"

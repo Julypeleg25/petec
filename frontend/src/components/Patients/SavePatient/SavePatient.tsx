@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
+import { Button } from "../../../utils/Button/Button";
 import CaseDetailsTable from "../CaseDetailsTable/CaseDetailsTable";
 import MyLoader from "../../../utils/MyLoader/MyLoader";
 import "./SavePatient.css";
@@ -309,12 +310,13 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
               editActions={patientEditActions}
             />
             {!isEdit && (
-              <button
+              <Button
                 type="submit"
-                className="btn btn-small save-entity-form-btn new-patient-form-btn"
+                appSize="small"
+                className="save-entity-form-btn new-patient-form-btn"
               >
                 {isSaving ? "...שומר" : "שמור"}
-              </button>
+              </Button>
             )}
             {isEdit && (
               <SavePatientDailyDetailsSection

@@ -34,7 +34,7 @@
   -webkit-appearance: none;
   appearance: none;
   -moz-appearance: none;
-  background-image: url("https://www.svgrepo.com/show/80156/down-arrow.svg");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b159cd' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: 12px 12px;
   background-position: calc(100% - 14px);

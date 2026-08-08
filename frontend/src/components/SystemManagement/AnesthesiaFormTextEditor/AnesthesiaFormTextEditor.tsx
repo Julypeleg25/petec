@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { SYSTEM_TYPE_NAMES } from "@petec/shared";
 import { useSystemTypes, systemTypeKeys, systemTypesApi } from "../../../features/system-management";
+import { Button } from "../../../utils/Button/Button";
 import "./AnesthesiaFormTextEditor.css";
 
 type AnesthesiaTextItem = {
@@ -132,14 +133,14 @@ export default function AnesthesiaFormTextEditor() {
       />
 
       <div className="anesthesia-text-editor-actions">
-        <button
+        <Button
           type="button"
-          className="btn btn-large"
+          appSize="large"
           disabled={!hasChanges || isSaving}
           onClick={saveText}
         >
           {isSaving ? "...שומר" : "שמור"}
-        </button>
+        </Button>
       </div>
     </div>
   );

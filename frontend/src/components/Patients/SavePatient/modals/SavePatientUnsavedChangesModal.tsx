@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 
 interface SavePatientUnsavedChangesModalProps {
@@ -25,7 +26,6 @@ export function SavePatientUnsavedChangesModal({
   return (
     <Modal
       setIsOpen={setIsOpen}
-      closeWhenClickOutside={false}
       size="md"
       className={`unsaved-changes-modal-wrapper${isSaving ? " is-saving" : ""}`}
       component={
@@ -38,30 +38,35 @@ export function SavePatientUnsavedChangesModal({
             בחירה ביציאה ללא שמירה תמחק את השינויים שלא נשמרו.
           </p>
           <div className="unsaved-changes-modal-actions">
-            <button
+            <Button
               type="button"
-              className="btn btn-small save-entity-form-btn unsaved-changes-save-btn"
+              appSize="small"
+              className="save-entity-form-btn unsaved-changes-save-btn"
               onClick={onSaveAndExit}
               disabled={isSaving}
             >
               {isSaving ? "שומר..." : "שמור וצא"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn btn-small btn-active unsaved-changes-continue-btn"
+              appSize="small"
+              active
+              className="unsaved-changes-continue-btn"
               onClick={onClose}
               disabled={isSaving}
             >
               המשך עריכה
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="btn btn-small btn-active unsaved-changes-discard-btn"
+              appSize="small"
+              active
+              className="unsaved-changes-discard-btn"
               onClick={onDiscardAndExit}
               disabled={isSaving}
             >
               צא ללא שמירה
-            </button>
+            </Button>
           </div>
         </div>
       }

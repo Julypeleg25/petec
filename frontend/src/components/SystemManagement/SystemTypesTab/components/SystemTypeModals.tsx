@@ -1,3 +1,4 @@
+import { Button } from "../../../../utils/Button/Button";
 import Modal from "../../../../utils/Modal/Modal";
 import UploadFile from "../../../../utils/UploadFile/UploadFile";
 import type { SystemTypeKey } from "../SystemTypesTab.constants";
@@ -32,7 +33,6 @@ export function SystemTypeModals({
       {showDeleteModal && (
         <Modal
           setIsOpen={setShowDeleteModal}
-          closeWhenClickOutside={true}
           className="system-management-modal"
           component={
             <div className="delete-modal system-management-delete-modal" dir="rtl">
@@ -40,13 +40,13 @@ export function SystemTypeModals({
                 מחיקת {systemTypesData[systemType]?.label}
               </h3>
               <p>{systemTypesData[systemType]?.deleteMessage}</p>
-              <button
-                className="btn btn-large"
+              <Button
+                appSize="large"
                 onClick={deleteSystemType}
                 disabled={isDeleting}
               >
                 {isDeleting ? "...מוחק" : "מחק"}
-              </button>
+              </Button>
             </div>
           }
         />

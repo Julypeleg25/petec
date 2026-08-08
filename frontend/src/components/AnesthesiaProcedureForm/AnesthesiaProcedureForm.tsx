@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { Button } from "../../utils/Button/Button";
 import FormInput from "../../utils/FormInput/FormInput";
 import "./AnesthesiaProcedureForm.css";
 import FormCheckbox from "../../utils/FormCheckbox/FormCheckbox";
@@ -422,9 +423,9 @@ export default function AnesthesiaProcedureForm({
             )}
           />
           
-          <button type="submit" className="btn btn-large save-entity-form-btn">
+          <Button type="submit" appSize="large" className="save-entity-form-btn">
             שמור
-          </button>
+          </Button>
         </div>
       </form>
     </div>
