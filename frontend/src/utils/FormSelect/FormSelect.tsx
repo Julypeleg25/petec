@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Autocomplete, TextField } from "@mui/material";
 import "./FormSelect.css";
 
 import { FormSelectProps } from "./FormSelect.types";
@@ -17,6 +18,7 @@ function FormSelect({
   disabled = false,
   isDescOrder = false,
   isOrdered = true,
+  searchable = true,
 }: FormSelectProps) {
   const [selectElements, setSelectElements] = useState(elements ?? []);
   const [internalOptionState, setInternalOptionState] = useState(
@@ -70,6 +72,18 @@ function FormSelect({
       sortedElements.find((element) => element.value === selectedValue)?.text ?? "",
     [selectedValue, sortedElements],
   );
+  const selectedOption = useMemo(
+    () => sortedElements.find((element) => element.value === selectedValue) ?? null,
+    [selectedValue, sortedElements],
+  );
+
+  const selectOption = (value: string, text?: string) => {
+    if (optionState === undefined) {
+      setInternalOptionState(value);
+    }
+    setOptionState?.(value);
+    afterSelect?.(value, text);
+  };
 
   return (
     <div className="form-select" style={{ width: width }}>
@@ -84,36 +98,64 @@ function FormSelect({
           )}
         </label>
       )}
-      <select
-        className="form-select-control"
-        id={selectId}
-        value={selectedValue}
-        onChange={(e) => {
-          if (optionState === undefined) {
-            setInternalOptionState(e.target.value);
+      {searchable ? (
+        <Autocomplete
+          className="form-select-autocomplete"
+          options={sortedElements}
+          value={selectedOption}
+          getOptionLabel={(option) => option.text}
+          getOptionDisabled={(option) => option.isDisabled === true}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          onChange={(_event, option) =>
+            selectOption(option?.value ?? "", option?.text)
           }
-          if (setOptionState) setOptionState(e.target.value);
-          if (afterSelect)
-            afterSelect(e.target.value, e.target.selectedOptions[0].innerText);
-        }}
-        required={isRequired}
-        disabled={disabled}
-        title={selectedOptionText || undefined}
-      >
-        <option value={""} disabled={isRequired}></option>
-        {sortedElements.map((element, i) => {
-          return (
+          disabled={disabled}
+          disableClearable={isRequired}
+          noOptionsText="לא נמצאו תוצאות"
+          slotProps={{
+            listbox: {
+              className: "form-select-options",
+              dir: "rtl",
+            },
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              id={selectId}
+              required={isRequired}
+              title={selectedOptionText || undefined}
+              placeholder="הקלדה לחיפוש..."
+            />
+          )}
+        />
+      ) : (
+        <select
+          className="form-select-control"
+          id={selectId}
+          value={selectedValue}
+          onChange={(event) =>
+            selectOption(
+              event.target.value,
+              event.target.selectedOptions[0].innerText,
+            )
+          }
+          required={isRequired}
+          disabled={disabled}
+          title={selectedOptionText || undefined}
+        >
+          <option value={""} disabled={isRequired}></option>
+          {sortedElements.map((element) => (
             <option
-              key={i}
+              key={element.value}
               value={element.value}
               disabled={element.isDisabled}
               title={element.text}
             >
               {element.text}
             </option>
-          );
-        })}
-      </select>
+          ))}
+        </select>
+      )}
     </div>
   );
 }

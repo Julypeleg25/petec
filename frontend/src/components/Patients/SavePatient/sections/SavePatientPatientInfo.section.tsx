@@ -369,6 +369,7 @@ function SavePatientPatientInfoSection({
           isRequired={true}
           selectId="new-patient-select-doctor"
           labelText=":רופא/ה מטפל/ת"
+          searchable
         />
         <FormSelect
           elements={nurses}
@@ -377,6 +378,7 @@ function SavePatientPatientInfoSection({
           isRequired={true}
           selectId="new-patient-select-nurse"
           labelText=":אח/ות מטפל/ת"
+          searchable
         />
         <FormInput
           labelText=":רופא מפנה"

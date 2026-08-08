@@ -115,7 +115,6 @@ function SavePatientDailyDetailsSection({
                 selectId="select-daily-case-details-date-picker"
                 optionState={selectedCaseDate}
                 setOptionState={setSelectedCaseDate}
-                labelText=":תאריך"
                 width="220px"
                 afterSelect={onCaseDateChange}
                 isOrdered={false}

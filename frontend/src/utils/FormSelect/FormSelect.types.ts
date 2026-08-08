@@ -22,4 +22,5 @@ export interface FormSelectProps {
     disabled?: boolean;
     isDescOrder?: boolean;
     isOrdered?: boolean;
+    searchable?: boolean;
 }
