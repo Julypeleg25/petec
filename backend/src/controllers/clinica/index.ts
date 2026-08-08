@@ -57,11 +57,11 @@ const syncClients = async (
       request_id: req.requestId,
     });
 
-    const result = clinicaClientService.startSyncClients();
+    const result = await clinicaClientService.syncLatestClients();
 
-    logger.info("Manual Clinica sync accepted", {
+    logger.info("Manual Clinica sync finished", {
       module: "clinica",
-      event: "manual_clinica_sync_accepted",
+      event: "manual_clinica_sync_finished",
       request_id: req.requestId,
       result,
     });
@@ -76,6 +76,51 @@ const syncClients = async (
     logger.error("Manual Clinica sync failed", {
       module: "clinica",
       event: "manual_clinica_sync_failed",
+      request_id: req.requestId,
+      error_name: err.name,
+      error_message: err.message,
+      error_stack: err.stack,
+    });
+
+    next(error);
+  }
+};
+
+const syncClient = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const externalPatientId = String(req.params.externalPatientId);
+
+    logger.info("Single client Clinica sync started", {
+      module: "clinica",
+      event: "single_clinica_sync_started",
+      request_id: req.requestId,
+      externalPatientId,
+    });
+
+    const result = await clinicaClientService.syncOneClient(externalPatientId);
+
+    logger.info("Single client Clinica sync finished", {
+      module: "clinica",
+      event: "single_clinica_sync_finished",
+      request_id: req.requestId,
+      externalPatientId,
+      result,
+    });
+
+    res.status(HttpStatus.OK).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+
+    logger.error("Single client Clinica sync failed", {
+      module: "clinica",
+      event: "single_clinica_sync_failed",
       request_id: req.requestId,
       error_name: err.name,
       error_message: err.message,
@@ -190,4 +235,5 @@ export const clinicaController = {
   getDebugConfig,
   getSyncStatus,
   syncClients,
+  syncClient,
 };

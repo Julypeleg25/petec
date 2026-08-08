@@ -65,4 +65,10 @@ router.post(
   clinicaController.fetchPetVisits,
 );
 
+router.post(
+  CLINICA_ROUTE_PATHS.syncClient,
+  requirePermission(Permission.WRITE_PATIENT),
+  clinicaController.syncClient,
+);
+
 export default router;

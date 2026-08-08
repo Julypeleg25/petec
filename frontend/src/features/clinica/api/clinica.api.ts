@@ -72,6 +72,11 @@ const ClinicaSyncStatusResponseSchema = z.object({
   }).nullable().optional(),
 });
 
+const ClinicaClientSyncResultSchema = z.object({
+  found: z.boolean(),
+  outcome: z.string().optional(),
+});
+
 export const getClinicaClients = ({
   search,
   page,
@@ -172,4 +177,13 @@ export const getClinicaSyncStatus = () =>
       url: "/clinica/clients/sync/status",
     },
     ClinicaSyncStatusResponseSchema,
+  );
+
+export const syncClinicaClient = (externalPatientId: string) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.POST,
+      url: `/clinica/clients/external/${externalPatientId}/sync`,
+    },
+    ClinicaClientSyncResultSchema,
   );

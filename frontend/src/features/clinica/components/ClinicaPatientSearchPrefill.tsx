@@ -6,6 +6,7 @@ import {
   CLINICA_PREFILL_SEARCH_LIMIT,
   CLINICA_TEXTS,
 } from "../constants/clinica.constants";
+import { useClinicaManualClientSync } from "../hooks/useClinicaManualClientSync";
 import { mapClinicaClientToNewPatientState } from "../mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "../types/clinicaClient.types";
 import type { ClinicaNewPatientState } from "../types/clinicaNewPatient.types";
@@ -107,6 +108,13 @@ export function ClinicaPatientSearchPrefill({
     !errorMessage &&
     options.length === 0;
 
+  const manualSync = useClinicaManualClientSync({
+    onSynced: (client) => {
+      setClients([client]);
+      setErrorMessage("");
+    },
+  });
+
   const handleSelect = async (client: ClinicaClient, pet: ClinicaPet) => {
     const selectionSequence = ++selectionSequenceRef.current;
     setLoadingPetKey(getClinicaPetKey(client, pet));
@@ -186,9 +194,62 @@ export function ClinicaPatientSearchPrefill({
         </div>
       )}
       {shouldShowEmptyState && (
-        <div className="clinica-prefill-search-status">
-          {CLINICA_TEXTS.prefillSearchEmpty}
-        </div>
+        <>
+          <div className="clinica-prefill-search-status">
+            {CLINICA_TEXTS.prefillSearchEmpty}
+          </div>
+          <div className="clinica-prefill-manual-sync">
+            {!manualSync.isOpen && (
+              <button
+                type="button"
+                className="clinica-prefill-manual-sync-trigger"
+                onClick={manualSync.open}
+              >
+                <span className="clinica-prefill-manual-sync-plus">+</span>
+                {CLINICA_TEXTS.manualSyncTrigger}
+              </button>
+            )}
+            {manualSync.isOpen && (
+              <div className="clinica-prefill-manual-sync-row">
+                <input
+                  className="clinica-prefill-manual-sync-input"
+                  value={manualSync.value}
+                  placeholder={CLINICA_TEXTS.manualSyncPlaceholder}
+                  disabled={manualSync.isSubmitting}
+                  onChange={(event) => manualSync.setValue(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      manualSync.submit();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="clinica-prefill-manual-sync-submit"
+                  disabled={manualSync.isSubmitting || !manualSync.value.trim()}
+                  onClick={manualSync.submit}
+                >
+                  {manualSync.isSubmitting
+                    ? CLINICA_TEXTS.prefillSearchLoading
+                    : CLINICA_TEXTS.manualSyncSubmit}
+                </button>
+                <button
+                  type="button"
+                  className="clinica-prefill-manual-sync-cancel"
+                  disabled={manualSync.isSubmitting}
+                  onClick={manualSync.cancel}
+                >
+                  {CLINICA_TEXTS.manualSyncCancel}
+                </button>
+              </div>
+            )}
+            {manualSync.errorMessage && (
+              <div className="clinica-prefill-search-status error">
+                {manualSync.errorMessage}
+              </div>
+            )}
+          </div>
+        </>
       )}
       {options.length > 0 && (
         <div className="clinica-prefill-search-results">

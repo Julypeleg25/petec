@@ -3,7 +3,7 @@ import { logger } from "../config/logger.js";
 import { clinicaClientService } from "../services/clinica/clinicaClient.service.js";
 import { syncProcedureArchiveStatus } from "../services/scheduledJobs/procedureArchiveSyncJob.js";
 
-const CLINICA_DAILY_SYNC_CRON = "0 6 * * *";
+const CLINICA_DAILY_SYNC_CRON = "0 4 * * *";
 const PROCEDURE_ARCHIVE_SYNC_CRON = "0 8 * * *";
 const JERUSALEM_TIME_ZONE = "Asia/Jerusalem";
 
@@ -43,11 +43,7 @@ export const initializeScheduledJobs = (isProduction: boolean): (() => void) => 
       });
 
       try {
-        // The scheduled run may take longer, but it preloads visit histories
-        // so opening a case remains a cache-only operation for users.
-        const result = await clinicaClientService.syncClients({
-          includeMedicalRecords: true,
-        });
+        const result = await clinicaClientService.syncClients();
 
         logger.info("Clinica daily sync completed", {
           module: "clinica",

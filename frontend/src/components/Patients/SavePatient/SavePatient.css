@@ -209,6 +209,108 @@
   direction: rtl;
 }
 
+.clinica-prefill-manual-sync {
+  margin-top: 0.85em;
+  padding-top: 0.75em;
+  border-top: 1px solid rgba(177, 89, 205, 0.16);
+  direction: rtl;
+}
+
+.clinica-prefill-manual-sync-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  height: 38px;
+  padding: 0 0.9em;
+  border: 1.5px solid rgba(177, 89, 205, 0.5);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-main);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.clinica-prefill-manual-sync-trigger:hover {
+  background: rgba(177, 89, 205, 0.08);
+}
+
+.clinica-prefill-manual-sync-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-main);
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.clinica-prefill-manual-sync-row {
+  display: flex;
+  align-items: center;
+  gap: 1.1em;
+  flex-wrap: wrap;
+}
+
+.clinica-prefill-manual-sync-input {
+  flex: 1;
+  min-width: 160px;
+  box-sizing: border-box;
+  height: 42px;
+  border: 2px solid rgba(177, 89, 205, 0.72);
+  border-radius: 14px;
+  padding: 0 1em;
+  font-size: 0.95rem;
+  text-align: right;
+  outline: none;
+  background: #fff;
+  color: #222;
+}
+
+.clinica-prefill-manual-sync-input:focus {
+  box-shadow: 0 0 0 3px rgba(177, 89, 205, 0.14);
+}
+
+.clinica-prefill-manual-sync-submit,
+.clinica-prefill-manual-sync-cancel {
+  height: 42px;
+  padding: 0 1.2em;
+  border: 1.5px solid rgba(177, 89, 205, 0.5);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-main);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.clinica-prefill-manual-sync-submit {
+  background: var(--color-main);
+  border-color: var(--color-main);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(177, 89, 205, 0.28);
+}
+
+.clinica-prefill-manual-sync-submit:hover:not(:disabled) {
+  background: #a04ac2;
+}
+
+.clinica-prefill-manual-sync-cancel:hover:not(:disabled) {
+  background: rgba(177, 89, 205, 0.08);
+}
+
+.clinica-prefill-manual-sync-submit:disabled,
+.clinica-prefill-manual-sync-cancel:disabled {
+  opacity: 0.55;
+  cursor: default;
+  box-shadow: none;
+}
+
 .new-patient-form-btn {
   margin: 1em auto 0 !important;
 }

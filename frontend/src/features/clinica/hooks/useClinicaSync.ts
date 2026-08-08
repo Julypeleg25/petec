@@ -7,6 +7,7 @@ import {
   CLINICA_SYNC_STATUS_POLL_MS,
   CLINICA_TEXTS,
 } from "../constants/clinica.constants";
+import { logger } from "../../../lib/logger";
 
 type UseClinicaSyncParams = {
   onSyncCompleted: () => Promise<void> | void;
@@ -75,7 +76,10 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
       wasSyncingRef.current = status.isSyncRunning;
       setIsSyncing(status.isSyncRunning);
     } catch (error) {
-      console.error("Clinica manual sync failed", error);
+      logger.error(
+        "Clinica manual sync failed",
+        error instanceof Error ? error.message : String(error),
+      );
       const syncIsStillRunning = await loadSyncStatus();
       wasSyncingRef.current = syncIsStillRunning === true;
       setErrorMessage((currentMessage) => currentMessage || CLINICA_TEXTS.syncError);

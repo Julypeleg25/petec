@@ -5,10 +5,19 @@ import type {
   ClinicaClientDocument,
   IClinicaClient,
 } from "../../models/clinicaClient/index.js";
-import { clinicaScraperService } from "../clinicaScraper.service.js";
+import {
+  acquireClinicaScrapeLock,
+  releaseClinicaScrapeLock,
+} from "../../utils/clinicaScrapeLock.js";
 import { ENV } from "../../config/config.js";
 import { logger } from "../../config/logger.js";
 import { BadRequestError, NotFoundError } from "../../constants/error.constants.js";
+import {
+  runClinicaDiffSync,
+  runClinicaLatestSync,
+  runClinicaSingleClientSync,
+} from "../clinicaApiClients.service.js";
+import { clinicaScraperService } from "../clinicaScraper.service.js";
 import type { ImportedClinicaAggregate } from "../../utils/clinica-query.types.js";
 
 const MODULE = "clinica";
@@ -867,25 +876,15 @@ class ClinicaClientService {
     };
   }
 
-  startSyncClients() {
-    if (isSyncRunning) {
-      return this.getSyncStatus();
-    }
-
-    // syncClients sets isSyncRunning before its first await, so a second
-    // request cannot start another browser while this promise is detached.
-    // Manual sync is intentionally directory-only so users get fresh cases
-    // and pets quickly. The daily scheduled sync is responsible for eagerly
-    // hydrating every pet's visit history.
-    void this.syncClients({ includeMedicalRecords: false }).catch(() => undefined);
-    return this.getSyncStatus();
-  }
-
-  async syncClients(
-    options: SyncClinicaClientsOptions = {},
-  ): Promise<SyncClinicaClientsResult> {
+  private async runGuardedSync<T>(action: () => Promise<T>): Promise<T> {
     if (isSyncRunning) {
       throw new BadRequestError("Clinica sync is already running");
+    }
+
+    if (!acquireClinicaScrapeLock("daily-sync")) {
+      throw new BadRequestError(
+        "Clinica backfill is currently running; sync will run on its next scheduled attempt",
+      );
     }
 
     isSyncRunning = true;
@@ -893,67 +892,9 @@ class ClinicaClientService {
     syncStartedAt = new Date();
 
     try {
-      logger.info("Clinica clients sync started", {
-        module: MODULE,
-        event: "clinica_clients_sync_started",
-        includeMedicalRecords: options.includeMedicalRecords === true,
-      });
-
-      logger.info("Clinica sync env validation started", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_started",
-      });
-
       validateClinicaSyncEnv();
 
-      logger.info("Clinica sync env validation finished", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_finished",
-        hasClinicaBaseUrl: Boolean(ENV.clinicaBaseUrl),
-        hasClinicUsername: Boolean(ENV.clinicUsername),
-        hasClinicPassword: Boolean(ENV.clinicPassword),
-      });
-
-      const includeMedicalRecords = options.includeMedicalRecords === true;
-      const aggregates = await useScraper(
-        () => clinicaScraperService.scrapeClients({ includeMedicalRecords }),
-        includeMedicalRecords
-          ? FULL_SYNC_WITH_VISITS_TIMEOUT_MS
-          : FULL_SYNC_SCRAPE_TIMEOUT_MS,
-      );
-
-      logger.info("Clinica scraper returned aggregates", {
-        module: MODULE,
-        event: "clinica_scraper_returned_aggregates",
-        aggregatesCount: aggregates.length,
-      });
-
-      const clients = mapAggregatesToClients(aggregates);
-
-      if (clients.length === 0) {
-        throw new BadRequestError("Clinica sync returned no clients");
-      }
-
-      const { created, updated, skipped } =
-        await persistClientsConcurrently(clients);
-
-      const result = {
-        totalFromClinica: clients.length,
-        created,
-        updated,
-        skipped,
-        syncedAt: new Date(),
-      };
-
-      logger.info("Clinica clients sync finished", {
-        module: MODULE,
-        event: "clinica_clients_sync_finished",
-        ...result,
-      });
-
-      lastSyncResult = result;
-
-      return result;
+      return await action();
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       lastSyncError = {
@@ -962,9 +903,9 @@ class ClinicaClientService {
         occurredAt: new Date(),
       };
 
-      logger.error("Clinica clients sync failed", {
+      logger.error("Clinica sync failed", {
         module: MODULE,
-        event: "clinica_clients_sync_failed",
+        event: "clinica_sync_failed",
         error_name: err.name,
         error_message: err.message,
         error_stack: err.stack,
@@ -973,7 +914,74 @@ class ClinicaClientService {
       throw error;
     } finally {
       isSyncRunning = false;
+      releaseClinicaScrapeLock("daily-sync");
     }
+  }
+
+  // Daily cron target: pulls only the clients Clinica has that we don't yet.
+  async syncClients(): Promise<SyncClinicaClientsResult> {
+    return this.runGuardedSync(async () => {
+      const apiPull = await runClinicaDiffSync();
+      const result = {
+        totalFromClinica: apiPull.rowsSeen,
+        created: apiPull.inserted,
+        updated: apiPull.updated,
+        skipped: apiPull.skipped,
+        syncedAt: new Date(),
+      };
+
+      logger.info("Clinica diff sync finished", {
+        module: MODULE,
+        event: "clinica_diff_sync_finished",
+        ...result,
+      });
+
+      return result;
+    });
+  }
+
+  // Manual "sync now" button: refreshes the 20 most recently active clients.
+  async syncLatestClients(): Promise<SyncClinicaClientsResult> {
+    return this.runGuardedSync(async () => {
+      const apiPull = await runClinicaLatestSync();
+      const result = {
+        totalFromClinica: apiPull.rowsSeen,
+        created: apiPull.inserted,
+        updated: apiPull.updated,
+        skipped: apiPull.skipped,
+        syncedAt: new Date(),
+      };
+
+      logger.info("Clinica latest sync finished", {
+        module: MODULE,
+        event: "clinica_latest_sync_finished",
+        ...result,
+      });
+
+      return result;
+    });
+  }
+
+  // Per-row "update client" button: refreshes exactly one client.
+  async syncOneClient(
+    externalPatientId: string,
+  ): Promise<{ found: boolean; outcome?: string }> {
+    return this.runGuardedSync(async () => {
+      const result = await runClinicaSingleClientSync(externalPatientId);
+
+      if (!result.found) {
+        throw new NotFoundError("Clinica client not found");
+      }
+
+      logger.info("Clinica single client sync finished", {
+        module: MODULE,
+        event: "clinica_single_client_sync_finished",
+        externalPatientId,
+        outcome: result.outcome,
+      });
+
+      return result;
+    });
   }
 
   async getClients(params: GetClinicaClientsParams) {
