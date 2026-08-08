@@ -33,7 +33,16 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
         setErrorMessage("");
         setSuccessMessage("");
       } else if (status.lastSyncError?.message) {
-        setErrorMessage(status.lastSyncError.message);
+        logger.error(
+          "Clinica sync status reported an error",
+          status.lastSyncError.message,
+          {
+            operation: "poll_clinica_sync_status",
+            occurredAt: status.lastSyncError.occurredAt,
+            errorName: status.lastSyncError.name,
+          },
+        );
+        setErrorMessage(CLINICA_TEXTS.syncError);
       }
       if (syncJustCompleted && !status.lastSyncError) {
         const result = status.lastSyncResult;
@@ -72,17 +81,23 @@ export function useClinicaSync({ onSyncCompleted }: UseClinicaSyncParams) {
     setErrorMessage("");
 
     try {
-      const status = await syncClinicaClients();
-      wasSyncingRef.current = status.isSyncRunning;
-      setIsSyncing(status.isSyncRunning);
+      const result = await syncClinicaClients();
+      lastHandledResultRef.current = result.syncedAt;
+      wasSyncingRef.current = false;
+      setIsSyncing(false);
+      setSuccessMessage(CLINICA_TEXTS.syncSuccess(result.created, result.updated));
+      await onSyncCompleted();
     } catch (error) {
       logger.error(
         "Clinica manual sync failed",
         error instanceof Error ? error.message : String(error),
+        { operation: "sync_latest_20_clients" },
       );
       const syncIsStillRunning = await loadSyncStatus();
       wasSyncingRef.current = syncIsStillRunning === true;
       setErrorMessage((currentMessage) => currentMessage || CLINICA_TEXTS.syncError);
+    } finally {
+      setIsSyncing(false);
     }
   }, [isSyncing, loadSyncStatus, onSyncCompleted]);
 

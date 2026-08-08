@@ -1,4 +1,4 @@
-export const CLINICA_ROWS_PER_PAGE = 20;
+export const CLINICA_ROWS_PER_PAGE = 10;
 export const CLINICA_CLIENTS_DEBOUNCE_MS = 300;
 export const CLINICA_SYNC_STATUS_POLL_MS = 5000;
 export const CLINICA_PREFILL_SEARCH_DEBOUNCE_MS = 300;
@@ -17,7 +17,7 @@ export const CLINICA_ROUTES = {
 } as const;
 
 export const CLINICA_TEXTS = {
-  pageTitle: "לקוחות מהקליניקה אונליין",
+  pageTitle: "לקוחות מקליניקה אונליין",
   searchPlaceholder: "חיפוש לפי מספר תיק, שם בעלים, טלפון או שם חיה",
   manualSync: "סנכרון ידני",
   syncing: "מסנכרן...",
@@ -30,31 +30,29 @@ export const CLINICA_TEXTS = {
   updateClientError: "עדכון הלקוח נכשל",
   loadClientsError: "לא הצלחנו לטעון את הלקוחות מהקליניקה",
   createCase: "פתיחת תיק",
-  openingCase: "טוען פרטים...",
-  hydratePatientError: "לא הצלחנו לטעון את פרטי החיה מהקליניקה. נסו שוב.",
+  openingCase: "פותח תיק...",
   noClients: "לא נמצאו לקוחות",
-  prefillSearchTitle: "חיפוש מהקליניקה אונליין",
-  prefillSearchDescription:
-    "אפשר לחפש לפי מספר תיק, שם חיה או שם בעלים ולמלא את הטופס מהמידע שסונכרן.",
+  prefillSearchTitle: "חיפוש מקליניקה אונליין",
+  prefillSearchDescription: "אפשר לחפש לפי מספר תיק, שם חיה או שם בעלים ולמלא את הטופס מהמידע שסונכרן.",
   prefillSearchPlaceholder: "חיפוש לפי מספר תיק / שם חיה / שם בעלים",
   prefillSearchLoading: "מחפש...",
   prefillSearchEmpty: "לא נמצאו התאמות",
   prefillSearchError: "לא הצלחנו לחפש בלקוחות הקליניקה",
-  prefillHydrating: "טוען את פרטי החיה מהקליניקה...",
-  prefillHydrationError: "לא הצלחנו לטעון את פרטי החיה שנבחרה. נסו שוב.",
   prefillSelectAction: "מילוי פרטים",
   prefillClearAction: "נקה",
-  manualSyncTrigger: "סנכרן לקוח ידנית",
-  manualSyncPlaceholder: "מספר לקוח",
-  manualSyncSubmit: "משוך מקליניקה אונליין",
+  manualSyncTrigger: "חיפוש הלקוח בקליניקה אונליין",
+  manualSyncIdOnlyHint: "החיפוש בקליניקה אונליין מתבצע לפי מספר לקוח בלבד",
+  manualSyncPlaceholder: "מספר לקוח בקליניקה",
+  manualSyncSubmit: "חיפוש בקליניקה",
   manualSyncCancel: "ביטול",
+  manualSyncIdOnlyError: "יש להזין מספר לקוח הכולל ספרות בלבד",
   manualSyncNotFound: "לא נמצא לקוח כזה בקליניקה אונליין",
   manualSyncError: "המשיכה מקליניקה אונליין נכשלה",
+  manualSyncSuccess: (clientId: string) => `לקוח מספר ${clientId} נטען בהצלחה מהקליניקה`,
   choosePetTitle: "בחירת חיה לפתיחת תיק",
   choosePetDescription: "ללקוח הזה יש כמה חיות. בחרי עבור מי לפתוח תיק.",
   cancel: "ביטול",
-  prefillCommentsTitle: "מידע שיובא מהקליניקה אונליין",
-  prefillMedicalRecordsTitle: "רשומות רפואיות מהקליניקה",
+  prefillCommentsTitle: "מידע שיובא מקליניקה אונליין",
   prefillCommentLabels: {
     clinicaCaseId: "מספר תיק קליניקה",
     ownerName: "שם בעלים",

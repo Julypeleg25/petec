@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { getClinicaCachedPet, getClinicaClients } from "../api/clinica.api";
+import { getClinicaClients } from "../api/clinica.api";
 import {
   CLINICA_PREFILL_SEARCH_DEBOUNCE_MS,
   CLINICA_PREFILL_SEARCH_LIMIT,
@@ -10,7 +10,6 @@ import { useClinicaManualClientSync } from "../hooks/useClinicaManualClientSync"
 import { mapClinicaClientToNewPatientState } from "../mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "../types/clinicaClient.types";
 import type { ClinicaNewPatientState } from "../types/clinicaNewPatient.types";
-import { findHydratedClinicaPet, getClinicaPetKey } from "../utils/clinicaPet.utils";
 
 interface ClinicaPatientSearchPrefillProps {
   onClear?: () => void;
@@ -24,10 +23,12 @@ interface ClinicaSearchOption {
 }
 
 const getPetOptions = (client: ClinicaClient): ClinicaSearchOption[] => {
-  return client.pets.map((pet, index) => ({
+  const pets = client.pets.length > 0 ? client.pets : [{ name: "" }];
+
+  return pets.map((pet, index) => ({
     client,
     pet,
-    key: `${getClinicaPetKey(client, pet)}:${index}`,
+    key: `${client._id}-${pet.name || "pet"}-${index}`,
   }));
 };
 
@@ -40,8 +41,6 @@ export function ClinicaPatientSearchPrefill({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [hasSelectedClient, setHasSelectedClient] = useState(false);
-  const [loadingPetKey, setLoadingPetKey] = useState("");
-  const selectionSequenceRef = useRef(0);
 
   useEffect(() => {
     const trimmedSearch = search.trim();
@@ -53,15 +52,14 @@ export function ClinicaPatientSearchPrefill({
       return;
     }
 
-    if (hasSelectedClient) {
-      setClients([]);
-      setIsLoading(false);
-      return;
-    }
-
     let isActive = true;
     setIsLoading(true);
     const timeoutId = window.setTimeout(() => {
+      if (hasSelectedClient) {
+        setIsLoading(false);
+        return;
+      }
+
       getClinicaClients({
         search: trimmedSearch,
         page: 1,
@@ -107,45 +105,27 @@ export function ClinicaPatientSearchPrefill({
     !isLoading &&
     !errorMessage &&
     options.length === 0;
-
   const manualSync = useClinicaManualClientSync({
+    initialClientId: /^\d+$/.test(search.trim()) ? search.trim() : "",
     onSynced: (client) => {
+      setSearch(client.externalPatientId ?? search.trim());
       setClients([client]);
       setErrorMessage("");
     },
   });
 
-  const handleSelect = async (client: ClinicaClient, pet: ClinicaPet) => {
-    const selectionSequence = ++selectionSequenceRef.current;
-    setLoadingPetKey(getClinicaPetKey(client, pet));
-    setErrorMessage("");
-    try {
-      const cachedClient = await getClinicaCachedPet(client._id, pet.name);
-      if (selectionSequenceRef.current !== selectionSequence) return;
-      const cachedPet = findHydratedClinicaPet(cachedClient, pet);
-      if (!cachedPet) throw new Error("Cached Clinica pet was not returned");
-      onSelect(mapClinicaClientToNewPatientState(cachedClient, cachedPet));
-      setSearch(`${pet.name || "-"} / ${client.ownerName}`);
-      setClients([]);
-      setHasSelectedClient(true);
-    } catch {
-      if (selectionSequenceRef.current === selectionSequence) {
-        setErrorMessage(CLINICA_TEXTS.prefillHydrationError);
-      }
-    } finally {
-      if (selectionSequenceRef.current === selectionSequence) {
-        setLoadingPetKey("");
-      }
-    }
+  const handleSelect = (client: ClinicaClient, pet: ClinicaPet) => {
+    onSelect(mapClinicaClientToNewPatientState(client, pet));
+    setSearch(`${pet.name || "-"} / ${client.ownerName}`);
+    setClients([]);
+    setHasSelectedClient(true);
   };
 
   const handleClear = () => {
-    selectionSequenceRef.current += 1;
     setSearch("");
     setClients([]);
     setErrorMessage("");
     setHasSelectedClient(false);
-    setLoadingPetKey("");
     onClear?.();
   };
 
@@ -160,12 +140,8 @@ export function ClinicaPatientSearchPrefill({
           value={search}
           placeholder={CLINICA_TEXTS.prefillSearchPlaceholder}
           onChange={(event) => {
-            selectionSequenceRef.current += 1;
             setSearch(event.target.value);
-            setClients([]);
-            setErrorMessage("");
             setHasSelectedClient(false);
-            setLoadingPetKey("");
           }}
         />
         {search && (
@@ -183,14 +159,14 @@ export function ClinicaPatientSearchPrefill({
           {CLINICA_TEXTS.prefillSearchLoading}
         </div>
       )}
-      {loadingPetKey && (
-        <div className="clinica-prefill-search-status">
-          {CLINICA_TEXTS.openingCase}
-        </div>
-      )}
       {errorMessage && (
         <div className="clinica-prefill-search-status error">
           {errorMessage}
+        </div>
+      )}
+      {manualSync.successMessage && (
+        <div className="clinica-prefill-search-status">
+          {manualSync.successMessage}
         </div>
       )}
       {shouldShowEmptyState && (
@@ -198,28 +174,20 @@ export function ClinicaPatientSearchPrefill({
           <div className="clinica-prefill-search-status">
             {CLINICA_TEXTS.prefillSearchEmpty}
           </div>
-          <div className="clinica-prefill-manual-sync">
-            {!manualSync.isOpen && (
-              <button
-                type="button"
-                className="clinica-prefill-manual-sync-trigger"
-                onClick={manualSync.open}
-              >
-                <span className="clinica-prefill-manual-sync-plus">+</span>
-                {CLINICA_TEXTS.manualSyncTrigger}
-              </button>
-            )}
-            {manualSync.isOpen && (
+          {/^\d+$/.test(search.trim()) && (
+            <div className="clinica-prefill-manual-sync">
               <div className="clinica-prefill-manual-sync-row">
                 <input
                   className="clinica-prefill-manual-sync-input"
                   value={manualSync.value}
                   placeholder={CLINICA_TEXTS.manualSyncPlaceholder}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   disabled={manualSync.isSubmitting}
-                  onChange={(event) => manualSync.setValue(event.target.value)}
+                  readOnly
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
-                      manualSync.submit();
+                      void manualSync.submit();
                     }
                   }}
                 />
@@ -227,28 +195,23 @@ export function ClinicaPatientSearchPrefill({
                   type="button"
                   className="clinica-prefill-manual-sync-submit"
                   disabled={manualSync.isSubmitting || !manualSync.value.trim()}
-                  onClick={manualSync.submit}
+                  onClick={() => void manualSync.submit()}
                 >
                   {manualSync.isSubmitting
                     ? CLINICA_TEXTS.prefillSearchLoading
                     : CLINICA_TEXTS.manualSyncSubmit}
                 </button>
-                <button
-                  type="button"
-                  className="clinica-prefill-manual-sync-cancel"
-                  disabled={manualSync.isSubmitting}
-                  onClick={manualSync.cancel}
-                >
-                  {CLINICA_TEXTS.manualSyncCancel}
-                </button>
               </div>
-            )}
-            {manualSync.errorMessage && (
-              <div className="clinica-prefill-search-status error">
-                {manualSync.errorMessage}
+              <div className="clinica-prefill-search-status">
+                {CLINICA_TEXTS.manualSyncIdOnlyHint}
               </div>
-            )}
-          </div>
+              {manualSync.errorMessage && (
+                <div className="clinica-prefill-search-status error">
+                  {manualSync.errorMessage}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
       {options.length > 0 && (
@@ -258,8 +221,7 @@ export function ClinicaPatientSearchPrefill({
               key={key}
               type="button"
               className="clinica-prefill-search-result"
-              onClick={() => void handleSelect(client, pet)}
-              disabled={Boolean(loadingPetKey)}
+              onClick={() => handleSelect(client, pet)}
             >
               <span className="clinica-prefill-search-result-text">
                 <span className="clinica-prefill-search-result-main">
@@ -270,9 +232,7 @@ export function ClinicaPatientSearchPrefill({
                 </span>
               </span>
               <span className="clinica-prefill-search-result-action">
-                {loadingPetKey === getClinicaPetKey(client, pet)
-                  ? CLINICA_TEXTS.openingCase
-                  : CLINICA_TEXTS.prefillSelectAction}
+                {CLINICA_TEXTS.prefillSelectAction}
               </span>
             </button>
           ))}

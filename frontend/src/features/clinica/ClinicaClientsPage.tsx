@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -24,17 +24,13 @@ import { useClinicaClientUpdate } from "./hooks/useClinicaClientUpdate";
 import { useClinicaSync } from "./hooks/useClinicaSync";
 import { mapClinicaClientToNewPatientState } from "./mappers/clinicaClientToNewPatient.mapper";
 import type { ClinicaClient, ClinicaPet } from "./types/clinicaClient.types";
-import { getClinicaCachedPet } from "./api/clinica.api";
-import { findHydratedClinicaPet, getClinicaPetKey } from "./utils/clinicaPet.utils";
-
-type LoadingPet = { clientId: string; petKey: string };
 
 const ClinicaClientsPageContent = () => {
   const navigate = useNavigate();
   const [clientForPetSelection, setClientForPetSelection] =
     useState<ClinicaClient | null>(null);
-  const [loadingPet, setLoadingPet] = useState<LoadingPet | null>(null);
-  const [caseOpenError, setCaseOpenError] = useState("");
+  const [manualClientSuccess, setManualClientSuccess] = useState("");
+  const alertsRef = useRef<HTMLDivElement>(null);
   const {
     clients,
     errorMessage: clientsErrorMessage,
@@ -42,9 +38,11 @@ const ClinicaClientsPageContent = () => {
     isLoading,
     loadClients,
     page,
+    replaceClient,
     rowsPerPage,
     search,
     setPage,
+    showSingleClient,
     totalClients,
   } = useClinicaClients();
   const {
@@ -57,38 +55,23 @@ const ClinicaClientsPageContent = () => {
     errorMessage: updateClientErrorMessage,
     handleUpdateClient,
     updatingClientId,
-  } = useClinicaClientUpdate({ onUpdated: loadClients });
+  } = useClinicaClientUpdate({ onUpdated: replaceClient });
 
   const openNewPatientPage = useCallback(
-    async (client: ClinicaClient, pet: ClinicaPet) => {
-      setLoadingPet({ clientId: client._id, petKey: getClinicaPetKey(client, pet) });
-      setCaseOpenError("");
-      try {
-        const cachedClient = await getClinicaCachedPet(client._id, pet.name);
-        const cachedPet = findHydratedClinicaPet(cachedClient, pet);
-        if (!cachedPet) throw new Error("Cached Clinica pet was not returned");
-        navigate(AppRoutes.Patients.NewPatient, {
-          state: mapClinicaClientToNewPatientState(cachedClient, cachedPet),
-        });
-        return true;
-      } catch {
-        setCaseOpenError(CLINICA_TEXTS.hydratePatientError);
-        return false;
-      } finally {
-        setLoadingPet(null);
-      }
+    (client: ClinicaClient, pet: ClinicaPet) => {
+      navigate(AppRoutes.Patients.NewPatient, {
+        state: mapClinicaClientToNewPatientState(client, pet),
+      });
     },
     [navigate],
   );
 
   const handleCreateCase = useCallback(
     (client: ClinicaClient) => {
-      const pets = client.pets;
-      if (pets.length === 0) {
-        return;
-      }
-      if (pets.length === 1) {
-        void openNewPatientPage(client, pets[0]);
+      if (client.pets.length === 0) return;
+
+      if (client.pets.length <= 1) {
+        openNewPatientPage(client, client.pets[0]);
         return;
       }
 
@@ -98,19 +81,26 @@ const ClinicaClientsPageContent = () => {
   );
 
   const handlePetSelected = useCallback(
-    async (pet: ClinicaPet) => {
+    (pet: ClinicaPet) => {
       if (!clientForPetSelection) {
         return;
       }
 
-      const didOpen = await openNewPatientPage(clientForPetSelection, pet);
-      if (didOpen) setClientForPetSelection(null);
+      openNewPatientPage(clientForPetSelection, pet);
+      setClientForPetSelection(null);
     },
     [clientForPetSelection, openNewPatientPage],
   );
 
   const errorMessage =
-    caseOpenError || clientsErrorMessage || syncErrorMessage || updateClientErrorMessage;
+    clientsErrorMessage || syncErrorMessage || updateClientErrorMessage;
+  useEffect(() => {
+    if (!successMessage && !manualClientSuccess && !errorMessage) {
+      return;
+    }
+
+    alertsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [errorMessage, manualClientSuccess, successMessage]);
 
   return (
     <Box
@@ -145,14 +135,22 @@ const ClinicaClientsPageContent = () => {
           </Typography>
         </Box>
 
-        {successMessage && <Alert severity="success">{successMessage}</Alert>}
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        <Box ref={alertsRef} sx={{ scrollMarginTop: 16 }}>
+          <Stack spacing={1}>
+            {(successMessage || manualClientSuccess) && (
+              <Alert severity="success">{successMessage || manualClientSuccess}</Alert>
+            )}
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          </Stack>
+        </Box>
 
         <ClinicaClientsControls
           search={search}
           isSyncing={isSyncing}
-          isSyncDisabled={Boolean(loadingPet)}
-          onSearchChange={handleSearchChange}
+          onSearchChange={(value) => {
+            setManualClientSuccess("");
+            handleSearchChange(value);
+          }}
           onSync={handleSync}
         />
 
@@ -195,13 +193,18 @@ const ClinicaClientsPageContent = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               isLoading={isLoading}
-              isCreateCaseDisabled={Boolean(loadingPet)}
-              creatingClientId={loadingPet?.clientId}
+              search={search}
               updatingClientId={updatingClientId}
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
               onUpdateClient={handleUpdateClient}
-              onManualSyncCompleted={loadClients}
+              onManualSyncCompleted={(client) => {
+                const fetchedClientId = client.externalPatientId ?? search.trim();
+                setManualClientSuccess(
+                  CLINICA_TEXTS.manualSyncSuccess(fetchedClientId),
+                );
+                showSingleClient(client);
+              }}
             />
           </CardContent>
         </Card>
@@ -209,13 +212,7 @@ const ClinicaClientsPageContent = () => {
 
       <ClinicaPetSelectionDialog
         client={clientForPetSelection}
-        hydratingPetKey={loadingPet?.petKey}
-        errorMessage={caseOpenError}
-        onClose={() => {
-          if (loadingPet) return;
-          setClientForPetSelection(null);
-          setCaseOpenError("");
-        }}
+        onClose={() => setClientForPetSelection(null)}
         onPetSelected={handlePetSelected}
       />
     </Box>

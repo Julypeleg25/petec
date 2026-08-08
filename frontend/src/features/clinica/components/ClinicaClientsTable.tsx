@@ -18,12 +18,11 @@ import {
   Typography,
 } from "@mui/material";
 
-import { MdAdd, MdCheck, MdClose, MdPersonAddAlt, MdRefresh } from "react-icons/md";
+import { MdPersonAddAlt, MdRefresh, MdSearch } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 import { useClinicaManualClientSync } from "../hooks/useClinicaManualClientSync";
 import { ClinicaClient } from "../types/clinicaClient.types";
-import { getClinicaPetKey } from "../utils/clinicaPet.utils";
 
 const MAX_VISIBLE_PETS = 2;
 
@@ -33,92 +32,74 @@ type Props = {
   page: number;
   rowsPerPage: number;
   isLoading: boolean;
-  isCreateCaseDisabled?: boolean;
-  creatingClientId?: string;
+  search: string;
   updatingClientId: string | null;
   onPageChange: (page: number) => void;
   onCreateCase: (client: ClinicaClient) => void;
   onUpdateClient: (client: ClinicaClient) => void;
-  onManualSyncCompleted: () => void;
+  onManualSyncCompleted: (client: ClinicaClient) => void;
 };
 
-const ManualClientSync = ({ onManualSyncCompleted }: { onManualSyncCompleted: () => void }) => {
+const ManualClientSync = ({
+  clientId,
+  onManualSyncCompleted,
+}: {
+  clientId: string;
+  onManualSyncCompleted: (client: ClinicaClient) => void;
+}) => {
   const manualSync = useClinicaManualClientSync({
-    onSynced: () => onManualSyncCompleted(),
+    onSynced: onManualSyncCompleted,
+    initialClientId: clientId,
   });
 
   return (
-    <Stack spacing={1.25} sx={{ alignItems: "center", mt: 1 }}>
-      {!manualSync.isOpen && (
-        <Button
-          variant="outlined"
+    <Stack spacing={1.25} sx={{ alignItems: "center", mt: 1.5 }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={1}
+        sx={{ alignItems: "center", direction: "rtl", width: "100%", maxWidth: 520 }}
+      >
+        <TextField
+          fullWidth
           size="small"
-          startIcon={<MdAdd />}
-          onClick={manualSync.open}
-          sx={{
-            borderRadius: 999,
-            color: CLINICA_COLORS.primary,
-            borderColor: CLINICA_COLORS.border,
+          value={manualSync.value}
+          label={CLINICA_TEXTS.manualSyncPlaceholder}
+          helperText={CLINICA_TEXTS.manualSyncIdOnlyHint}
+          disabled={manualSync.isSubmitting}
+          onChange={(event) => manualSync.setValue(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") void manualSync.submit();
           }}
+          slotProps={{
+            htmlInput: {
+              dir: "ltr",
+              inputMode: "numeric",
+              pattern: "[0-9]*",
+              readOnly: true,
+            },
+          }}
+        />
+        <Button
+          variant="contained"
+          disabled={manualSync.isSubmitting || !manualSync.value}
+          onClick={() => void manualSync.submit()}
+          startIcon={manualSync.isSubmitting ? <CircularProgress size={18} color="inherit" /> : <MdSearch />}
+          sx={{ borderRadius: 999, minWidth: 170, height: 40 }}
         >
-          {CLINICA_TEXTS.manualSyncTrigger}
+          {manualSync.isSubmitting
+            ? CLINICA_TEXTS.prefillSearchLoading
+            : CLINICA_TEXTS.manualSyncSubmit}
         </Button>
-      )}
-
-      {manualSync.isOpen && (
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ alignItems: "center", direction: "rtl" }}
-        >
-          <TextField
-            size="small"
-            autoFocus
-            value={manualSync.value}
-            placeholder={CLINICA_TEXTS.manualSyncPlaceholder}
-            disabled={manualSync.isSubmitting}
-            onChange={(event) => manualSync.setValue(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                manualSync.submit();
-              }
-            }}
-            slotProps={{ htmlInput: { dir: "rtl" } }}
-          />
-          <Tooltip title={CLINICA_TEXTS.manualSyncSubmit}>
-            <span>
-              <IconButton
-                size="medium"
-                disabled={manualSync.isSubmitting || !manualSync.value.trim()}
-                onClick={manualSync.submit}
-                sx={{ color: CLINICA_COLORS.primary, fontSize: "1.6rem" }}
-              >
-                {manualSync.isSubmitting ? (
-                  <CircularProgress size={22} sx={{ color: CLINICA_COLORS.primary }} />
-                ) : (
-                  <MdCheck fontSize="inherit" />
-                )}
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title={CLINICA_TEXTS.manualSyncCancel}>
-            <span>
-              <IconButton
-                size="medium"
-                disabled={manualSync.isSubmitting}
-                onClick={manualSync.cancel}
-                sx={{ color: "text.secondary", fontSize: "1.6rem" }}
-              >
-                <MdClose fontSize="inherit" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Stack>
-      )}
+      </Stack>
 
       {manualSync.errorMessage && (
         <Typography variant="body2" color="error">
           {manualSync.errorMessage}
+        </Typography>
+      )}
+      {manualSync.successMessage && (
+        <Typography variant="body2" color="success.main">
+          {manualSync.successMessage}
         </Typography>
       )}
     </Stack>
@@ -128,53 +109,24 @@ const ManualClientSync = ({ onManualSyncCompleted }: { onManualSyncCompleted: ()
 type CreateCaseButtonProps = {
   client: ClinicaClient;
   onCreateCase: (client: ClinicaClient) => void;
-  compact?: boolean;
-  disabled?: boolean;
-  isLoading?: boolean;
 };
 
-const CreateCaseButton = ({
-  client,
-  onCreateCase,
-  compact = false,
-  disabled = false,
-  isLoading = false,
-}: CreateCaseButtonProps) => (
-  <Button
-    size="small"
-    variant="outlined"
-    onClick={() => onCreateCase(client)}
-    disabled={disabled || client.pets.length === 0}
-    sx={{
-      minWidth: compact ? 132 : 168,
-      px: compact ? 1.5 : 2.5,
-      py: 0.65,
-      justifyContent: "center",
-      whiteSpace: "nowrap",
-    }}
-  >
-    <Box
-      component="span"
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 1,
-        direction: "rtl",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {isLoading ? (
-        <CircularProgress size={17} color="inherit" />
-      ) : (
-        <MdPersonAddAlt fontSize="small" />
-      )}
-      <span>{isLoading ? CLINICA_TEXTS.openingCase : CLINICA_TEXTS.createCase}</span>
-    </Box>
-  </Button>
+const CreateCaseButton = ({ client, onCreateCase }: CreateCaseButtonProps) => (
+  <Tooltip title={CLINICA_TEXTS.createCase}>
+    <span>
+      <IconButton
+        size="medium"
+        disabled={client.pets.length === 0}
+        onClick={() => onCreateCase(client)}
+        sx={{ color: CLINICA_COLORS.primary, fontSize: "1.6rem" }}
+      >
+        <MdPersonAddAlt fontSize="inherit" />
+      </IconButton>
+    </span>
+  </Tooltip>
 );
 
- type UpdateClientButtonProps = {
+type UpdateClientButtonProps = {
   client: ClinicaClient;
   isUpdating: boolean;
   onUpdateClient: (client: ClinicaClient) => void;
@@ -200,8 +152,8 @@ const UpdateClientButton = ({
         )}
       </IconButton>
     </span>
-   </Tooltip>
- );
+  </Tooltip>
+);
 
 export const ClinicaClientsTable = ({
   clients,
@@ -209,8 +161,7 @@ export const ClinicaClientsTable = ({
   page,
   rowsPerPage,
   isLoading,
-  isCreateCaseDisabled = false,
-  creatingClientId,
+  search,
   updatingClientId,
   onPageChange,
   onCreateCase,
@@ -311,9 +262,6 @@ export const ClinicaClientsTable = ({
                         <CreateCaseButton
                           client={client}
                           onCreateCase={onCreateCase}
-                          disabled={isCreateCaseDisabled}
-                          isLoading={creatingClientId === client._id}
-                          compact
                         />
                         <UpdateClientButton
                           client={client}
@@ -345,7 +293,7 @@ export const ClinicaClientsTable = ({
                         <>
                           {client.pets.slice(0, MAX_VISIBLE_PETS).map((pet, index) => (
                             <Chip
-                              key={`${getClinicaPetKey(client, pet)}:${index}`}
+                              key={`${pet.name}-${index}`}
                               label={pet.name}
                               size="small"
                               sx={{
@@ -402,8 +350,6 @@ export const ClinicaClientsTable = ({
                       <CreateCaseButton
                         client={client}
                         onCreateCase={onCreateCase}
-                        disabled={isCreateCaseDisabled}
-                        isLoading={creatingClientId === client._id}
                       />
                       <UpdateClientButton
                         client={client}
@@ -419,7 +365,12 @@ export const ClinicaClientsTable = ({
               <TableRow>
                 <TableCell colSpan={6} align="center">
                   {CLINICA_TEXTS.noClients}
-                  <ManualClientSync onManualSyncCompleted={onManualSyncCompleted} />
+                  {/^\d+$/.test(search.trim()) && (
+                    <ManualClientSync
+                      clientId={search.trim()}
+                      onManualSyncCompleted={onManualSyncCompleted}
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -433,7 +384,6 @@ export const ClinicaClientsTable = ({
         page={page}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[rowsPerPage]}
-        disabled={isLoading}
         onPageChange={(_event, nextPage) => onPageChange(nextPage)}
         labelDisplayedRows={({ from, to, count }) =>
           CLINICA_TEXTS.paginationRows(from, to, count)

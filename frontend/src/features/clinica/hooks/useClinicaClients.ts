@@ -15,6 +15,7 @@ export function useClinicaClients() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const requestSequenceRef = useRef(0);
+  const suppressNextLoadRef = useRef(false);
 
   const loadClients = useCallback(async () => {
     const requestSequence = ++requestSequenceRef.current;
@@ -44,6 +45,11 @@ export function useClinicaClients() {
   }, [page, search]);
 
   useEffect(() => {
+    if (suppressNextLoadRef.current) {
+      suppressNextLoadRef.current = false;
+      return;
+    }
+
     const timeoutId = window.setTimeout(() => {
       loadClients();
     }, CLINICA_CLIENTS_DEBOUNCE_MS);
@@ -59,6 +65,23 @@ export function useClinicaClients() {
     setPage(0);
   }, []);
 
+  const replaceClient = useCallback((client: ClinicaClient) => {
+    setClients((current) =>
+      current.map((item) => (item._id === client._id ? client : item)),
+    );
+  }, []);
+
+  const showSingleClient = useCallback((client: ClinicaClient) => {
+    requestSequenceRef.current += 1;
+    suppressNextLoadRef.current = true;
+    setSearch(client.externalPatientId ?? "");
+    setPage(0);
+    setClients([client]);
+    setTotalClients(1);
+    setErrorMessage("");
+    setIsLoading(false);
+  }, []);
+
   return {
     clients,
     errorMessage,
@@ -66,10 +89,12 @@ export function useClinicaClients() {
     isLoading,
     loadClients,
     page,
+    replaceClient,
     rowsPerPage: CLINICA_ROWS_PER_PAGE,
     search,
     setErrorMessage,
     setPage,
+    showSingleClient,
     totalClients,
   };
 }

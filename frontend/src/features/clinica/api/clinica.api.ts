@@ -28,9 +28,12 @@ const ClinicaPetSchema = z.object({
   ageYears: z.number().optional(),
   ageMonths: z.number().optional(),
   insurance: z.string().optional(),
+  microchipNumber: z.string().optional(),
+  neutered: z.boolean().optional(),
+  notes: z.string().optional(),
+  rawData: z.record(z.string(), z.unknown()).optional(),
   treatingDoctor: z.string().optional(),
   referringDoctor: z.string().optional(),
-  medicalRecords: z.array(ClinicaMedicalRecordSchema).optional(),
 }).passthrough();
 
 const ClinicaRawDataSchema = z.any();
@@ -45,6 +48,7 @@ const ClinicaClientSchema = z.object({
   lastSyncedAt: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  visits: z.array(ClinicaMedicalRecordSchema).optional(),
 });
 
 const ClinicaClientsResponseSchema = z.object({
@@ -75,6 +79,14 @@ const ClinicaSyncStatusResponseSchema = z.object({
 const ClinicaClientSyncResultSchema = z.object({
   found: z.boolean(),
   outcome: z.string().optional(),
+});
+
+const ClinicaSyncResultSchema = z.object({
+  totalFromClinica: z.number(),
+  created: z.number(),
+  updated: z.number(),
+  skipped: z.number(),
+  syncedAt: z.string(),
 });
 
 export const getClinicaClients = ({
@@ -122,41 +134,16 @@ export const getClinicaClientByCasePrefix = (
     ClinicaClientSchema,
   );
 
-export const getClinicaCachedPet = (clientId: string, petName: string) =>
-  requestWithSchema(
-    {
-      method: HTTP_METHODS.GET,
-      url: `/clinica/clients/${encodeURIComponent(clientId)}/pets/cached`,
-      params: { petName },
-    },
-    ClinicaClientSchema,
-  );
-
-export const fetchClinicaPetVisits = (
-  clientId: string,
-  petName: string,
-  forcePatientDetails = false,
-) =>
-  requestWithSchema(
-    {
-      method: HTTP_METHODS.POST,
-      url: `/clinica/clients/${encodeURIComponent(clientId)}/pets/visits/fetch`,
-      data: { petName, forcePatientDetails },
-    },
-    ClinicaClientSchema,
-  );
-
 export const fetchClinicaVisitsForCase = (
   casePrefix: string,
   petName: string,
   ownerPhone?: string,
-  forceRefresh = false,
 ) =>
   requestWithSchema(
     {
       method: HTTP_METHODS.POST,
       url: "/clinica/clients/visits/fetch-by-case",
-      data: { casePrefix, petName, ownerPhone, forceRefresh },
+      data: { casePrefix, petName, ownerPhone },
     },
     ClinicaClientSchema,
   );
@@ -167,7 +154,7 @@ export const syncClinicaClients = () =>
       method: HTTP_METHODS.POST,
       url: "/clinica/clients/sync",
     },
-    ClinicaSyncStatusResponseSchema,
+    ClinicaSyncResultSchema,
   );
 
 export const getClinicaSyncStatus = () =>

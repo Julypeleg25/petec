@@ -9,9 +9,12 @@ export interface ClinicaPet {
     ageYears?: number;
     ageMonths?: number;
     insurance?: string;
+    microchipNumber?: string;
+    neutered?: boolean;
+    notes?: string;
+    rawData?: Record<string, unknown>;
     treatingDoctor?: string;
     referringDoctor?: string;
-    medicalRecords?: ClinicaMedicalRecord[];
   }
 
   export interface ClinicaMedicalRecord {
@@ -31,7 +34,6 @@ export interface ClinicaPet {
     recordsCount?: number;
     original?: {
       patient?: ClinicaPet;
-      medicalRecords?: ClinicaMedicalRecord[];
     };
   }
   
@@ -45,6 +47,7 @@ export interface ClinicaPet {
     lastSyncedAt: string;
     createdAt: string;
     updatedAt: string;
+    visits?: ClinicaMedicalRecord[];
   }
   
   export interface ClinicaClientsResponse {
