@@ -45,6 +45,21 @@ const clinicaClientPetSchema = new Schema(
       type: String,
       trim: true,
     },
+    microchipNumber: {
+      type: String,
+      trim: true,
+    },
+    neutered: {
+      type: Boolean,
+    },
+    notes: {
+      type: String,
+      trim: true,
+    },
+    rawData: {
+      type: Schema.Types.Mixed,
+      default: {},
+    },
     treatingDoctor: {
       type: String,
       trim: true,
@@ -52,10 +67,6 @@ const clinicaClientPetSchema = new Schema(
     referringDoctor: {
       type: String,
       trim: true,
-    },
-    medicalRecords: {
-      type: [Schema.Types.Mixed],
-      default: [],
     },
   },
   { _id: false },
@@ -69,7 +80,6 @@ const clinicaClientSchema = new Schema<
     externalPatientId: {
       type: String,
       trim: true,
-      index: true,
     },
     ownerName: {
       type: String,

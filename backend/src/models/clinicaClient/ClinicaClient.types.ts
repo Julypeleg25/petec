@@ -11,17 +11,12 @@ export interface ClinicaClientPet {
   ageYears?: number;
   ageMonths?: number;
   insurance?: string;
+  microchipNumber?: string;
+  neutered?: boolean;
+  notes?: string;
+  rawData?: Record<string, unknown>;
   treatingDoctor?: string;
   referringDoctor?: string;
-  medicalRecords?: Array<{
-    patientName: string;
-    ownerName: string;
-    ownerPhone: string;
-    recordType: string;
-    rawText: string;
-    table?: { headers: string[]; rows: string[][] };
-    syncedAt: Date;
-  }>;
 }
 
 export interface IClinicaClient {

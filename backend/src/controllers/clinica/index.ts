@@ -166,7 +166,6 @@ const fetchPetVisits = async (
     const result = await clinicaClientService.fetchMissingVisitDetails(
       String(req.params.clientId),
       String(req.body?.petName ?? ""),
-      req.body?.forcePatientDetails === true,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {
@@ -184,7 +183,6 @@ const fetchCaseVisits = async (
       String(req.body?.casePrefix ?? ""),
       String(req.body?.petName ?? ""),
       String(req.body?.ownerPhone ?? ""),
-      req.body?.forceRefresh === true,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {

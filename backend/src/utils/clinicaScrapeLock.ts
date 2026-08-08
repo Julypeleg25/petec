@@ -1,4 +1,8 @@
-type ClinicaScrapeLockOwner = "daily-sync" | "backfill";
+type ClinicaScrapeLockOwner =
+  | "daily-sync"
+  | "single-client-sync"
+  | "pet-sessions"
+  | "backfill";
 
 let currentOwner: ClinicaScrapeLockOwner | null = null;
 
