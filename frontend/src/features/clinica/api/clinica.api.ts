@@ -118,3 +118,12 @@ export const syncClinicaClient = (externalPatientId: string) =>
     },
     ClinicaClientSyncResultSchema,
   );
+
+export const getClinicaClientByExternalPatientId = (externalPatientId: string) =>
+  requestWithSchema(
+    {
+      method: HTTP_METHODS.GET,
+      url: `/clinica/clients/external/${externalPatientId}`,
+    },
+    ClinicaClientSchema,
+  );

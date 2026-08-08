@@ -175,6 +175,7 @@ const ClinicaClientsPageContent = () => {
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
               onUpdateClient={handleUpdateClient}
+              onManualSyncCompleted={loadClients}
             />
           </CardContent>
         </Card>

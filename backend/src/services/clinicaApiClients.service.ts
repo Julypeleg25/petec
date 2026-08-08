@@ -262,10 +262,53 @@ const emptySyncResult = (): ClinicaSyncResult => ({
   skipped: 0,
 });
 
-// Cron target. Compares Clinica's own client count against ours, then pulls
-// only that many clients off the top of GetNewPatientsVisited (newest recordID
-// first) - enough to cover everyone new since the last run, without walking
-// the whole client base every night.
+// Walks GetNewPatientsVisited page by page (newest recordID first), upserting
+// rows until it reaches one at or below ourMaxId - everything past that point
+// we already have.
+const upsertRowsAboveBoundary = async (
+  page: Page,
+  endpoint: string,
+  petsEndpoint: string,
+  ourMaxId: number,
+  firstPage: RegPersonal[],
+  result: ClinicaSyncResult,
+): Promise<void> => {
+  let rows = firstPage;
+
+  while (rows.length > 0) {
+    result.pagesFetched += 1;
+    result.rowsSeen += rows.length;
+
+    for (const row of rows) {
+      if (row.recordID <= ourMaxId) {
+        return;
+      }
+
+      const { outcome } = await upsertApiClient(page, petsEndpoint, row);
+      applySyncOutcome(result, outcome);
+    }
+
+    const startFrom = rows[rows.length - 1].recordID;
+    const nextRows = await fetchClientRows(page, endpoint, { startFrom });
+
+    if (nextRows === null) {
+      logger.error("Clinica diff sync: page fetch failed, stopping early", {
+        module: MODULE,
+        event: "clinica_diff_sync_page_fetch_failed",
+        ourMaxId,
+      });
+      return;
+    }
+
+    rows = nextRows;
+  }
+};
+
+// Cron target. Compares Clinica's highest recordID against the highest
+// externalPatientId we have stored, then walks GetNewPatientsVisited (newest
+// recordID first) upserting only rows above that boundary - enough to cover
+// everyone new since the last run, without walking the whole client base
+// every night, and without drifting from count-based skips/deletions.
 export const runClinicaDiffSync = async (): Promise<ClinicaSyncResult> => {
   await clinicaScraperService.init();
 
@@ -283,7 +326,7 @@ export const runClinicaDiffSync = async (): Promise<ClinicaSyncResult> => {
     const endpoint = `${ENV.clinicaBaseUrl}${NEW_PATIENTS_ENDPOINT_PATH}`;
     const petsEndpoint = `${ENV.clinicaBaseUrl}${PETS_ENDPOINT_PATH}`;
 
-    let rows = await fetchClientRows(page, endpoint, { startFrom: 0 });
+    const rows = await fetchClientRows(page, endpoint, { startFrom: 0 });
 
     if (rows === null) {
       logger.error("Clinica diff sync: initial fetch failed, stopping", {
@@ -301,59 +344,39 @@ export const runClinicaDiffSync = async (): Promise<ClinicaSyncResult> => {
       return result;
     }
 
-    const clinicaTotal = rows[0].NumCust ?? 0;
-    const ourTotal = await ClinicaClientModel.countDocuments({});
-    const target = Math.max(clinicaTotal - ourTotal, 0);
+    const clinicaMaxId = rows[0].recordID ?? 0;
+    const [ourMaxRow] = await ClinicaClientModel.aggregate<{ numericId: number }>([
+      {
+        $addFields: {
+          numericId: {
+            $convert: { input: "$externalPatientId", to: "int", onError: 0, onNull: 0 },
+          },
+        },
+      },
+      { $sort: { numericId: -1 } },
+      { $limit: 1 },
+      { $project: { numericId: 1 } },
+    ]);
+    const ourMaxId = ourMaxRow?.numericId ?? 0;
 
-    logger.info("Clinica diff sync: computed target", {
+    logger.info("Clinica diff sync: computed boundary", {
       module: MODULE,
-      event: "clinica_diff_sync_target",
-      clinicaTotal,
-      ourTotal,
-      target,
+      event: "clinica_diff_sync_boundary",
+      clinicaMaxId,
+      ourMaxId,
     });
 
-    if (target === 0) {
+    if (clinicaMaxId <= ourMaxId) {
       return result;
     }
 
-    let processed = 0;
-
-    for (;;) {
-      if (rows.length === 0) break;
-
-      result.pagesFetched += 1;
-      result.rowsSeen += rows.length;
-
-      for (const row of rows) {
-        const { outcome } = await upsertApiClient(page, petsEndpoint, row);
-        applySyncOutcome(result, outcome);
-        processed += 1;
-      }
-
-      if (processed >= target) break;
-
-      const startFrom = rows[rows.length - 1].recordID;
-      const nextRows = await fetchClientRows(page, endpoint, { startFrom });
-
-      if (nextRows === null) {
-        logger.error("Clinica diff sync: page fetch failed, stopping early", {
-          module: MODULE,
-          event: "clinica_diff_sync_page_fetch_failed",
-          processed,
-          target,
-        });
-        break;
-      }
-
-      rows = nextRows;
-    }
+    await upsertRowsAboveBoundary(page, endpoint, petsEndpoint, ourMaxId, rows, result);
 
     logger.info("Clinica diff sync finished", {
       module: MODULE,
       event: "clinica_diff_sync_finished",
-      target,
-      processed,
+      clinicaMaxId,
+      ourMaxId,
       ...result,
     });
 

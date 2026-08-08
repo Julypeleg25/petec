@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Chip,
   CircularProgress,
   IconButton,
@@ -12,12 +13,15 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 
-import { MdPersonAddAlt, MdRefresh } from "react-icons/md";
+import { MdAdd, MdCheck, MdClose, MdPersonAddAlt, MdRefresh } from "react-icons/md";
 
 import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
+import { useClinicaManualClientSync } from "../hooks/useClinicaManualClientSync";
 import { ClinicaClient } from "../types/clinicaClient.types";
 
 const MAX_VISIBLE_PETS = 2;
@@ -32,6 +36,90 @@ type Props = {
   onPageChange: (page: number) => void;
   onCreateCase: (client: ClinicaClient) => void;
   onUpdateClient: (client: ClinicaClient) => void;
+  onManualSyncCompleted: () => void;
+};
+
+const ManualClientSync = ({ onManualSyncCompleted }: { onManualSyncCompleted: () => void }) => {
+  const manualSync = useClinicaManualClientSync({
+    onSynced: () => onManualSyncCompleted(),
+  });
+
+  return (
+    <Stack spacing={1.25} sx={{ alignItems: "center", mt: 1 }}>
+      {!manualSync.isOpen && (
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<MdAdd />}
+          onClick={manualSync.open}
+          sx={{
+            borderRadius: 999,
+            color: CLINICA_COLORS.primary,
+            borderColor: CLINICA_COLORS.border,
+          }}
+        >
+          {CLINICA_TEXTS.manualSyncTrigger}
+        </Button>
+      )}
+
+      {manualSync.isOpen && (
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: "center", direction: "rtl" }}
+        >
+          <TextField
+            size="small"
+            autoFocus
+            value={manualSync.value}
+            placeholder={CLINICA_TEXTS.manualSyncPlaceholder}
+            disabled={manualSync.isSubmitting}
+            onChange={(event) => manualSync.setValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                manualSync.submit();
+              }
+            }}
+            slotProps={{ htmlInput: { dir: "rtl" } }}
+          />
+          <Tooltip title={CLINICA_TEXTS.manualSyncSubmit}>
+            <span>
+              <IconButton
+                size="medium"
+                disabled={manualSync.isSubmitting || !manualSync.value.trim()}
+                onClick={manualSync.submit}
+                sx={{ color: CLINICA_COLORS.primary, fontSize: "1.6rem" }}
+              >
+                {manualSync.isSubmitting ? (
+                  <CircularProgress size={22} sx={{ color: CLINICA_COLORS.primary }} />
+                ) : (
+                  <MdCheck fontSize="inherit" />
+                )}
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title={CLINICA_TEXTS.manualSyncCancel}>
+            <span>
+              <IconButton
+                size="medium"
+                disabled={manualSync.isSubmitting}
+                onClick={manualSync.cancel}
+                sx={{ color: "text.secondary", fontSize: "1.6rem" }}
+              >
+                <MdClose fontSize="inherit" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Stack>
+      )}
+
+      {manualSync.errorMessage && (
+        <Typography variant="body2" color="error">
+          {manualSync.errorMessage}
+        </Typography>
+      )}
+    </Stack>
+  );
 };
 
 type CreateCaseButtonProps = {
@@ -42,11 +130,11 @@ type CreateCaseButtonProps = {
 const CreateCaseButton = ({ client, onCreateCase }: CreateCaseButtonProps) => (
   <Tooltip title={CLINICA_TEXTS.createCase}>
     <IconButton
-      size="small"
+      size="medium"
       onClick={() => onCreateCase(client)}
-      sx={{ color: CLINICA_COLORS.primary }}
+      sx={{ color: CLINICA_COLORS.primary, fontSize: "1.6rem" }}
     >
-      <MdPersonAddAlt fontSize="small" />
+      <MdPersonAddAlt fontSize="inherit" />
     </IconButton>
   </Tooltip>
 );
@@ -65,15 +153,15 @@ const UpdateClientButton = ({
   <Tooltip title={CLINICA_TEXTS.updateClient}>
     <span>
       <IconButton
-        size="small"
+        size="medium"
         disabled={!client.externalPatientId || isUpdating}
         onClick={() => onUpdateClient(client)}
-        sx={{ color: CLINICA_COLORS.primary }}
+        sx={{ color: CLINICA_COLORS.primary, fontSize: "1.6rem" }}
       >
         {isUpdating ? (
-          <CircularProgress size={16} sx={{ color: CLINICA_COLORS.primary }} />
+          <CircularProgress size={22} sx={{ color: CLINICA_COLORS.primary }} />
         ) : (
-          <MdRefresh fontSize="small" />
+          <MdRefresh fontSize="inherit" />
         )}
       </IconButton>
     </span>
@@ -90,6 +178,7 @@ export const ClinicaClientsTable = ({
   onPageChange,
   onCreateCase,
   onUpdateClient,
+  onManualSyncCompleted,
 }: Props) => {
   return (
     <>
@@ -288,6 +377,7 @@ export const ClinicaClientsTable = ({
               <TableRow>
                 <TableCell colSpan={6} align="center">
                   {CLINICA_TEXTS.noClients}
+                  <ManualClientSync onManualSyncCompleted={onManualSyncCompleted} />
                 </TableCell>
               </TableRow>
             )}
