@@ -1,15 +1,18 @@
 import type { QueryFilter } from "mongoose";
 import { ClinicaClientModel } from "../../models/clinicaClient/index.js";
-import type {
-  ClinicaClientPet,
-  ClinicaClientDocument,
-  IClinicaClient,
-} from "../../models/clinicaClient/index.js";
-import { clinicaScraperService } from "../clinicaScraper.service.js";
+import type { ClinicaClientDocument } from "../../models/clinicaClient/index.js";
+import {
+  acquireClinicaScrapeLock,
+  releaseClinicaScrapeLock,
+} from "../../utils/clinicaScrapeLock.js";
 import { ENV } from "../../config/config.js";
 import { logger } from "../../config/logger.js";
 import { BadRequestError, NotFoundError } from "../../constants/error.constants.js";
-import type { ImportedClinicaAggregate } from "../../utils/clinica-query.types.js";
+import {
+  runClinicaDiffSync,
+  runClinicaLatestSync,
+  runClinicaSingleClientSync,
+} from "../clinicaApiClients.service.js";
 
 const MODULE = "clinica";
 
@@ -53,168 +56,6 @@ const validateClinicaSyncEnv = (): void => {
 const normalizeValue = (value?: string): string =>
   value?.trim().replace(/\s+/g, " ") ?? "";
 
-const buildClientKey = (item: ImportedClinicaAggregate): string => {
-  if (item.patient.externalPatientId) {
-    return `external:${item.patient.externalPatientId}`;
-  }
-
-  return `owner:${item.patient.owner.name}-${item.patient.owner.phone}`;
-};
-
-const toNumberValue = (value?: string): number | undefined => {
-  if (!value) {
-    return undefined;
-  }
-
-  const numberValue = Number(value.replace(",", "."));
-
-  return Number.isFinite(numberValue) ? numberValue : undefined;
-};
-
-const extractWeightKg = (text: string): number | undefined => {
-  const match =
-    text.match(/(?:משקל|weight|wt)[^\d]{0,80}(\d+(?:[.,]\d+)?)/i) ??
-    text.match(/(\d+(?:[.,]\d+)?)\s*(?:קילו|קג|ק"ג|ק״ג|kg)/i);
-
-  return toNumberValue(match?.[1]);
-};
-
-const extractPetDetailsFromRecords = (
-  item: ImportedClinicaAggregate,
-): Pick<ClinicaClientPet, "weightKg"> => {
-  const rawText = item.medicalRecords
-    .map((record) => record.rawText)
-    .join("\n");
-
-  if (!rawText.trim()) {
-    return {};
-  }
-
-  return {
-    weightKg: extractWeightKg(rawText),
-  };
-};
-
-const mapPatientToPet = (
-  item: ImportedClinicaAggregate,
-): ClinicaClientPet | null => {
-  const { patient } = item;
-  const petName = normalizeValue(patient.name);
-  const fallbackDetails = extractPetDetailsFromRecords(item);
-
-  if (!petName) {
-    return null;
-  }
-
-  return {
-    name: petName,
-    gender: normalizeValue(patient.gender) || undefined,
-    breed: normalizeValue(patient.breed) || undefined,
-    species: normalizeValue(patient.species) || undefined,
-    color: normalizeValue(patient.color) || undefined,
-    weightKg: patient.weightKg ?? fallbackDetails.weightKg,
-    ageYears: patient.ageYears,
-    ageMonths: patient.ageMonths,
-    insurance: normalizeValue(patient.insurance) || undefined,
-    treatingDoctor: normalizeValue(patient.treatingDoctor) || undefined,
-    referringDoctor: normalizeValue(patient.referringDoctor) || undefined,
-  };
-};
-
-const mapAggregatesToClients = (
-  aggregates: ImportedClinicaAggregate[],
-): IClinicaClient[] => {
-  const groupedClients = new Map<string, IClinicaClient>();
-
-  for (const item of aggregates) {
-    const ownerName = normalizeValue(item.patient.owner.name);
-    const ownerPhone = normalizeValue(item.patient.owner.phone);
-    const externalPatientId = normalizeValue(item.patient.externalPatientId);
-    const pet = mapPatientToPet(item);
-
-    if (!ownerName || !ownerPhone) {
-      continue;
-    }
-
-    const key = buildClientKey(item);
-    const existingClient = groupedClients.get(key);
-
-    if (!existingClient) {
-      groupedClients.set(key, {
-        externalPatientId: externalPatientId || undefined,
-        ownerName,
-        ownerPhone,
-        pets: pet ? [pet] : [],
-        rawData: {
-          source: "clinica-online",
-          recordsCount: item.medicalRecords.length,
-          original: item,
-        },
-        lastSyncedAt: new Date(),
-      });
-
-      continue;
-    }
-
-    const alreadyHasPet = existingClient.pets.some(
-      (existingPet) => existingPet.name === pet?.name,
-    );
-
-    if (pet && !alreadyHasPet) {
-      existingClient.pets.push(pet);
-    }
-  }
-
-  return Array.from(groupedClients.values());
-};
-
-const mergePet = (
-  existingPet: ClinicaClientPet | undefined,
-  incomingPet: ClinicaClientPet,
-): ClinicaClientPet => ({
-  ...existingPet,
-  ...incomingPet,
-  gender: incomingPet.gender ?? existingPet?.gender,
-  breed: incomingPet.breed ?? existingPet?.breed,
-  species: incomingPet.species ?? existingPet?.species,
-  color: incomingPet.color ?? existingPet?.color,
-  weightKg: incomingPet.weightKg ?? existingPet?.weightKg,
-  ageYears: incomingPet.ageYears ?? existingPet?.ageYears,
-  ageMonths: incomingPet.ageMonths ?? existingPet?.ageMonths,
-  insurance: incomingPet.insurance ?? existingPet?.insurance,
-  treatingDoctor: incomingPet.treatingDoctor ?? existingPet?.treatingDoctor,
-  referringDoctor: incomingPet.referringDoctor ?? existingPet?.referringDoctor,
-});
-
-const mergePets = (
-  existingPets: ClinicaClientPet[],
-  incomingPets: ClinicaClientPet[],
-): ClinicaClientPet[] => {
-  if (incomingPets.length === 0) {
-    return existingPets;
-  }
-
-  const mergedPets = [...existingPets];
-
-  for (const incomingPet of incomingPets) {
-    const existingPetIndex = mergedPets.findIndex(
-      (pet) => pet.name === incomingPet.name,
-    );
-
-    if (existingPetIndex >= 0) {
-      mergedPets[existingPetIndex] = mergePet(
-        mergedPets[existingPetIndex],
-        incomingPet,
-      );
-      continue;
-    }
-
-    mergedPets.push(incomingPet);
-  }
-
-  return mergedPets;
-};
-
 const buildSearchQuery = (
   search?: string,
 ): QueryFilter<ClinicaClientDocument> => {
@@ -242,123 +83,24 @@ class ClinicaClientService {
     };
   }
 
-  async syncClients(): Promise<SyncClinicaClientsResult> {
+  private async runGuardedSync<T>(action: () => Promise<T>): Promise<T> {
     if (isSyncRunning) {
       throw new BadRequestError("Clinica sync is already running");
+    }
+
+    if (!acquireClinicaScrapeLock("daily-sync")) {
+      throw new BadRequestError(
+        "Clinica backfill is currently running; sync will run on its next scheduled attempt",
+      );
     }
 
     isSyncRunning = true;
     lastSyncError = null;
 
     try {
-      logger.info("Clinica clients sync started", {
-        module: MODULE,
-        event: "clinica_clients_sync_started",
-      });
-
-      logger.info("Clinica sync env validation started", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_started",
-      });
-
       validateClinicaSyncEnv();
 
-      logger.info("Clinica sync env validation finished", {
-        module: MODULE,
-        event: "clinica_sync_env_validation_finished",
-        hasClinicaBaseUrl: Boolean(ENV.clinicaBaseUrl),
-        hasClinicUsername: Boolean(ENV.clinicUsername),
-        hasClinicPassword: Boolean(ENV.clinicPassword),
-      });
-
-      logger.info("Clinica scraper init started", {
-        module: MODULE,
-        event: "clinica_scraper_init_started",
-      });
-
-      await clinicaScraperService.init();
-
-      logger.info("Clinica scraper init finished", {
-        module: MODULE,
-        event: "clinica_scraper_init_finished",
-      });
-
-      const aggregates = await clinicaScraperService.scrapeClients();
-
-      logger.info("Clinica scraper returned aggregates", {
-        module: MODULE,
-        event: "clinica_scraper_returned_aggregates",
-        aggregatesCount: aggregates.length,
-      });
-
-      const clients = mapAggregatesToClients(aggregates);
-
-      if (clients.length === 0) {
-        throw new BadRequestError("Clinica sync returned no clients");
-      }
-
-      let created = 0;
-      let updated = 0;
-      let skipped = 0;
-
-      for (const client of clients) {
-        const query = client.externalPatientId
-          ? { externalPatientId: client.externalPatientId }
-          : {
-              ownerName: client.ownerName,
-              ownerPhone: client.ownerPhone,
-            };
-
-        const existingClient = await ClinicaClientModel.findOne(query);
-
-        if (existingClient) {
-          const existingClientData = existingClient.toObject();
-          const mergedPets = mergePets(
-            existingClientData.pets,
-            client.pets,
-          );
-
-          await ClinicaClientModel.updateOne(
-            { _id: existingClient._id },
-            {
-              $set: {
-                ownerName: client.ownerName,
-                ownerPhone: client.ownerPhone,
-                pets: mergedPets,
-                rawData: client.rawData,
-                lastSyncedAt: new Date(),
-              },
-            },
-          );
-
-          updated += 1;
-          continue;
-        }
-
-        if (!client.ownerName || !client.ownerPhone || client.pets.length === 0) {
-          skipped += 1;
-          continue;
-        }
-
-        await ClinicaClientModel.create(client);
-        created += 1;
-      }
-
-      const result = {
-        totalFromClinica: clients.length,
-        created,
-        updated,
-        skipped,
-        syncedAt: new Date(),
-      };
-
-      logger.info("Clinica clients sync finished", {
-        module: MODULE,
-        event: "clinica_clients_sync_finished",
-        ...result,
-      });
-
-      return result;
+      return await action();
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       lastSyncError = {
@@ -367,9 +109,9 @@ class ClinicaClientService {
         occurredAt: new Date(),
       };
 
-      logger.error("Clinica clients sync failed", {
+      logger.error("Clinica sync failed", {
         module: MODULE,
-        event: "clinica_clients_sync_failed",
+        event: "clinica_sync_failed",
         error_name: err.name,
         error_message: err.message,
         error_stack: err.stack,
@@ -377,20 +119,75 @@ class ClinicaClientService {
 
       throw error;
     } finally {
-      logger.info("Clinica scraper close started", {
-        module: MODULE,
-        event: "clinica_scraper_close_started",
-      });
-
-      await clinicaScraperService.close().catch(() => undefined);
       isSyncRunning = false;
-
-      logger.info("Clinica scraper close finished", {
-        module: MODULE,
-        event: "clinica_scraper_close_finished",
-        isSyncRunning,
-      });
+      releaseClinicaScrapeLock("daily-sync");
     }
+  }
+
+  // Daily cron target: pulls only the clients Clinica has that we don't yet.
+  async syncClients(): Promise<SyncClinicaClientsResult> {
+    return this.runGuardedSync(async () => {
+      const apiPull = await runClinicaDiffSync();
+      const result = {
+        totalFromClinica: apiPull.rowsSeen,
+        created: apiPull.inserted,
+        updated: apiPull.updated,
+        skipped: apiPull.skipped,
+        syncedAt: new Date(),
+      };
+
+      logger.info("Clinica diff sync finished", {
+        module: MODULE,
+        event: "clinica_diff_sync_finished",
+        ...result,
+      });
+
+      return result;
+    });
+  }
+
+  // Manual "sync now" button: refreshes the 20 most recently active clients.
+  async syncLatestClients(): Promise<SyncClinicaClientsResult> {
+    return this.runGuardedSync(async () => {
+      const apiPull = await runClinicaLatestSync();
+      const result = {
+        totalFromClinica: apiPull.rowsSeen,
+        created: apiPull.inserted,
+        updated: apiPull.updated,
+        skipped: apiPull.skipped,
+        syncedAt: new Date(),
+      };
+
+      logger.info("Clinica latest sync finished", {
+        module: MODULE,
+        event: "clinica_latest_sync_finished",
+        ...result,
+      });
+
+      return result;
+    });
+  }
+
+  // Per-row "update client" button: refreshes exactly one client.
+  async syncOneClient(
+    externalPatientId: string,
+  ): Promise<{ found: boolean; outcome?: string }> {
+    return this.runGuardedSync(async () => {
+      const result = await runClinicaSingleClientSync(externalPatientId);
+
+      if (!result.found) {
+        throw new NotFoundError("Clinica client not found");
+      }
+
+      logger.info("Clinica single client sync finished", {
+        module: MODULE,
+        event: "clinica_single_client_sync_finished",
+        externalPatientId,
+        outcome: result.outcome,
+      });
+
+      return result;
+    });
   }
 
   async getClients(params: GetClinicaClientsParams) {
