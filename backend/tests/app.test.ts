@@ -36,6 +36,7 @@ const adminRoutes = { name: "admin-routes" };
 const tableRoutes = { name: "table-routes" };
 const userRoutes = { name: "user-routes" };
 const medicineRoutes = { name: "medicine-routes" };
+const clinicaRoutes = { name: "clinica-routes" };
 
 expressMock.json.mockReturnValue(jsonMiddleware);
 expressMock.urlencoded.mockReturnValue(urlencodedMiddleware);
@@ -91,6 +92,10 @@ jest.unstable_mockModule("../src/routes/user/index.js", () => ({
 
 jest.unstable_mockModule("../src/routes/medicine/index.js", () => ({
   default: medicineRoutes,
+}));
+
+jest.unstable_mockModule("../src/routes/clinica/index.js", () => ({
+  default: clinicaRoutes,
 }));
 
 const loadAppModule = async () => {

@@ -27,6 +27,8 @@ const setRequiredSecrets = () => {
   process.env.JWT_REFRESH_SECRET = "refresh-secret-123";
   process.env.MJ_APIKEY_PUBLIC = "mailjet-public";
   process.env.MJ_APIKEY_PRIVATE = "mailjet-private";
+  process.env.MONGODB_URI = "mongodb://localhost:27017/petec-test";
+  process.env.FRONTEND_URL = "https://petec.vercel.app";
   process.env.NODE_ENV = "test";
   delete process.env.JWT_RESET_PASSWORD_SECRET;
 };

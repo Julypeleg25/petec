@@ -1,4 +1,3 @@
-import { logger } from "../../config/logger.js";
 import type { Request, Response, NextFunction } from "express";
 import { patientService } from "../../services/patient/index.js";
 import { patientUploadService } from "../../services/patient/index.js";

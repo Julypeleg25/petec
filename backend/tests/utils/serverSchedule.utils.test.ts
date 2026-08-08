@@ -80,7 +80,7 @@ describe("serverSchedule.utils", () => {
     );
     expect(scheduleMock).toHaveBeenNthCalledWith(
       2,
-      "0 6 * * *",
+      "0 4 * * *",
       expect.any(Function),
       { timezone: "Asia/Jerusalem" },
     );

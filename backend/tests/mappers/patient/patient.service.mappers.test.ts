@@ -266,6 +266,11 @@ describe("patient.service.mappers", () => {
       ],
       caseProcedures: [
         {
+          name: "Ignore future",
+          value: true,
+          date: "09:00 22/04/2026",
+        },
+        {
           name: "Walk",
           value: true,
           date: "10:00 21/04/2026",
@@ -296,6 +301,7 @@ describe("patient.service.mappers", () => {
           date: "08:00 21/04/2026",
         },
       ],
+      is_procedure: false,
     });
   });
 
@@ -326,6 +332,7 @@ describe("patient.service.mappers", () => {
       caseProcedures: [],
       ownerUpdate: [],
       releaseMedicines: [],
+      is_procedure: false,
     });
   });
 
