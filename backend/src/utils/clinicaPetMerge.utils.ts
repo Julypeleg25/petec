@@ -1,5 +1,14 @@
 import type { ClinicaClientPet } from "../models/clinicaClient/index.js";
 
+type StoredClinicaClientPet = ClinicaClientPet & {
+  toObject?: () => ClinicaClientPet;
+};
+
+export const toPlainClinicaPets = (
+  pets: StoredClinicaClientPet[],
+): ClinicaClientPet[] =>
+  pets.map((pet) => typeof pet.toObject === "function" ? pet.toObject() : pet);
+
 export const mergePet = (
   existingPet: ClinicaClientPet | undefined,
   incomingPet: ClinicaClientPet,
@@ -14,12 +23,14 @@ export const mergePet = (
   ageYears: incomingPet.ageYears ?? existingPet?.ageYears,
   ageMonths: incomingPet.ageMonths ?? existingPet?.ageMonths,
   insurance: incomingPet.insurance ?? existingPet?.insurance,
+  microchipNumber: incomingPet.microchipNumber ?? existingPet?.microchipNumber,
+  neutered: incomingPet.neutered ?? existingPet?.neutered,
+  notes: incomingPet.notes ?? existingPet?.notes,
+  rawData: incomingPet.rawData ?? existingPet?.rawData,
   treatingDoctor: incomingPet.treatingDoctor ?? existingPet?.treatingDoctor,
   referringDoctor: incomingPet.referringDoctor ?? existingPet?.referringDoctor,
 });
 
-// If incoming is empty (fetch failed, or genuinely no pets this round), keep
-// whatever was already known rather than wiping it out.
 export const mergePets = (
   existingPets: ClinicaClientPet[],
   incomingPets: ClinicaClientPet[],

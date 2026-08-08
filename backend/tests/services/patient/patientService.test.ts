@@ -99,6 +99,10 @@ const getCaseByIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
 const getCaseByIdPopulatedOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
 const getCaseBySerialIdOrThrowMock = jest.fn<(...args: any[]) => Promise<any>>();
 const ensureDedicatedPatientForCaseMock = jest.fn<(...args: any[]) => Promise<any>>();
+const deleteCaseDocumentAssetMock = jest.fn<(...args: any[]) => Promise<any>>();
+const getCalendarQueryBoundsMock = jest.fn();
+const getTodayProcedureDateFilterMock = jest.fn();
+const shouldPersistManualProcedureUnarchiveMock = jest.fn();
 const resolveMasterCaseBySerialPrefixMock = jest.fn<
   (...args: any[]) => Promise<any>
 >();
@@ -221,11 +225,15 @@ jest.unstable_mockModule(
 jest.unstable_mockModule(
   "../../../src/services/patient/utils/patientService.utils.js",
   () => ({
+    deleteCaseDocumentAsset: deleteCaseDocumentAssetMock,
     ensureDedicatedPatientForCase: ensureDedicatedPatientForCaseMock,
     getCaseByIdOrThrow: getCaseByIdOrThrowMock,
     getCaseByIdPopulatedOrThrow: getCaseByIdPopulatedOrThrowMock,
+    getCalendarQueryBounds: getCalendarQueryBoundsMock,
     getCaseBySerialIdOrThrow: getCaseBySerialIdOrThrowMock,
+    getTodayProcedureDateFilter: getTodayProcedureDateFilterMock,
     resolveMasterCaseBySerialPrefix: resolveMasterCaseBySerialPrefixMock,
+    shouldPersistManualProcedureUnarchive: shouldPersistManualProcedureUnarchiveMock,
   }),
 );
 
@@ -312,6 +320,10 @@ describe("PatientService lower-slice", () => {
     getCaseByIdPopulatedOrThrowMock.mockReset();
     getCaseBySerialIdOrThrowMock.mockReset();
     ensureDedicatedPatientForCaseMock.mockReset();
+    deleteCaseDocumentAssetMock.mockReset();
+    getCalendarQueryBoundsMock.mockReset();
+    getTodayProcedureDateFilterMock.mockReset();
+    shouldPersistManualProcedureUnarchiveMock.mockReset();
     resolveMasterCaseBySerialPrefixMock.mockReset();
     hasCaseWeightChangedMock.mockReset();
     recalculateCaseGridMedicationDosesMock.mockReset();

@@ -1,4 +1,5 @@
 export interface ClinicaPatientDto {
+  externalClientId?: string;
   externalPatientId?: string;
   name: string;
 
@@ -25,7 +26,13 @@ export interface ClinicaMedicalRecordDto {
   ownerPhone: string;
   recordType: string;
   rawText: string;
+  table?: ClinicaVisitTableDto;
   syncedAt: Date;
+}
+
+export interface ClinicaVisitTableDto {
+  headers: string[];
+  rows: string[][];
 }
 
 export interface ImportedClinicaAggregate {

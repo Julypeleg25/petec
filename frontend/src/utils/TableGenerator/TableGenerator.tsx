@@ -66,7 +66,6 @@ function TableGenerator<T extends RowData = RowData>({
 
   const [loading, setLoading] = useState(true);
   const [tableData, setTableData] = useState<T[]>([]);
-  const [search, setSearch] = useState<T[]>([]);
   const [sortDirection, setSortDirection] = useState(false);
   const [dataSize, setDataSize] = useState(-1);
   const [currentPage, setCurrentPage] = useState(1);

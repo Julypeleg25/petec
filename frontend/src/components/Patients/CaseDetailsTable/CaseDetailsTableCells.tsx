@@ -1,7 +1,5 @@
 import React from "react";
-import FormTextarea, {
-  growHeightOnInput,
-} from "../../../utils/FormTextarea/FormTextarea";
+import FormTextarea from "../../../utils/FormTextarea/FormTextarea";
 import type {
   CaseDetailsData,
   CaseDetailsInputChangeHandler,
@@ -20,7 +18,6 @@ interface CellComponentProps {
   index: number;
   isComment?: boolean;
   commentValName?: string;
-  formTextareaElementId?: string;
   caseDetailsList: CaseDetailsData[][];
   caseDetailsDataIndex: number;
   handleInputChange?: CaseDetailsInputChangeHandler;
@@ -46,7 +43,6 @@ export const BooleanCellComponent = ({
   isComment,
   valName,
   commentValName,
-  formTextareaElementId,
   caseDetailsList,
   caseDetailsDataIndex,
   handleInputChange,
@@ -115,7 +111,6 @@ export const SelectCellComponent = ({
   isComment,
   selectElement,
   commentValName,
-  formTextareaElementId,
   caseDetailsList,
   caseDetailsDataIndex,
   handleInputChange,
@@ -159,7 +154,6 @@ export const MedicineCommentCellComponent = ({
   medicineId,
   type,
   caseDetailsPopUpId,
-  formTextareaElementId,
   caseDetailsList,
   caseDetailsDataIndex,
   setCaseDetailsList,

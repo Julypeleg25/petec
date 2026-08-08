@@ -14,6 +14,7 @@ import { CLINICA_COLORS, CLINICA_TEXTS } from "../constants/clinica.constants";
 type ClinicaClientsControlsProps = {
   search: string;
   isSyncing: boolean;
+  isSyncDisabled?: boolean;
   onSearchChange: (value: string) => void;
   onSync: () => void;
 };
@@ -21,6 +22,7 @@ type ClinicaClientsControlsProps = {
 export const ClinicaClientsControls = ({
   search,
   isSyncing,
+  isSyncDisabled = false,
   onSearchChange,
   onSync,
 }: ClinicaClientsControlsProps) => (
@@ -81,7 +83,7 @@ export const ClinicaClientsControls = ({
 
         <Button
           variant="contained"
-          disabled={isSyncing}
+          disabled={isSyncing || isSyncDisabled}
           onClick={onSync}
           sx={{
             minWidth: {

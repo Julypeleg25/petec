@@ -41,6 +41,30 @@ router.post(
   clinicaController.syncClients,
 );
 
+router.get(
+  CLINICA_ROUTE_PATHS.clientByCasePrefix,
+  requirePermission(Permission.READ_PATIENT),
+  clinicaController.getClientByCasePrefix,
+);
+
+router.get(
+  CLINICA_ROUTE_PATHS.cachedPet,
+  requirePermission(Permission.READ_PATIENT),
+  clinicaController.getCachedPet,
+);
+
+router.post(
+  CLINICA_ROUTE_PATHS.fetchCaseVisits,
+  requirePermission(Permission.READ_PATIENT),
+  clinicaController.fetchCaseVisits,
+);
+
+router.post(
+  CLINICA_ROUTE_PATHS.fetchPetVisits,
+  requirePermission(Permission.READ_PATIENT),
+  clinicaController.fetchPetVisits,
+);
+
 router.post(
   CLINICA_ROUTE_PATHS.syncClient,
   requirePermission(Permission.WRITE_PATIENT),

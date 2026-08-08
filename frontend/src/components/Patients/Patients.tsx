@@ -59,11 +59,6 @@ function Patients({ patientsNavType }: PatientsProps) {
     patientCard,
   } = usePatients(patientsNavType);
 
-  const isPatientListView =
-    patientsNavType === PATIENTS_NAV_TYPES.PATIENTS_LIST ||
-    patientsNavType === PATIENTS_NAV_TYPES.PROCEDURES;
-
-
   useEffect(() => {
     setHeaderMenuContainer(document.getElementById("header-contextual-menu"));
   }, []);

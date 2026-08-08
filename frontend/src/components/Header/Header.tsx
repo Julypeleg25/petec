@@ -14,10 +14,9 @@ import {
 
 interface HeaderProps {
   type: MainPageType;
-  patientsNavType?: string;
 }
 
-function Header({ type, patientsNavType }: HeaderProps) {
+function Header({ type }: HeaderProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

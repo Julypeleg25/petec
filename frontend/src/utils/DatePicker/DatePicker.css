@@ -9,10 +9,10 @@
   width: 100%;
   font-size: 1rem;
   margin-top: 0.5em;
-  width: 100%;
   min-height: 42px;
   box-sizing: border-box;
   min-width: 0;
+  overflow: hidden;
 }
 
 .date-picker-form-input input {
@@ -29,6 +29,10 @@
   color: transparent;
   background: transparent;
   cursor: pointer;
+}
+
+.date-picker-form-input input::-webkit-datetime-edit {
+  display: none;
 }
 
 .date-picker-form-input input::-webkit-calendar-picker-indicator {

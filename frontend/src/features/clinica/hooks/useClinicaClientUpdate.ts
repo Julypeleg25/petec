@@ -1,11 +1,14 @@
 import { useCallback, useState } from "react";
-import { syncClinicaClient } from "../api/clinica.api";
+import {
+  getClinicaClientByExternalPatientId,
+  syncClinicaClient,
+} from "../api/clinica.api";
 import { CLINICA_TEXTS } from "../constants/clinica.constants";
 import type { ClinicaClient } from "../types/clinicaClient.types";
 import { logger } from "../../../lib/logger";
 
 type UseClinicaClientUpdateParams = {
-  onUpdated: () => Promise<void> | void;
+  onUpdated: (client: ClinicaClient) => void;
 };
 
 export function useClinicaClientUpdate({ onUpdated }: UseClinicaClientUpdateParams) {
@@ -23,11 +26,18 @@ export function useClinicaClientUpdate({ onUpdated }: UseClinicaClientUpdatePara
 
       try {
         await syncClinicaClient(client.externalPatientId);
-        await onUpdated();
+        const updatedClient = await getClinicaClientByExternalPatientId(
+          client.externalPatientId,
+        );
+        onUpdated(updatedClient);
       } catch (error) {
         logger.error(
           "Clinica single client sync failed",
           error instanceof Error ? error.message : String(error),
+          {
+            operation: "sync_single_client",
+            externalPatientId: client.externalPatientId,
+          },
         );
         setErrorMessage(CLINICA_TEXTS.updateClientError);
       } finally {

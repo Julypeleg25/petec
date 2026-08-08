@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import FormSelect from "../../../../utils/FormSelect/FormSelect";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import TableUnEditableCellElement from "../TableUnEditableCellElement";
@@ -115,7 +115,6 @@ export const CaseDetailsSelectCommentRow = memo(
                   />
                 }
                 commentValName={commentsKey}
-                formTextareaElementId={`${dataKeyPrefix}-textarea-${i}`}
                 caseDetailsList={caseDetailsList}
                 caseDetailsDataIndex={caseDetailsDataIndex}
                 handleInputChange={handleInputChange}

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -29,6 +29,8 @@ const ClinicaClientsPageContent = () => {
   const navigate = useNavigate();
   const [clientForPetSelection, setClientForPetSelection] =
     useState<ClinicaClient | null>(null);
+  const [manualClientSuccess, setManualClientSuccess] = useState("");
+  const alertsRef = useRef<HTMLDivElement>(null);
   const {
     clients,
     errorMessage: clientsErrorMessage,
@@ -36,9 +38,11 @@ const ClinicaClientsPageContent = () => {
     isLoading,
     loadClients,
     page,
+    replaceClient,
     rowsPerPage,
     search,
     setPage,
+    showSingleClient,
     totalClients,
   } = useClinicaClients();
   const {
@@ -51,7 +55,7 @@ const ClinicaClientsPageContent = () => {
     errorMessage: updateClientErrorMessage,
     handleUpdateClient,
     updatingClientId,
-  } = useClinicaClientUpdate({ onUpdated: loadClients });
+  } = useClinicaClientUpdate({ onUpdated: replaceClient });
 
   const openNewPatientPage = useCallback(
     (client: ClinicaClient, pet: ClinicaPet) => {
@@ -64,8 +68,10 @@ const ClinicaClientsPageContent = () => {
 
   const handleCreateCase = useCallback(
     (client: ClinicaClient) => {
+      if (client.pets.length === 0) return;
+
       if (client.pets.length <= 1) {
-        openNewPatientPage(client, client.pets[0] ?? { name: "" });
+        openNewPatientPage(client, client.pets[0]);
         return;
       }
 
@@ -88,6 +94,13 @@ const ClinicaClientsPageContent = () => {
 
   const errorMessage =
     clientsErrorMessage || syncErrorMessage || updateClientErrorMessage;
+  useEffect(() => {
+    if (!successMessage && !manualClientSuccess && !errorMessage) {
+      return;
+    }
+
+    alertsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [errorMessage, manualClientSuccess, successMessage]);
 
   return (
     <Box
@@ -122,13 +135,22 @@ const ClinicaClientsPageContent = () => {
           </Typography>
         </Box>
 
-        {successMessage && <Alert severity="success">{successMessage}</Alert>}
-        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        <Box ref={alertsRef} sx={{ scrollMarginTop: 16 }}>
+          <Stack spacing={1}>
+            {(successMessage || manualClientSuccess) && (
+              <Alert severity="success">{successMessage || manualClientSuccess}</Alert>
+            )}
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+          </Stack>
+        </Box>
 
         <ClinicaClientsControls
           search={search}
           isSyncing={isSyncing}
-          onSearchChange={handleSearchChange}
+          onSearchChange={(value) => {
+            setManualClientSuccess("");
+            handleSearchChange(value);
+          }}
           onSync={handleSync}
         />
 
@@ -171,11 +193,18 @@ const ClinicaClientsPageContent = () => {
               page={page}
               rowsPerPage={rowsPerPage}
               isLoading={isLoading}
+              search={search}
               updatingClientId={updatingClientId}
               onPageChange={setPage}
               onCreateCase={handleCreateCase}
               onUpdateClient={handleUpdateClient}
-              onManualSyncCompleted={loadClients}
+              onManualSyncCompleted={(client) => {
+                const fetchedClientId = client.externalPatientId ?? search.trim();
+                setManualClientSuccess(
+                  CLINICA_TEXTS.manualSyncSuccess(fetchedClientId),
+                );
+                showSingleClient(client);
+              }}
             />
           </CardContent>
         </Card>

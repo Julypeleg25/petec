@@ -26,7 +26,7 @@ function MainPage({
 
   return (
     <div className="main-page">
-      <Header type={type} patientsNavType={patientsNavType} />
+      <Header type={type} />
       <main className={mainClassName}>
         {type === "calendar" && <Calendar />}
         {type === "clinica" && <ClinicaClientsPage />}

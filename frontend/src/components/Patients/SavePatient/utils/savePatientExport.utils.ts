@@ -29,7 +29,6 @@ const PDF_CONTAINER_WIDTH_PX = 1600;
 const CANVAS_SCALE = 2;
 const HOUR_COLUMNS_COUNT = 13;
 const TITLE_ROW_INDEX = 0;
-const FIRST_DATA_ROW_INDEX = 1;
 
 interface CaseExportLookups {
   animalColorText: string;

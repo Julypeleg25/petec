@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import FormCheckbox from "../../../../utils/FormCheckbox/FormCheckbox";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import TableUnEditableCellElement from "../TableUnEditableCellElement";

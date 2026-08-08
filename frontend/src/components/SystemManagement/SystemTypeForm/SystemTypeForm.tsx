@@ -20,7 +20,6 @@ import {
   resolveSystemTypeRowId,
 } from "./SystemTypeForm.utils";
 import { SystemTypeEditorShell } from "../shared/SystemTypeEditorShell/SystemTypeEditorShell";
-import { getSystemTypeRowName } from "../shared/systemTypeRow.utils";
 
 import { SystemTypeField } from "./components/SystemTypeField";
 
@@ -45,7 +44,6 @@ function SystemTypeFormContent({
 }: SystemTypeFormContentProps) {
   const editId = resolveSystemTypeRowId(systemTypeObj);
   const isEdit = editId.trim().length > 0;
-  const currentItemName = getSystemTypeRowName(systemTypeObj);
 
   const createMutation = useCreateSystemType(config.typeName);
   const updateMutation = useUpdateSystemType(config.typeName);
@@ -116,7 +114,6 @@ function SystemTypeFormContent({
         isEdit={isEdit}
         createTitle={config.createTitle}
         editTitle={config.editTitle}
-        currentItemName={currentItemName}
         onClose={onClose}
         onSubmit={handleSubmit(onSubmit)}
         isPending={isPending}

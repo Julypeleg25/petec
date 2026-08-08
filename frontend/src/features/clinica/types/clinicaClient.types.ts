@@ -1,4 +1,5 @@
 export interface ClinicaPet {
+    externalPatientId?: string;
     name: string;
     gender?: string;
     breed?: string;
@@ -8,21 +9,31 @@ export interface ClinicaPet {
     ageYears?: number;
     ageMonths?: number;
     insurance?: string;
+    microchipNumber?: string;
+    neutered?: boolean;
+    notes?: string;
+    rawData?: Record<string, unknown>;
     treatingDoctor?: string;
     referringDoctor?: string;
   }
 
   export interface ClinicaMedicalRecord {
+    patientName?: string;
     recordType?: string;
     rawText?: string;
+    table?: ClinicaVisitTable;
     syncedAt?: string;
+  }
+
+  export interface ClinicaVisitTable {
+    headers: string[];
+    rows: string[][];
   }
 
   export interface ClinicaClientRawData {
     recordsCount?: number;
     original?: {
       patient?: ClinicaPet;
-      medicalRecords?: ClinicaMedicalRecord[];
     };
   }
   
@@ -36,6 +47,7 @@ export interface ClinicaPet {
     lastSyncedAt: string;
     createdAt: string;
     updatedAt: string;
+    visits?: ClinicaMedicalRecord[];
   }
   
   export interface ClinicaClientsResponse {

@@ -1,4 +1,3 @@
-import type { SelectOptionObj } from "../../../utils/FormSelect/FormSelect.types";
 import type {
   MedicinePickerDraftSelection,
   MedicineSelectOptionObj,

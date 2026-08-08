@@ -1,11 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import "./CaseDetailsTable.css";
 import { useCaseDetailsData } from "./hooks/useCaseDetailsData";
 import { useCaseDetailsTableSelectionModals } from "./hooks/useCaseDetailsTableSelectionModals";
 import { getLatestVitals, isValueInRange } from "./utils/caseDetailsVitals.utils";
-import {
-  parseCaseGridHour,
-} from "./caseGrid.utils";
 import {
   MEDICINE_SECTIONS,
   OPTION_SECTIONS,
@@ -20,10 +17,8 @@ import type {
 } from "./CaseDetailsTable.types";
 import {
   isCaseDetailsStateParams,
-  parseHourOption,
 } from "./utils/CaseDetailsTable.utils";
 import {
-  applySelectedStartHourToDay,
   updateCaseDetailsFieldValue,
 } from "./utils/caseDetailsTableState.utils";
 
@@ -46,8 +41,6 @@ function CaseDetailsTable({
   paintingMode,
   animalWeight,
   animalId,
-  selectedStartHour,
-  setSelectedStartHour,
 }: CaseDetailsTableProps) {
   const {
     fecesTypes,
@@ -132,25 +125,6 @@ function CaseDetailsTable({
     [handleInputChange],
   );
 
-  const applySelectedStartHour = (hourValue: string): void => {
-    const startHour = parseHourOption(hourValue);
-    if (startHour === null) {
-      return;
-    }
-
-    setCaseDetailsList((prevState) => {
-      const nextState = [...prevState];
-      const currentDay = prevState[caseDetailsDataIndex];
-      if (!currentDay) return prevState;
-      nextState[caseDetailsDataIndex] = applySelectedStartHourToDay(
-        currentDay,
-        startHour,
-      );
-
-      return nextState;
-    });
-  };
-
   const latestVitals = getLatestVitals(caseDetailsList);
   const latestTempData = latestVitals.temperature;
   const latestPulseData = latestVitals.pulse;
@@ -165,9 +139,6 @@ function CaseDetailsTable({
     <div className="case-details-table">
       <CaseDetailsTableHeader
         currentDayRows={currentDayRows}
-        selectedStartHour={selectedStartHour}
-        setSelectedStartHour={setSelectedStartHour}
-        onStartHourSelect={applySelectedStartHour}
       />
       <div className="case-details-table-body">
         <CaseDetailsTextareaRow

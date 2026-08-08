@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import FormCheckbox from "../../../../utils/FormCheckbox/FormCheckbox";
 import TableUnEditableCellElement from "../TableUnEditableCellElement";
 import { DAILY_CASE_TABLE_COLUMN_COUNT } from "../CaseDetailsTable.constants";

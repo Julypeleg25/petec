@@ -21,7 +21,7 @@ import {
   mapRowToSaveMedicineFormDefaults,
   mapSaveMedicineFormToCreateDto,
 } from "./SaveMedicine.utils";
-import { getSystemTypeRowId, getSystemTypeRowName } from "../shared/systemTypeRow.utils";
+import { getSystemTypeRowId } from "../shared/systemTypeRow.utils";
 import { mapSystemTypesToSelectOptions } from "../shared/systemTypeSelect.utils";
 import { SystemTypeEditorShell } from "../shared/SystemTypeEditorShell/SystemTypeEditorShell";
 
@@ -34,7 +34,6 @@ export default function SaveMedicine({
   systemTypeObj,
   onClose,
 }: SaveMedicineProps) {
-  const currentItemName = getSystemTypeRowName(systemTypeObj);
   const queryClient = useQueryClient();
   const {
     control,
@@ -103,7 +102,6 @@ export default function SaveMedicine({
       isEdit={!!systemTypeObj}
       createTitle="הוספת תרופה"
       editTitle="עריכת תרופה"
-      currentItemName={currentItemName}
       onClose={onClose}
       onSubmit={saveMedicine}
       isPending={saveMutation.isPending}

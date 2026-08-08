@@ -66,7 +66,7 @@ const syncClients = async (
       result,
     });
 
-    res.status(HttpStatus.OK).json({
+    res.status(202).json({
       success: true,
       data: result,
     });
@@ -141,6 +141,72 @@ const getSyncStatus = async (
   });
 };
 
+const getCachedPet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.getCachedPet(
+      String(req.params.clientId),
+      String(req.query.petName ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const fetchPetVisits = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.fetchMissingVisitDetails(
+      String(req.params.clientId),
+      String(req.body?.petName ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const fetchCaseVisits = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.fetchVisitsForExistingCase(
+      String(req.body?.casePrefix ?? ""),
+      String(req.body?.petName ?? ""),
+      String(req.body?.ownerPhone ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getClientByCasePrefix = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const result = await clinicaClientService.findClientForCasePrefix(
+      String(req.query.casePrefix ?? ""),
+      String(req.query.petName ?? ""),
+      String(req.query.ownerPhone ?? ""),
+    );
+    res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getDebugConfig = async (
   _req: Request,
   res: Response,
@@ -158,7 +224,11 @@ const getDebugConfig = async (
 };
 
 export const clinicaController = {
+  fetchCaseVisits,
+  fetchPetVisits,
+  getClientByCasePrefix,
   getClientByExternalPatientId,
+  getCachedPet,
   getClients,
   getDebugConfig,
   getSyncStatus,

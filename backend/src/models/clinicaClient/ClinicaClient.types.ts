@@ -1,6 +1,7 @@
 import type { Document, Types } from "mongoose";
 
 export interface ClinicaClientPet {
+  externalPatientId?: string;
   name: string;
   gender?: string;
   breed?: string;
@@ -10,6 +11,10 @@ export interface ClinicaClientPet {
   ageYears?: number;
   ageMonths?: number;
   insurance?: string;
+  microchipNumber?: string;
+  neutered?: boolean;
+  notes?: string;
+  rawData?: Record<string, unknown>;
   treatingDoctor?: string;
   referringDoctor?: string;
 }

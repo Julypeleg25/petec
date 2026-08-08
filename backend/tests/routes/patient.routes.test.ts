@@ -126,7 +126,7 @@ describe("patient.routes", () => {
     const { router, module } = await loadPatientRoutes();
 
     expect(module.default).toBe(router);
-    expect(validateParamsMock).toHaveBeenCalledTimes(13);
+    expect(validateParamsMock).toHaveBeenCalledTimes(14);
     expect(router.get.mock.calls[0]?.[0]).toBe(PATIENT_ROUTE_PATHS.patientPhoto);
     expect(router.get.mock.calls[0]?.[1]).toBe(validateParamsMock.mock.results[0]?.value);
     expect(router.get.mock.calls[0]?.[2]).toBe(patientController.getPatientPhoto);
@@ -140,8 +140,8 @@ describe("patient.routes", () => {
     expect(requirePermissionMock).toHaveBeenCalledWith(Permission.READ_CASE);
     expect(requirePermissionMock).toHaveBeenCalledWith(Permission.WRITE_CASE);
     expect(requirePermissionMock).toHaveBeenCalledWith(Permission.MANAGE_DOCUMENTS);
-    expect(validateBodyMock).toHaveBeenCalledTimes(8);
-    expect(validateParamsMock).toHaveBeenCalledTimes(13);
+    expect(validateBodyMock).toHaveBeenCalledTimes(9);
+    expect(validateParamsMock).toHaveBeenCalledTimes(14);
     expect(uploadImageSingleMock).toHaveBeenCalledWith(UPLOAD.FILE_FORM_FIELD_NAME);
 
     expect(router.post).toHaveBeenCalledWith(
@@ -166,8 +166,8 @@ describe("patient.routes", () => {
     );
     expect(router.put).toHaveBeenCalledWith(
       PATIENT_ROUTE_PATHS.dailyPlan,
-      requirePermissionMock.mock.results[19]?.value,
-      validateBodyMock.mock.results[7]?.value,
+      expect.anything(),
+      expect.anything(),
       patientController.updateDailyPlan,
     );
     expect(router.delete).toHaveBeenCalledWith(

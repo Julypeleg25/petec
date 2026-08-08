@@ -105,9 +105,10 @@ export function ClinicaPatientSearchPrefill({
     !isLoading &&
     !errorMessage &&
     options.length === 0;
-
   const manualSync = useClinicaManualClientSync({
+    initialClientId: /^\d+$/.test(search.trim()) ? search.trim() : "",
     onSynced: (client) => {
+      setSearch(client.externalPatientId ?? search.trim());
       setClients([client]);
       setErrorMessage("");
     },
@@ -117,7 +118,6 @@ export function ClinicaPatientSearchPrefill({
     onSelect(mapClinicaClientToNewPatientState(client, pet));
     setSearch(`${pet.name || "-"} / ${client.ownerName}`);
     setClients([]);
-    setErrorMessage("");
     setHasSelectedClient(true);
   };
 
@@ -164,33 +164,30 @@ export function ClinicaPatientSearchPrefill({
           {errorMessage}
         </div>
       )}
+      {manualSync.successMessage && (
+        <div className="clinica-prefill-search-status">
+          {manualSync.successMessage}
+        </div>
+      )}
       {shouldShowEmptyState && (
         <>
           <div className="clinica-prefill-search-status">
             {CLINICA_TEXTS.prefillSearchEmpty}
           </div>
-          <div className="clinica-prefill-manual-sync">
-            {!manualSync.isOpen && (
-              <button
-                type="button"
-                className="clinica-prefill-manual-sync-trigger"
-                onClick={manualSync.open}
-              >
-                <span className="clinica-prefill-manual-sync-plus">+</span>
-                {CLINICA_TEXTS.manualSyncTrigger}
-              </button>
-            )}
-            {manualSync.isOpen && (
+          {/^\d+$/.test(search.trim()) && (
+            <div className="clinica-prefill-manual-sync">
               <div className="clinica-prefill-manual-sync-row">
                 <input
                   className="clinica-prefill-manual-sync-input"
                   value={manualSync.value}
                   placeholder={CLINICA_TEXTS.manualSyncPlaceholder}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   disabled={manualSync.isSubmitting}
-                  onChange={(event) => manualSync.setValue(event.target.value)}
+                  readOnly
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
-                      manualSync.submit();
+                      void manualSync.submit();
                     }
                   }}
                 />
@@ -198,28 +195,23 @@ export function ClinicaPatientSearchPrefill({
                   type="button"
                   className="clinica-prefill-manual-sync-submit"
                   disabled={manualSync.isSubmitting || !manualSync.value.trim()}
-                  onClick={manualSync.submit}
+                  onClick={() => void manualSync.submit()}
                 >
                   {manualSync.isSubmitting
                     ? CLINICA_TEXTS.prefillSearchLoading
                     : CLINICA_TEXTS.manualSyncSubmit}
                 </button>
-                <button
-                  type="button"
-                  className="clinica-prefill-manual-sync-cancel"
-                  disabled={manualSync.isSubmitting}
-                  onClick={manualSync.cancel}
-                >
-                  {CLINICA_TEXTS.manualSyncCancel}
-                </button>
               </div>
-            )}
-            {manualSync.errorMessage && (
-              <div className="clinica-prefill-search-status error">
-                {manualSync.errorMessage}
+              <div className="clinica-prefill-search-status">
+                {CLINICA_TEXTS.manualSyncIdOnlyHint}
               </div>
-            )}
-          </div>
+              {manualSync.errorMessage && (
+                <div className="clinica-prefill-search-status error">
+                  {manualSync.errorMessage}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
       {options.length > 0 && (

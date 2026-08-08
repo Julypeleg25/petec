@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getClinicaClientByExternalPatientId, syncClinicaClient } from "../api/clinica.api";
 import { CLINICA_TEXTS } from "../constants/clinica.constants";
 import type { ClinicaClient } from "../types/clinicaClient.types";
@@ -6,29 +6,35 @@ import { logger } from "../../../lib/logger";
 
 type UseClinicaManualClientSyncParams = {
   onSynced: (client: ClinicaClient) => void;
+  initialClientId?: string;
 };
 
-export function useClinicaManualClientSync({ onSynced }: UseClinicaManualClientSyncParams) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [value, setValue] = useState("");
+export function useClinicaManualClientSync({
+  onSynced,
+  initialClientId = "",
+}: UseClinicaManualClientSyncParams) {
+  const [value, setRawValue] = useState(initialClientId.replace(/\D/g, ""));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const open = useCallback(() => {
-    setIsOpen(true);
+  useEffect(() => {
+    setRawValue(initialClientId.replace(/\D/g, ""));
     setErrorMessage("");
-  }, []);
+    setSuccessMessage("");
+  }, [initialClientId]);
 
-  const cancel = useCallback(() => {
-    setIsOpen(false);
-    setValue("");
+  const setValue = useCallback((nextValue: string) => {
+    setRawValue(nextValue.replace(/\D/g, ""));
     setErrorMessage("");
+    setSuccessMessage("");
   }, []);
 
   const submit = useCallback(async () => {
     const externalPatientId = value.trim();
 
-    if (!externalPatientId || isSubmitting) {
+    if (!/^\d+$/.test(externalPatientId) || isSubmitting) {
+      setErrorMessage(CLINICA_TEXTS.manualSyncIdOnlyError);
       return;
     }
 
@@ -46,12 +52,15 @@ export function useClinicaManualClientSync({ onSynced }: UseClinicaManualClientS
       const client = await getClinicaClientByExternalPatientId(externalPatientId);
 
       onSynced(client);
-      setIsOpen(false);
-      setValue("");
+      setSuccessMessage(CLINICA_TEXTS.manualSyncSuccess(externalPatientId));
     } catch (error) {
       logger.error(
         "Clinica manual client sync failed",
         error instanceof Error ? error.message : String(error),
+        {
+          operation: "fetch_client_by_id",
+          externalPatientId,
+        },
       );
       setErrorMessage(CLINICA_TEXTS.manualSyncError);
     } finally {
@@ -60,12 +69,10 @@ export function useClinicaManualClientSync({ onSynced }: UseClinicaManualClientS
   }, [isSubmitting, onSynced, value]);
 
   return {
-    isOpen,
     value,
     isSubmitting,
     errorMessage,
-    open,
-    cancel,
+    successMessage,
     setValue,
     submit,
   };

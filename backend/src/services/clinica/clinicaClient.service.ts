@@ -11,6 +11,7 @@ import { BadRequestError, NotFoundError } from "../../constants/error.constants.
 import {
   runClinicaDiffSync,
   runClinicaLatestSync,
+  runClinicaPetSessionsFetch,
   runClinicaSingleClientSync,
 } from "../clinicaApiClients.service.js";
 
@@ -36,8 +37,12 @@ type SyncErrorStatus = {
   occurredAt: Date;
 };
 
+type ApiSyncResult = Awaited<ReturnType<typeof runClinicaDiffSync>>;
+
 let isSyncRunning = false;
 let lastSyncError: SyncErrorStatus | null = null;
+let lastSyncResult: SyncClinicaClientsResult | null = null;
+let syncStartedAt: Date | null = null;
 
 const validateClinicaSyncEnv = (): void => {
   const missingEnvNames = [
@@ -48,13 +53,45 @@ const validateClinicaSyncEnv = (): void => {
 
   if (missingEnvNames.length > 0) {
     throw new BadRequestError(
-      `Missing Clinica env vars: ${missingEnvNames.join(", ")}`,
+      `חסרים משתני סביבה לחיבור לקליניקה: ${missingEnvNames.join(", ")}`,
     );
   }
 };
 
 const normalizeValue = (value?: string): string =>
   value?.trim().replace(/\s+/g, " ") ?? "";
+
+const normalizeMatchText = (value?: string): string =>
+  normalizeValue(value)
+    .normalize("NFKD")
+    .replace(/[\u0591-\u05c7]/g, "")
+    .replace(/["'׳״`.,:;/\\()[\]{}_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("he-IL");
+
+const normalizePhone = (value?: string): string => {
+  const digits = value?.replace(/\D/g, "") ?? "";
+  return digits.startsWith("972") ? `0${digits.slice(3)}` : digits;
+};
+
+const toSyncResult = (apiResult: ApiSyncResult): SyncClinicaClientsResult => ({
+  totalFromClinica: apiResult.rowsSeen,
+  created: apiResult.inserted,
+  updated: apiResult.updated,
+  skipped: apiResult.skipped,
+  syncedAt: new Date(),
+});
+
+const findPetByName = <T extends { name: string }>(
+  pets: T[],
+  petName: string,
+): T | undefined => {
+  const normalizedPetName = normalizeMatchText(petName);
+  return pets.find(
+    (candidate) => normalizeMatchText(candidate.name) === normalizedPetName,
+  );
+};
 
 const buildSearchQuery = (
   search?: string,
@@ -80,22 +117,25 @@ class ClinicaClientService {
     return {
       isSyncRunning,
       lastSyncError,
+      lastSyncResult,
+      syncStartedAt,
     };
   }
 
   private async runGuardedSync<T>(action: () => Promise<T>): Promise<T> {
     if (isSyncRunning) {
-      throw new BadRequestError("Clinica sync is already running");
+      throw new BadRequestError("סנכרון הקליניקה כבר מתבצע כעת");
     }
 
     if (!acquireClinicaScrapeLock("daily-sync")) {
       throw new BadRequestError(
-        "Clinica backfill is currently running; sync will run on its next scheduled attempt",
+        "פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים",
       );
     }
 
     isSyncRunning = true;
     lastSyncError = null;
+    syncStartedAt = new Date();
 
     try {
       validateClinicaSyncEnv();
@@ -124,17 +164,10 @@ class ClinicaClientService {
     }
   }
 
-  // Daily cron target: pulls only the clients Clinica has that we don't yet.
   async syncClients(): Promise<SyncClinicaClientsResult> {
-    return this.runGuardedSync(async () => {
+    const result = await this.runGuardedSync(async () => {
       const apiPull = await runClinicaDiffSync();
-      const result = {
-        totalFromClinica: apiPull.rowsSeen,
-        created: apiPull.inserted,
-        updated: apiPull.updated,
-        skipped: apiPull.skipped,
-        syncedAt: new Date(),
-      };
+      const result = toSyncResult(apiPull);
 
       logger.info("Clinica diff sync finished", {
         module: MODULE,
@@ -144,19 +177,14 @@ class ClinicaClientService {
 
       return result;
     });
+    lastSyncResult = result;
+    return result;
   }
 
-  // Manual "sync now" button: refreshes the 20 most recently active clients.
   async syncLatestClients(): Promise<SyncClinicaClientsResult> {
-    return this.runGuardedSync(async () => {
+    const result = await this.runGuardedSync(async () => {
       const apiPull = await runClinicaLatestSync();
-      const result = {
-        totalFromClinica: apiPull.rowsSeen,
-        created: apiPull.inserted,
-        updated: apiPull.updated,
-        skipped: apiPull.skipped,
-        syncedAt: new Date(),
-      };
+      const result = toSyncResult(apiPull);
 
       logger.info("Clinica latest sync finished", {
         module: MODULE,
@@ -166,17 +194,25 @@ class ClinicaClientService {
 
       return result;
     });
+    lastSyncResult = result;
+    return result;
   }
 
-  // Per-row "update client" button: refreshes exactly one client.
   async syncOneClient(
     externalPatientId: string,
   ): Promise<{ found: boolean; outcome?: string }> {
-    return this.runGuardedSync(async () => {
+    if (!/^\d+$/.test(normalizeValue(externalPatientId))) {
+      throw new BadRequestError("מספר הלקוח חייב לכלול ספרות בלבד");
+    }
+    validateClinicaSyncEnv();
+    if (!acquireClinicaScrapeLock("single-client-sync")) {
+      throw new BadRequestError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
+    }
+    try {
       const result = await runClinicaSingleClientSync(externalPatientId);
 
       if (!result.found) {
-        throw new NotFoundError("Clinica client not found");
+        throw new NotFoundError("הלקוח לא נמצא בקליניקה אונליין");
       }
 
       logger.info("Clinica single client sync finished", {
@@ -187,7 +223,9 @@ class ClinicaClientService {
       });
 
       return result;
-    });
+    } finally {
+      releaseClinicaScrapeLock("single-client-sync");
+    }
   }
 
   async getClients(params: GetClinicaClientsParams) {
@@ -218,7 +256,7 @@ class ClinicaClientService {
     const cleanExternalPatientId = normalizeValue(externalPatientId);
 
     if (!cleanExternalPatientId) {
-      throw new BadRequestError("External patient id is required");
+      throw new BadRequestError("יש להזין מספר לקוח בקליניקה");
     }
 
     const client = await ClinicaClientModel.findOne({
@@ -226,10 +264,94 @@ class ClinicaClientService {
     }).lean();
 
     if (!client) {
-      throw new NotFoundError("Clinica client not found");
+      throw new NotFoundError("הלקוח לא נמצא בקליניקה אונליין");
     }
 
     return client;
+  }
+
+  async findClientForCasePrefix(
+    casePrefix: string,
+    petName: string,
+    ownerPhone?: string,
+  ) {
+    const prefix = normalizeValue(casePrefix).split(/[-\u2013\u2014]/)[0] ?? "";
+    const normalizedPetName = normalizeMatchText(petName);
+    if (!prefix || !normalizedPetName) {
+      throw new BadRequestError("יש להזין מספר תיק ושם חיה");
+    }
+    const phone = normalizePhone(ownerPhone);
+    const candidates = await ClinicaClientModel.find({
+      $or: [
+        { externalPatientId: prefix },
+        { "pets.externalPatientId": prefix },
+        ...(phone ? [{ ownerPhone: { $regex: `${phone.slice(-7)}$` } }] : []),
+      ],
+    }).lean();
+    const client = candidates.find((candidate) =>
+      findPetByName(candidate.pets, petName),
+    );
+    if (!client) throw new NotFoundError("לא נמצאה חיה תואמת בקליניקה אונליין");
+    return client;
+  }
+
+  async getCachedPet(clientId: string, petName: string) {
+    const client = await ClinicaClientModel.findById(clientId).lean();
+    if (!client) throw new NotFoundError("הלקוח לא נמצא בקליניקה אונליין");
+    const pet = findPetByName(client.pets, petName);
+    if (!pet) throw new NotFoundError("החיה לא נמצאה בקליניקה אונליין");
+    return { ...client, pets: [pet] };
+  }
+
+  async fetchMissingVisitDetails(
+    clientId: string,
+    petName: string,
+  ) {
+    let client = await ClinicaClientModel.findById(clientId).lean();
+    if (!client) throw new NotFoundError("הלקוח לא נמצא בקליניקה אונליין");
+    let pet = findPetByName(client.pets, petName);
+    if (!pet) throw new NotFoundError("החיה לא נמצאה בקליניקה אונליין");
+
+    if (!pet.externalPatientId && client.externalPatientId) {
+      await this.syncOneClient(client.externalPatientId);
+      client = await ClinicaClientModel.findById(clientId).lean();
+      pet = client ? findPetByName(client.pets, petName) : undefined;
+    }
+    if (!client || !pet) throw new NotFoundError("החיה לא נמצאה בקליניקה אונליין");
+    if (!pet.externalPatientId) {
+      throw new BadRequestError("לחיה חסר מזהה בקליניקה אונליין");
+    }
+
+    if (!acquireClinicaScrapeLock("pet-sessions")) {
+      throw new BadRequestError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
+    }
+    let visits;
+    try {
+      visits = await runClinicaPetSessionsFetch(
+        pet.externalPatientId,
+        pet.name,
+      );
+    } finally {
+      releaseClinicaScrapeLock("pet-sessions");
+    }
+    return { ...client, pets: [pet], visits };
+  }
+
+  async fetchVisitsForExistingCase(
+    casePrefix: string,
+    petName: string,
+    ownerPhone?: string,
+  ) {
+    let client;
+    try {
+      client = await this.findClientForCasePrefix(casePrefix, petName, ownerPhone);
+    } catch (error) {
+      if (!(error instanceof NotFoundError)) throw error;
+      const prefix = normalizeValue(casePrefix).split(/[-\u2013\u2014]/)[0] ?? "";
+      if (prefix) await this.syncOneClient(prefix);
+      client = await this.findClientForCasePrefix(casePrefix, petName, ownerPhone);
+    }
+    return this.fetchMissingVisitDetails(client._id.toString(), petName);
   }
 }
 
