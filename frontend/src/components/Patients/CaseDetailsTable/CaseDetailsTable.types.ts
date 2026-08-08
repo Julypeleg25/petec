@@ -98,8 +98,6 @@ export interface CaseDetailsInteractiveStateProps {
 export interface CaseDetailsTableProps extends CaseDetailsInteractiveStateProps {
   animalWeight?: string | number | null;
   animalId?: string | number | null;
-  selectedStartHour: string;
-  setSelectedStartHour: (value: string) => void;
 }
 
 export type CaseDetailsFieldName = keyof CaseDetailsData;

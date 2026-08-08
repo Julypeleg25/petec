@@ -29,7 +29,7 @@ function Table<T extends object>({
     setSelectedRow(undefined);
   }, [data]);
 
-  const highlightRowAndActivateBtns = (e: React.MouseEvent, row: T) => {
+  const highlightRowAndActivateBtns = (_event: React.MouseEvent, row: T) => {
     setSelectedRow(row);
   };
 

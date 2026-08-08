@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import TableUnEditableCellElement from "../TableUnEditableCellElement";
 import { DAILY_CASE_TABLE_COLUMN_COUNT } from "../CaseDetailsTable.constants";

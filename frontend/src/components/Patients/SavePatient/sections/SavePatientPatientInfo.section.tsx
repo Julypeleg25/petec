@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { FaCamera } from "react-icons/fa";
 import DatePicker from "../../../../utils/DatePicker/DatePicker";
 import FormInput from "../../../../utils/FormInput/FormInput";
@@ -18,10 +17,7 @@ import SavePatientFlagsSection from "./SavePatientFlags.section";
 import SavePatientActionsMenu, {
   type SavePatientActions,
 } from "./SavePatientActionsMenu";
-import {
-  getPatientImageSrc,
-  handlePatientImageLoadError,
-} from "../../../../features/patients/utils/patientImage.utils";
+import { getPatientImageSrc } from "../../../../features/patients/utils/patientImage.utils";
 
 interface SavePatientPatientInfoSectionProps {
   isEdit: boolean;

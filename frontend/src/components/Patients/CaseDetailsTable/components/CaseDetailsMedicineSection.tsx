@@ -1,4 +1,3 @@
-import React from "react";
 import type { MedicineSectionType } from "../CaseDetailsTable.constants";
 import type { CaseDetailsInteractiveStateProps } from "../CaseDetailsTable.types";
 import type { MedicineSelectOptionObj } from "../../../MedicinePicker/MedicinePicker.types";

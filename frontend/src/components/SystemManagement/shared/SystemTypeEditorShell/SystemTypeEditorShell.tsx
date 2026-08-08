@@ -5,7 +5,6 @@ interface SystemTypeEditorShellProps {
   isEdit: boolean;
   createTitle: string;
   editTitle: string;
-  currentItemName?: string;
   onClose: () => void;
   onSubmit: FormEventHandler<HTMLFormElement>;
   isPending: boolean;
@@ -21,7 +20,6 @@ export function SystemTypeEditorShell({
   isEdit,
   createTitle,
   editTitle,
-  currentItemName,
   onClose,
   onSubmit,
   isPending,

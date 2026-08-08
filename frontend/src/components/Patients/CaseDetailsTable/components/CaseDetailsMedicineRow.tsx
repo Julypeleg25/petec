@@ -150,7 +150,6 @@ export const CaseDetailsMedicineRow = memo(
                   medicineId={itemKey}
                   type={type}
                   caseDetailsPopUpId={`pop-up-${type}-comment-textarea-${rowIndex}-${columnIndex}`}
-                  formTextareaElementId={`${type}-comment-textarea-${rowIndex}`}
                   caseDetailsList={caseDetailsList}
                   setCaseDetailsList={setCaseDetailsList}
                   style={selectedColumnPopup === columnIndex ? { display: "flex", opacity: 1 } : undefined}

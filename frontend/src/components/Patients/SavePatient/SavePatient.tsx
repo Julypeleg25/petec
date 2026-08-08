@@ -112,7 +112,6 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
     setIsReleased,
     selectedCaseDate,
     setSelectedCaseDate,
-    selectedStartHour,
     caseDetailsList,
     setCaseDetailsList,
     caseDetailsDataIndex,
@@ -337,7 +336,6 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 }
                 addNewCaseDailyDetails={addNewCaseDailyDetails}
                 deleteSelectedCaseDailyDetails={deleteSelectedCaseDailyDetails}
-                onSavePatientChanges={handleSaveFromMenu}
               />
             )}
             {isEdit && (
@@ -356,8 +354,6 @@ function SavePatient({ beforeNavigation }: SavePatientProps) {
                 paintingMode={paintingMode}
                 animalWeight={formData.patientSnapshot?.weightKg}
                 animalId={selectedAnimalType}
-                selectedStartHour={selectedStartHour}
-                setSelectedStartHour={setTimeSelectionValue}
               />
             )}
           </form>

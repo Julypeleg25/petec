@@ -1,4 +1,3 @@
-import React from "react";
 import { FaPlus } from "react-icons/fa";
 import { DAILY_CASE_TABLE_COLUMN_COUNT } from "../CaseDetailsTable.constants";
 

@@ -1,11 +1,10 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import FormTextarea from "../../../../utils/FormTextarea/FormTextarea";
 import TableUnEditableCellElement from "../TableUnEditableCellElement";
 import { BooleanCellComponent } from "../CaseDetailsTableCells";
 import { getBooleanValueText } from "../utils/caseDetailsText.utils";
 import { DAILY_CASE_TABLE_COLUMN_COUNT } from "../CaseDetailsTable.constants";
 import type {
-  CaseDetailsData,
   CaseDetailsInteractiveStateProps,
   CaseDetailsInputChangeHandler,
 } from "../CaseDetailsTable.types";
@@ -85,7 +84,6 @@ export const CaseDetailsBooleanCommentRow = memo(
                 isComment={true}
                 valName={isBoolKey}
                 commentValName={commentsKey}
-                formTextareaElementId={`${dataKeyPrefix}-textarea-${i}`}
                 caseDetailsList={caseDetailsList}
                 caseDetailsDataIndex={caseDetailsDataIndex}
                 handleInputChange={handleInputChange}

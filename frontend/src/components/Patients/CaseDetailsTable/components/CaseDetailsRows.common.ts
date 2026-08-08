@@ -12,7 +12,6 @@ import type {
   OptionSectionType,
 } from "../CaseDetailsTable.constants";
 import { getRequiredIndexesByFrequency } from "../utils/caseDetailsFrequency.utils";
-import { getMedicineDisplayDetails } from "../../../../utils/medicineDisplay.utils";
 
 interface ToggleKeyFields {
   isRequiredKey: keyof CaseDetailsData;
