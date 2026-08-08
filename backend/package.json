@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clinica:pull-prod:dry": "tsx src/scripts/clinicaPullProductionClients.ts --dry-run",
     "clinica:pull-prod": "tsx src/scripts/clinicaPullProductionClients.ts",
+    "clinica:remove-medical-records": "tsx scripts/remove-clinica-medical-records.ts",
     "test": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --watch --runInBand",
     "test:coverage": "node --experimental-vm-modules ../node_modules/jest/bin/jest.js --coverage --runInBand"
