@@ -37,7 +37,10 @@ function FormUploadImage({
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [localPreviewSrc, setLocalPreviewSrc] = useState<string | null>(null);
   const [isImageActionMenuOpen, setIsImageActionMenuOpen] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia(MOBILE_CAMERA_MEDIA_QUERY).matches,
+  );
   const hasServerImage = currentImage !== "#" && currentImage !== "";
   const useFullscreenCamera = showWebcam && isMobileViewport;
 
@@ -176,6 +179,9 @@ function FormUploadImage({
     e.stopPropagation();
     setIsImageActionMenuOpen(false);
     setIsCameraReady(false);
+    if (typeof window !== "undefined") {
+      setIsMobileViewport(window.matchMedia(MOBILE_CAMERA_MEDIA_QUERY).matches);
+    }
     setShowWebcam(true);
   }, []);
 
