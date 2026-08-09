@@ -10,11 +10,6 @@ const looksLikeTransformSegment = (segment: string): boolean => {
   return /[,_]/.test(segment);
 };
 
-/**
- * Rewrites Cloudinary delivery URLs so patient photos render at a sharper
- * quality/size for card and detail views (especially on retina displays).
- * Non-Cloudinary URLs are returned unchanged.
- */
 export const toHighResolutionCloudinaryUrl = (value: string): string => {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
