@@ -103,6 +103,9 @@
   z-index: 1;
   border-radius: 17px;
   object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
+  -ms-interpolation-mode: bicubic;
   background-color: transparent;
 }
 

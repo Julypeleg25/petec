@@ -11,6 +11,8 @@ import { FormUploadImageProps } from "./FormUploadImage.types";
 const FACING_MODE_USER = "user";
 const FACING_MODE_ENVIRONMENT = "environment";
 const CAPTURED_IMAGE_FILE_NAME = "captured-image.jpg";
+const WEBCAM_CAPTURE_IDEAL_SIZE = 1280;
+const WEBCAM_SCREENSHOT_QUALITY = 0.95;
 
 const ACCEPTED_IMAGE_MIME_TYPES = IMAGE_MIME_TYPES.join(",");
 const MAX_IMAGE_SIZE_MB = Math.round(UPLOAD.MAX_FILE_SIZE_BYTES / (1024 * 1024));
@@ -169,14 +171,19 @@ function FormUploadImage({
               audio={false}
               ref={webcamRef}
               screenshotFormat={DEFAULT_IMAGE_MIME_TYPE}
+              forceScreenshotSourceSize
+              minScreenshotWidth={WEBCAM_CAPTURE_IDEAL_SIZE}
+              minScreenshotHeight={WEBCAM_CAPTURE_IDEAL_SIZE}
               onUserMedia={() => setIsCameraReady(true)}
               onUserMediaError={handleUserMediaError}
               videoConstraints={{
                 facingMode: facingMode,
-                aspectRatio: 1
+                aspectRatio: 1,
+                width: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
+                height: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
               }}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              screenshotQuality={0.92}
+              screenshotQuality={WEBCAM_SCREENSHOT_QUALITY}
             />
           </div>
         ) : (

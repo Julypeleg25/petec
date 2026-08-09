@@ -617,6 +617,8 @@
   height: 32px;
   border-radius: 9px;
   object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
   background-color: #f4edf7;
 }
 
@@ -736,6 +738,8 @@
   height: 48px;
   border-radius: 14px;
   object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
   background-color: #f4edf7;
   flex-shrink: 0;
 }
@@ -1030,6 +1034,8 @@
   height: 92px;
   border-radius: 18px;
   object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
   background-color: #f4edf7;
   flex-shrink: 0;
 }
