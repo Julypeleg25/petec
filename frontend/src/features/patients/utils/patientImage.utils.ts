@@ -1,4 +1,8 @@
-import { DEFAULT_PATIENT_IMAGE, UPLOAD } from "@petec/shared";
+import {
+    DEFAULT_PATIENT_IMAGE,
+    toHighResolutionCloudinaryUrl,
+    UPLOAD,
+} from "@petec/shared";
 import { ENV } from "../../../config/config";
 import type { SyntheticEvent } from "react";
 
@@ -21,7 +25,7 @@ export const resolvePatientImageSrc = (
     }
 
     if (ABSOLUTE_OR_DATA_URL_REGEX.test(trimmed)) {
-        return trimmed;
+        return toHighResolutionCloudinaryUrl(trimmed);
     }
 
     if (trimmed.startsWith(API_PATH_PREFIX)) {
