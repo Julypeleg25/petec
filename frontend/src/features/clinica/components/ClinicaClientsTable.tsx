@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -13,6 +14,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TableSortLabel,
   TextField,
   Tooltip,
   Typography,
@@ -25,6 +27,39 @@ import { useClinicaManualClientSync } from "../hooks/useClinicaManualClientSync"
 import { ClinicaClient } from "../types/clinicaClient.types";
 
 const MAX_VISIBLE_PETS = 2;
+
+type SortableColumn = "clinicaCaseId" | "ownerName" | "phone" | "lastSync";
+type SortDirection = "asc" | "desc";
+
+const getSortComparator = (column: SortableColumn, direction: SortDirection) => {
+  const factor = direction === "asc" ? 1 : -1;
+
+  return (a: ClinicaClient, b: ClinicaClient) => {
+    switch (column) {
+      case "clinicaCaseId":
+        return (
+          (a.externalPatientId ?? "").localeCompare(
+            b.externalPatientId ?? "",
+            "he",
+            { numeric: true },
+          ) * factor
+        );
+      case "ownerName":
+        return a.ownerName.localeCompare(b.ownerName, "he") * factor;
+      case "phone":
+        return (
+          a.ownerPhone.localeCompare(b.ownerPhone, "he", { numeric: true }) *
+          factor
+        );
+      case "lastSync":
+        return (
+          (new Date(a.lastSyncedAt).getTime() -
+            new Date(b.lastSyncedAt).getTime()) *
+          factor
+        );
+    }
+  };
+};
 
 type Props = {
   clients: ClinicaClient[];
@@ -55,12 +90,19 @@ const ManualClientSync = ({
   return (
     <Stack spacing={1.25} sx={{ alignItems: "center", mt: 1.5 }}>
       <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={1}
-        sx={{ alignItems: "center", direction: "rtl", width: "100%", maxWidth: 520 }}
+        direction="row"
+        sx={{
+          alignItems: "flex-start",
+          justifyContent: "center",
+          direction: "rtl",
+          gap: 1,
+          width: "100%",
+          maxWidth: 520,
+        }}
       >
         <TextField
           fullWidth
+          sx={{ flex: 1 }}
           size="small"
           value={manualSync.value}
           label={CLINICA_TEXTS.manualSyncPlaceholder}
@@ -168,6 +210,23 @@ export const ClinicaClientsTable = ({
   onUpdateClient,
   onManualSyncCompleted,
 }: Props) => {
+  const [sortColumn, setSortColumn] = useState<SortableColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const handleSortClick = (column: SortableColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedClients = useMemo(() => {
+    if (!sortColumn) return clients;
+    return [...clients].sort(getSortComparator(sortColumn, sortDirection));
+  }, [clients, sortColumn, sortDirection]);
+
   return (
     <>
       <TableContainer
@@ -204,15 +263,33 @@ export const ClinicaClientsTable = ({
               }}
             >
               <TableCell sx={{ width: { xs: 190, md: 220 }, pr: 4 }}>
-                {CLINICA_TEXTS.table.clinicaCaseId}
+                <TableSortLabel
+                  active={sortColumn === "clinicaCaseId"}
+                  direction={sortColumn === "clinicaCaseId" ? sortDirection : "asc"}
+                  onClick={() => handleSortClick("clinicaCaseId")}
+                >
+                  {CLINICA_TEXTS.table.clinicaCaseId}
+                </TableSortLabel>
               </TableCell>
 
               <TableCell sx={{ width: 240 }}>
-                {CLINICA_TEXTS.table.ownerName}
+                <TableSortLabel
+                  active={sortColumn === "ownerName"}
+                  direction={sortColumn === "ownerName" ? sortDirection : "asc"}
+                  onClick={() => handleSortClick("ownerName")}
+                >
+                  {CLINICA_TEXTS.table.ownerName}
+                </TableSortLabel>
               </TableCell>
 
               <TableCell sx={{ width: 170 }}>
-                {CLINICA_TEXTS.table.phone}
+                <TableSortLabel
+                  active={sortColumn === "phone"}
+                  direction={sortColumn === "phone" ? sortDirection : "asc"}
+                  onClick={() => handleSortClick("phone")}
+                >
+                  {CLINICA_TEXTS.table.phone}
+                </TableSortLabel>
               </TableCell>
 
               <TableCell sx={{ width: 210 }}>
@@ -220,7 +297,13 @@ export const ClinicaClientsTable = ({
               </TableCell>
 
               <TableCell sx={{ width: 220 }}>
-                {CLINICA_TEXTS.table.lastSync}
+                <TableSortLabel
+                  active={sortColumn === "lastSync"}
+                  direction={sortColumn === "lastSync" ? sortDirection : "asc"}
+                  onClick={() => handleSortClick("lastSync")}
+                >
+                  {CLINICA_TEXTS.table.lastSync}
+                </TableSortLabel>
               </TableCell>
 
               <TableCell
@@ -245,7 +328,7 @@ export const ClinicaClientsTable = ({
             )}
 
             {!isLoading &&
-              clients.map((client) => (
+              sortedClients.map((client) => (
                 <TableRow key={client._id} hover>
                   <TableCell sx={{ pr: 4 }}>
                     <Stack spacing={1.25} sx={{ alignItems: "flex-start" }}>
