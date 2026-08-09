@@ -65,12 +65,6 @@ export function useClinicaClients() {
     setPage(0);
   }, []);
 
-  const replaceClient = useCallback((client: ClinicaClient) => {
-    setClients((current) =>
-      current.map((item) => (item._id === client._id ? client : item)),
-    );
-  }, []);
-
   const showSingleClient = useCallback((client: ClinicaClient) => {
     requestSequenceRef.current += 1;
     suppressNextLoadRef.current = true;
@@ -89,7 +83,6 @@ export function useClinicaClients() {
     isLoading,
     loadClients,
     page,
-    replaceClient,
     rowsPerPage: CLINICA_ROWS_PER_PAGE,
     search,
     setErrorMessage,

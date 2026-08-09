@@ -38,7 +38,6 @@ const ClinicaClientsPageContent = () => {
     isLoading,
     loadClients,
     page,
-    replaceClient,
     rowsPerPage,
     search,
     setPage,
@@ -55,7 +54,7 @@ const ClinicaClientsPageContent = () => {
     errorMessage: updateClientErrorMessage,
     handleUpdateClient,
     updatingClientId,
-  } = useClinicaClientUpdate({ onUpdated: replaceClient });
+  } = useClinicaClientUpdate({ onUpdated: loadClients });
 
   const openNewPatientPage = useCallback(
     (client: ClinicaClient, pet: ClinicaPet) => {
@@ -147,6 +146,7 @@ const ClinicaClientsPageContent = () => {
         <ClinicaClientsControls
           search={search}
           isSyncing={isSyncing}
+          isSyncDisabled={updatingClientId !== null}
           onSearchChange={(value) => {
             setManualClientSuccess("");
             handleSearchChange(value);
