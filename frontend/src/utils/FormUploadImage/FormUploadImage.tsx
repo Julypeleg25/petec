@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState, Fragment } from "react";
+import { createPortal } from "react-dom";
 import "./FormUploadImage.css";
 import { FaImage } from "react-icons/fa";
 import Webcam from "react-webcam";
-import { MdOutlineCameraswitch } from "react-icons/md";
+import { MdClose, MdOutlineCameraswitch } from "react-icons/md";
 import toast from "react-hot-toast";
 import { DEFAULT_IMAGE_MIME_TYPE, IMAGE_MIME_TYPES, UPLOAD } from "@petec/shared";
 
@@ -13,6 +14,7 @@ const FACING_MODE_ENVIRONMENT = "environment";
 const CAPTURED_IMAGE_FILE_NAME = "captured-image.jpg";
 const WEBCAM_CAPTURE_IDEAL_SIZE = 1280;
 const WEBCAM_SCREENSHOT_QUALITY = 0.95;
+const MOBILE_CAMERA_MEDIA_QUERY = "(max-width: 700px)";
 
 const ACCEPTED_IMAGE_MIME_TYPES = IMAGE_MIME_TYPES.join(",");
 const MAX_IMAGE_SIZE_MB = Math.round(UPLOAD.MAX_FILE_SIZE_BYTES / (1024 * 1024));
@@ -35,13 +37,55 @@ function FormUploadImage({
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [localPreviewSrc, setLocalPreviewSrc] = useState<string | null>(null);
   const [isImageActionMenuOpen, setIsImageActionMenuOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
   const hasServerImage = currentImage !== "#" && currentImage !== "";
+  const useFullscreenCamera = showWebcam && isMobileViewport;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(MOBILE_CAMERA_MEDIA_QUERY);
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+    syncViewport();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", syncViewport);
+      return () => mediaQuery.removeEventListener("change", syncViewport);
+    }
+
+    mediaQuery.addListener(syncViewport);
+    return () => mediaQuery.removeListener(syncViewport);
+  }, []);
 
   useEffect(() => {
     if (!selectedFile && !hasServerImage) {
       setLocalPreviewSrc(null);
     }
   }, [hasServerImage, selectedFile]);
+
+  useEffect(() => {
+    if (!useFullscreenCamera || typeof window === "undefined") {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowWebcam(false);
+        setIsCameraReady(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [useFullscreenCamera]);
 
   const isValidImageFile = useCallback((file: File): boolean => {
     if (!ALLOWED_IMAGE_MIME_TYPE_SET.has(file.type)) {
@@ -68,6 +112,13 @@ function FormUploadImage({
     return new Blob([ab], { type: mimeString });
   };
 
+  const handleCloseCamera = useCallback((e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setShowWebcam(false);
+    setIsCameraReady(false);
+  }, []);
+
   const capture = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
 
@@ -82,7 +133,7 @@ function FormUploadImage({
       CAPTURED_IMAGE_FILE_NAME,
       { type: DEFAULT_IMAGE_MIME_TYPE },
     );
-    
+
     if (!isValidImageFile(capturedFile)) {
       return;
     }
@@ -90,6 +141,7 @@ function FormUploadImage({
     setLocalPreviewSrc(imageSrc);
     setSelectedFile(capturedFile);
     setShowWebcam(false);
+    setIsCameraReady(false);
   }, [isValidImageFile, setSelectedFile]);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,6 +198,7 @@ function FormUploadImage({
       return;
     }
     setShowWebcam(false);
+    setIsCameraReady(false);
     toast.error("לא ניתן לגשת למצלמה במכשיר זה");
   }, [facingMode]);
 
@@ -153,39 +206,80 @@ function FormUploadImage({
   const shouldOpenCameraFromImage = imageClickAction === "camera";
   const shouldShowImageActionChoice = imageClickAction === "choice";
 
+  const webcamControls = (
+    <div className="upload-image-webcam">
+      <button
+        type="button"
+        className="btn btn-round upload-image-webcam-close-button"
+        onClick={handleCloseCamera}
+        aria-label="סגור מצלמה"
+      >
+        <MdClose size={22} />
+      </button>
+      <button
+        type="button"
+        className="btn btn-round upload-image-webcam-swap-camera-button"
+        onClick={swapCameras}
+        aria-label="החלף מצלמה"
+      >
+        <MdOutlineCameraswitch size={22} />
+      </button>
+      <Webcam
+        key={facingMode}
+        audio={false}
+        ref={webcamRef}
+        screenshotFormat={DEFAULT_IMAGE_MIME_TYPE}
+        forceScreenshotSourceSize
+        minScreenshotWidth={WEBCAM_CAPTURE_IDEAL_SIZE}
+        minScreenshotHeight={WEBCAM_CAPTURE_IDEAL_SIZE}
+        onUserMedia={() => setIsCameraReady(true)}
+        onUserMediaError={handleUserMediaError}
+        videoConstraints={{
+          facingMode: facingMode,
+          width: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
+          height: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
+        }}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        screenshotQuality={WEBCAM_SCREENSHOT_QUALITY}
+      />
+    </div>
+  );
+
+  const captureButton = !disabled && showWebcam ? (
+    <button
+      type="button"
+      className="btn capture-image-btn"
+      onClick={capture}
+      disabled={!isCameraReady}
+      aria-label="צלם"
+    >
+      צלם
+    </button>
+  ) : null;
+
+  const fullscreenCamera =
+    useFullscreenCamera && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="FormUploadImage FormUploadImage--webcam-active FormUploadImage--webcam-fullscreen"
+            role="dialog"
+            aria-modal="true"
+            aria-label="מצלמה"
+          >
+            <div className="upload-image-container">{webcamControls}</div>
+            {captureButton}
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div
-      className={`FormUploadImage ${showWebcam ? "FormUploadImage--webcam-active" : ""} ${shouldOpenCameraFromImage ? "FormUploadImage--image-opens-camera" : ""} ${shouldShowImageActionChoice ? "FormUploadImage--image-choice" : ""}`}
+      className={`FormUploadImage ${showWebcam && !useFullscreenCamera ? "FormUploadImage--webcam-active" : ""} ${useFullscreenCamera ? "FormUploadImage--camera-open" : ""} ${shouldOpenCameraFromImage ? "FormUploadImage--image-opens-camera" : ""} ${shouldShowImageActionChoice ? "FormUploadImage--image-choice" : ""}`}
     >
       <div className={`upload-image-container ${isLarge ? "upload-image-container-large" : ""}`}>
-        {showWebcam ? (
-          <div className="upload-image-webcam">
-            <button
-              className="btn btn-round upload-image-webcam-swap-camera-button"
-              onClick={swapCameras}
-            >
-              <MdOutlineCameraswitch size={22} />
-            </button>
-            <Webcam
-              key={facingMode}
-              audio={false}
-              ref={webcamRef}
-              screenshotFormat={DEFAULT_IMAGE_MIME_TYPE}
-              forceScreenshotSourceSize
-              minScreenshotWidth={WEBCAM_CAPTURE_IDEAL_SIZE}
-              minScreenshotHeight={WEBCAM_CAPTURE_IDEAL_SIZE}
-              onUserMedia={() => setIsCameraReady(true)}
-              onUserMediaError={handleUserMediaError}
-              videoConstraints={{
-                facingMode: facingMode,
-                aspectRatio: 1,
-                width: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
-                height: { ideal: WEBCAM_CAPTURE_IDEAL_SIZE },
-              }}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              screenshotQuality={WEBCAM_SCREENSHOT_QUALITY}
-            />
-          </div>
+        {showWebcam && !useFullscreenCamera ? (
+          webcamControls
         ) : (
           <Fragment>
             {displaySrc ? (
@@ -251,17 +345,17 @@ function FormUploadImage({
         )}
       </div>
 
-      {!disabled && (
+      {!disabled && !useFullscreenCamera && (
         showWebcam ? (
-          <button className="btn capture-image-btn" onClick={capture} disabled={!isCameraReady}>
-            צלם
-          </button>
+          captureButton
         ) : (
-          <button className="btn capture-image-btn" onClick={handleOpenCamera}>
+          <button type="button" className="btn capture-image-btn" onClick={handleOpenCamera}>
              {displaySrc ? "צלם תמונה שוב" : "צלם תמונה"}
           </button>
         )
       )}
+
+      {fullscreenCamera}
     </div>
   );
 }
