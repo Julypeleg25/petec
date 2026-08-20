@@ -431,7 +431,7 @@ export const buildClinicalSummaryInput = (
       CLINICAL_SUMMARY_LIMITS.inputJsonCharacters &&
     (input.currentStatus.observations?.length ?? 0) > 1
   ) {
-    input.currentStatus.observations!.pop();
+    input.currentStatus.observations?.pop();
     input.sourceMetadata.inputWasTruncated = true;
   }
   while (
