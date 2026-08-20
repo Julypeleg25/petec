@@ -62,6 +62,7 @@ const loadPatientRoutes = async () => {
     .mockReturnValueOnce({ kind: "permission-read-case-anesthesia" })
     .mockReturnValueOnce({ kind: "permission-write-case-anesthesia" })
     .mockReturnValueOnce({ kind: "permission-read-case-charts" })
+    .mockReturnValueOnce({ kind: "permission-read-clinical-summary" })
     .mockReturnValueOnce({ kind: "permission-read-case-daily-plan" })
     .mockReturnValueOnce({ kind: "permission-read-case-calendar" })
     .mockReturnValueOnce({ kind: "permission-write-case-daily-plan" });
@@ -74,6 +75,7 @@ const loadPatientRoutes = async () => {
     .mockReturnValueOnce({ kind: "validate-delete-case" })
     .mockReturnValueOnce({ kind: "validate-upload-document" })
     .mockReturnValueOnce({ kind: "validate-anesthesia" })
+    .mockReturnValueOnce({ kind: "validate-clinical-summary" })
     .mockReturnValueOnce({ kind: "validate-update-daily-plan" });
 
   validateParamsMock
@@ -89,6 +91,7 @@ const loadPatientRoutes = async () => {
     .mockReturnValueOnce({ kind: "validate-case-anesthesia-get" })
     .mockReturnValueOnce({ kind: "validate-case-anesthesia-post" })
     .mockReturnValueOnce({ kind: "validate-case-charts" })
+    .mockReturnValueOnce({ kind: "validate-clinical-summary-params" })
     .mockReturnValueOnce({ kind: "validate-calendar" });
 
   uploadImageSingleMock

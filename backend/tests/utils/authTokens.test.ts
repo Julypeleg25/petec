@@ -42,7 +42,12 @@ describe("authTokens", () => {
   it("generates and verifies access and refresh tokens", async () => {
     const authTokens = await loadAuthTokensModule(false);
     signMock.mockReturnValue("signed-token");
-    verifyMock.mockReturnValue({ userId: "user-1" });
+    const verifiedPayload = {
+      userId: "user-1",
+      role: "ADMIN",
+      privileges: [],
+    };
+    verifyMock.mockReturnValue(verifiedPayload);
 
     expect(
       authTokens.generateAccessToken({
@@ -74,11 +79,15 @@ describe("authTokens", () => {
       { expiresIn: "7d" },
     );
 
-    expect(authTokens.verifyAccessToken("token")).toEqual({ userId: "user-1" });
-    expect(verifyMock).toHaveBeenCalledWith("token", "access-secret-123");
+    expect(authTokens.verifyAccessToken("token")).toEqual(verifiedPayload);
+    expect(verifyMock).toHaveBeenCalledWith("token", "access-secret-123", {
+      algorithms: ["HS256"],
+    });
 
-    expect(authTokens.verifyRefreshToken("token")).toEqual({ userId: "user-1" });
-    expect(verifyMock).toHaveBeenCalledWith("token", "refresh-secret-123");
+    expect(authTokens.verifyRefreshToken("token")).toEqual(verifiedPayload);
+    expect(verifyMock).toHaveBeenCalledWith("token", "refresh-secret-123", {
+      algorithms: ["HS256"],
+    });
   });
 
   it("generates and verifies reset-password tokens", async () => {
@@ -96,7 +105,16 @@ describe("authTokens", () => {
     expect(authTokens.verifyResetPasswordToken("token")).toEqual({
       userId: "user-1",
     });
-    expect(verifyMock).toHaveBeenCalledWith("token", "reset-secret-123");
+    expect(verifyMock).toHaveBeenCalledWith("token", "reset-secret-123", {
+      algorithms: ["HS256"],
+    });
+  });
+
+  it("rejects signed tokens with an invalid application payload", async () => {
+    const authTokens = await loadAuthTokensModule(false);
+    verifyMock.mockReturnValue({ userId: "user-1", role: "UNKNOWN" });
+
+    expect(() => authTokens.verifyAccessToken("token")).toThrow();
   });
 
   it("sets refresh cookies with environment-aware options", async () => {

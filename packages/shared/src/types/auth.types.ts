@@ -1,12 +1,14 @@
+import type { Role } from "../constants/auth.constants.js";
+
 export interface AuthenticatedUser {
   userId: string;
-  role: string;
+  role: Role;
   privileges: string[];
 }
 
 export interface TokenPayload {
   userId: string;
-  role: string;
+  role: Role;
   privileges: string[];
   username?: string;
   fullName?: string;

@@ -3,7 +3,12 @@ import { verifyAccessToken } from "../utils/authTokens.js";
 import { AuthError, ForbiddenError } from "../constants/error.constants.js";
 import { logger } from "../config/logger.js";
 import type { AuthenticatedUser } from "@petec/shared";
-import { ROLE_PERMISSIONS, Permission, Role, roles } from "@petec/shared";
+import {
+    ROLE_PERMISSIONS,
+    Permission,
+    roles,
+    type Role,
+} from "@petec/shared";
 
 declare global {
     namespace Express {
@@ -56,7 +61,7 @@ export const authorize = (...allowedRoles: Role[]) => {
             return;
         }
 
-        if (allowedRoles.length > 0 && !allowedRoles.includes(user.role as Role)) {
+        if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
             const route = `${req.method} ${req.originalUrl.split("?")[0] || req.originalUrl}`;
             logger.warn("Insufficient role privileges", {
                 module: "auth",
@@ -84,7 +89,7 @@ export const requirePermission = (...requiredPermissions: Permission[]) => {
             return;
         }
 
-        const userRole = user.role as Role;
+        const userRole = user.role;
         const rolePermissions = ROLE_PERMISSIONS[userRole];
 
         if (!rolePermissions) {

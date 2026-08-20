@@ -131,6 +131,27 @@ describe("error middleware", () => {
     );
   });
 
+  it("maps database uniqueness races to a safe conflict response", async () => {
+    const { errorHandler } = await loadErrorHandler(true);
+    const res = {} as never;
+    const error = Object.assign(new Error("duplicate key details"), {
+      name: "MongoServerError",
+      code: 11000,
+    });
+
+    errorHandler(error, createRequest(), res, jest.fn());
+
+    expect(sendErrorMock).toHaveBeenCalledWith(
+      res,
+      HttpStatus.CONFLICT,
+      "Resource already exists",
+      "CONFLICT",
+      undefined,
+      "req-1",
+    );
+    expect(warnMock).toHaveBeenCalled();
+  });
+
   it("hides internal error messages in production", async () => {
     const { errorHandler } = await loadErrorHandler(true);
     const res = {} as never;

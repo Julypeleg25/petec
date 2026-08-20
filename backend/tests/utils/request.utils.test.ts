@@ -66,7 +66,7 @@ describe("request.utils", () => {
     const req = createRequest({
       authenticatedUser: {
         userId: "user-17",
-        role: "admin",
+        role: "ADMIN",
         privileges: [],
       },
     });
