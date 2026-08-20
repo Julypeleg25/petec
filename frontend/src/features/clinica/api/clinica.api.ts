@@ -36,7 +36,16 @@ const ClinicaPetSchema = z.object({
   referringDoctor: z.string().optional(),
 }).passthrough();
 
-const ClinicaRawDataSchema = z.any();
+const ClinicaRawDataSchema = z
+  .object({
+    recordsCount: z.number().optional(),
+    original: z
+      .object({
+        patient: ClinicaPetSchema.optional(),
+      })
+      .optional(),
+  })
+  .passthrough();
 
 const ClinicaClientSchema = z.object({
   _id: z.string(),
