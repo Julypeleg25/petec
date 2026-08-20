@@ -98,6 +98,25 @@ describe("config.ts", () => {
     });
   });
 
+  it("prefers deployment environment variables over checked-in defaults", async () => {
+    setRequiredSecrets();
+    process.env.PORT = "8123";
+    process.env.ACCESS_TOKEN_EXPIRES_IN = "45m";
+    process.env.REFRESH_TOKEN_EXPIRES_IN = "14d";
+    normalizeDurationStringMock
+      .mockReturnValueOnce("45m")
+      .mockReturnValueOnce("14d");
+    parseDurationToMillisecondsMock
+      .mockReturnValueOnce(2_700_000)
+      .mockReturnValueOnce(1_209_600_000);
+
+    const { ENV } = await loadConfigModule();
+
+    expect(ENV.port).toBe(8123);
+    expect(ENV.accessTokenExpiresIn).toBe("45m");
+    expect(ENV.refreshTokenExpiresIn).toBe("14d");
+  });
+
   it("throws a descriptive error when required environment variables are missing", async () => {
     delete process.env.JWT_ACCESS_SECRET;
     delete process.env.JWT_REFRESH_SECRET;
