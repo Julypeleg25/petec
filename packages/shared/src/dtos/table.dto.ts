@@ -9,16 +9,23 @@ import {
 import { PatientCardRowDTOSchema } from "./patient.dto.js";
 
 const filterScalarSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const filterValueSchema: z.ZodType<
-    string | number | boolean | null | Record<string, string | number | boolean | null>
-> = z.union([filterScalarSchema, z.record(z.string(), filterScalarSchema)]);
+const safeMongoFieldPathSchema = z
+    .string()
+    .min(1)
+    .max(100)
+    .refine(
+        (path) => path.split(".").every((segment) => !segment.startsWith("$")),
+        { message: "MongoDB operator paths are not allowed" },
+    );
+
+const filtersSchema = z.record(safeMongoFieldPathSchema, filterScalarSchema);
 
 export const GetTableDataDTOSchema = z.object({
     tableName: z.enum(TABLE_ALLOW_LIST),
-    filters: z.record(z.string(), filterValueSchema).default({}),
+    filters: filtersSchema.default({}),
     page: z.coerce.number().int().min(PAGINATION.DEFAULT_PAGE).default(PAGINATION.DEFAULT_PAGE),
     limit: z.coerce.number().int().min(PAGINATION.DEFAULT_PAGE).max(PAGINATION.MAX_LIMIT).default(PAGINATION.DEFAULT_LIMIT),
-    sortBy: z.string().default(TABLE_DEFAULT_SORT_BY),
+    sortBy: safeMongoFieldPathSchema.default(TABLE_DEFAULT_SORT_BY),
     sortOrder: z.enum(SORT_ORDER_VALUES).default(SortOrders.DESC),
     args: z.array(z.string()).optional(),
 }).strict();

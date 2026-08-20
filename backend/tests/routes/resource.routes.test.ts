@@ -6,6 +6,7 @@ import { USER_ROUTE_PATHS } from "../../src/routes/user/userRoutes.constants.js"
 const authenticate = jest.fn();
 const validateBodyMock = jest.fn<(schema: unknown) => unknown>();
 const validateParamsMock = jest.fn<(schema: unknown) => unknown>();
+const requireTableReadPermission = jest.fn();
 
 const userController = {
   getDoctors: jest.fn(),
@@ -92,6 +93,10 @@ const loadTableRoutes = async () => {
   jest.unstable_mockModule("../../src/middlewares/validate.js", () => ({
     validateBody: validateBodyMock,
   }));
+  jest.unstable_mockModule(
+    "../../src/routes/table/tableAuthorization.middleware.js",
+    () => ({ requireTableReadPermission }),
+  );
 
   const module = await import("../../src/routes/table/table.routes.js");
   return { router, module };
@@ -163,6 +168,7 @@ describe("resource routes", () => {
     expect(router.post).toHaveBeenCalledWith(
       TABLE_ROUTE_PATHS.root,
       validateBodyMock.mock.results[0]?.value,
+      requireTableReadPermission,
       tableController.getTableData,
     );
   });
