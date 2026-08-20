@@ -95,6 +95,25 @@ const extractCloudinaryPublicIdFromUrl = (value: string): string | null => {
   }
 };
 
+const getCloudinaryResourceType = (
+  publicIdOrUrl: string,
+): "image" | "raw" | "video" => {
+  if (!publicIdOrUrl.startsWith("http")) {
+    return "image";
+  }
+
+  try {
+    const segments = new URL(publicIdOrUrl).pathname.split("/").filter(Boolean);
+    const uploadIndex = segments.findIndex((segment) => segment === "upload");
+    const resourceType = uploadIndex > 0 ? segments[uploadIndex - 1] : undefined;
+    return resourceType === "raw" || resourceType === "video"
+      ? resourceType
+      : "image";
+  } catch {
+    return "image";
+  }
+};
+
 export const uploadToCloudinary = async (
   params: UploadToCloudinaryParams,
 ): Promise<CloudinaryUploadResult> => {
@@ -110,7 +129,8 @@ export const uploadToCloudinary = async (
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          resource_type: "image",
+          resource_type:
+            folder === UPLOAD.PATIENT_PHOTOS_DIR ? "image" : "auto",
           public_id: publicId,
         },
         (error: unknown, result: UploadApiResponse | undefined) => {
@@ -148,7 +168,14 @@ export const deleteFromCloudinary = async (publicIdOrUrl: string): Promise<void>
       return;
     }
 
-    await cloudinary.uploader.destroy(publicId);
+    const resourceType = getCloudinaryResourceType(publicIdOrUrl);
+    if (resourceType === "image") {
+      await cloudinary.uploader.destroy(publicId);
+    } else {
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: resourceType,
+      });
+    }
     logger.info("Deleted image from Cloudinary", { publicId });
   } catch (error) {
     logger.error("Error deleting image from Cloudinary", {

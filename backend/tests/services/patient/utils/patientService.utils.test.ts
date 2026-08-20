@@ -13,6 +13,8 @@ const createMasterCaseMock = jest.fn() as any;
 const findPatientByIdMock = jest.fn() as any;
 const createPatientMock = jest.fn() as any;
 const infoMock = jest.fn();
+const deleteFromCloudinaryMock = jest.fn<(...args: any[]) => Promise<void>>();
+const storageDeleteMock = jest.fn<(...args: any[]) => Promise<void>>();
 
 jest.unstable_mockModule("../../../../src/repositories/patient/index.js", () => ({
   caseRepository: {
@@ -40,6 +42,16 @@ jest.unstable_mockModule("../../../../src/config/logger.js", () => ({
   },
 }));
 
+jest.unstable_mockModule("../../../../src/utils/cloudinary.utils.js", () => ({
+  deleteFromCloudinary: deleteFromCloudinaryMock,
+}));
+
+jest.unstable_mockModule("../../../../src/services/storage/index.js", () => ({
+  storageService: {
+    delete: storageDeleteMock,
+  },
+}));
+
 const patientServiceUtils = await import("../../../../src/services/patient/utils/patientService.utils.js");
 
 describe("patientService.utils", () => {
@@ -56,6 +68,8 @@ describe("patientService.utils", () => {
     findPatientByIdMock.mockReset();
     createPatientMock.mockReset();
     infoMock.mockReset();
+    deleteFromCloudinaryMock.mockReset();
+    storageDeleteMock.mockReset();
   });
 
   it("gets cases or throws when missing", async () => {
@@ -217,5 +231,41 @@ describe("patientService.utils", () => {
       "master-new",
       { session: undefined },
     );
+  });
+
+  it("deletes Cloudinary documents by URL so their resource type is preserved", async () => {
+    deleteFromCloudinaryMock.mockResolvedValue(undefined);
+
+    await expect(
+      patientServiceUtils.deleteCaseDocumentAsset({
+        _id: "doc-1",
+        cloudinaryPublicId: "legacy-public-id",
+        fileName: "report.pdf",
+        storageKey:
+          "https://res.cloudinary.com/demo/raw/upload/v1/patients/report.pdf",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith(
+      "https://res.cloudinary.com/demo/raw/upload/v1/patients/report.pdf",
+    );
+    expect(storageDeleteMock).not.toHaveBeenCalled();
+  });
+
+  it("deletes locally stored documents through the storage service", async () => {
+    storageDeleteMock.mockResolvedValue(undefined);
+
+    await expect(
+      patientServiceUtils.deleteCaseDocumentAsset({
+        _id: "doc-2",
+        fileName: "report.pdf",
+        storageKey: "patients/documents/report.pdf",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(storageDeleteMock).toHaveBeenCalledWith(
+      "patients/documents/report.pdf",
+    );
+    expect(deleteFromCloudinaryMock).not.toHaveBeenCalled();
   });
 });

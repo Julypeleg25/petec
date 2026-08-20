@@ -23,7 +23,9 @@ const configMock = jest.fn<(config: CloudinaryConfig) => void>();
 const uploadStreamMock = jest.fn<
   (options: UploadOptions, callback: UploadCallback) => string
 >();
-const destroyMock = jest.fn<(publicId: string) => Promise<void>>();
+const destroyMock = jest.fn<
+  (publicId: string, options?: { resource_type: string }) => Promise<void>
+>();
 const pipeMock = jest.fn<(stream: string) => void>();
 const createReadStreamMock = jest.fn<
   (buffer: Buffer) => { pipe: typeof pipeMock }
@@ -181,6 +183,33 @@ describe("cloudinary.utils", () => {
     expect(pipeMock).toHaveBeenCalledWith("upload-stream");
   });
 
+  it("uses automatic resource detection for patient documents", async () => {
+    const { uploadToCloudinary } = await loadCloudinaryUtils();
+    sanitizeUploadedFileNameMock.mockReturnValue("release.pdf");
+    uploadStreamMock.mockImplementation((options, callback) => {
+      callback(undefined, {
+        secure_url: `https://cdn.test/${options.public_id}`,
+        public_id: options.public_id,
+      });
+      return "upload-stream";
+    });
+
+    await uploadToCloudinary({
+      buffer: Buffer.from("document"),
+      originalName: "release.pdf",
+      folder: "patients/documents",
+      fallbackBaseName: "document",
+    });
+
+    expect(uploadStreamMock).toHaveBeenCalledWith(
+      {
+        resource_type: "auto",
+        public_id: "patients/documents/release-12345678",
+      },
+      expect.any(Function),
+    );
+  });
+
   it("wraps upload stream failures and missing Cloudinary metadata", async () => {
     const { uploadToCloudinary } = await loadCloudinaryUtils();
     sanitizeUploadedFileNameMock.mockReturnValue("milo.png");
@@ -233,14 +262,25 @@ describe("cloudinary.utils", () => {
     await deleteFromCloudinary(
       "https://res.cloudinary.com/demo/image/upload/v123/patients/photos/milo.jpg",
     );
+    await deleteFromCloudinary(
+      "https://res.cloudinary.com/demo/raw/upload/v124/patients/documents/release.pdf",
+    );
 
     expect(destroyMock).toHaveBeenNthCalledWith(1, "patients/photos/direct-id");
     expect(destroyMock).toHaveBeenNthCalledWith(2, "patients/photos/milo");
+    expect(destroyMock).toHaveBeenNthCalledWith(
+      3,
+      "patients/documents/release",
+      { resource_type: "raw" },
+    );
     expect(infoMock).toHaveBeenNthCalledWith(1, "Deleted image from Cloudinary", {
       publicId: "patients/photos/direct-id",
     });
     expect(infoMock).toHaveBeenNthCalledWith(2, "Deleted image from Cloudinary", {
       publicId: "patients/photos/milo",
+    });
+    expect(infoMock).toHaveBeenNthCalledWith(3, "Deleted image from Cloudinary", {
+      publicId: "patients/documents/release",
     });
   });
 
