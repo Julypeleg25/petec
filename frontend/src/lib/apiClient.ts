@@ -1,11 +1,8 @@
 import axios, {
   type AxiosError,
   type AxiosRequestConfig,
-  type AxiosResponse,
   type InternalAxiosRequestConfig,
-  type Method,
 } from "axios";
-import toast from "react-hot-toast";
 import { z } from "zod";
 import {
   STORAGE_KEYS,
@@ -20,7 +17,6 @@ import { AppRoutes } from "../config/appRoutes";
 import { ENV } from "../config/config";
 import { logger } from "./logger";
 import type { RetryableConfig } from "./apiClient.types";
-import { toHebrewErrorMessage } from "./errorMessages";
 
 export const apiClient = axios.create({
   baseURL: ENV.API_URL,
@@ -80,7 +76,7 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    logger.debug(`API Request: [${config.method?.toUpperCase()}] ${config.url}`, config.data);
+    logger.debug(`API Request: [${config.method?.toUpperCase()}] ${config.url}`);
     return config;
   },
   (error: AxiosError) => Promise.reject(error),
@@ -99,9 +95,11 @@ apiClient.interceptors.response.use(
     const requestUrl =
       typeof originalRequest?.url === "string" ? originalRequest.url : "";
 
-    logger.error(`API Request Failed: [${originalRequest?.method?.toUpperCase() || "UNKNOWN"}] ${requestUrl}`, error, {
+    logger.error(`API Request Failed: [${originalRequest?.method?.toUpperCase() || "UNKNOWN"}] ${requestUrl}`, {
+      name: error.name,
+      message: error.message,
+      code: error.code,
       status: error.response?.status,
-      responseData: error.response?.data ?? null,
     });
 
     if (
@@ -151,55 +149,6 @@ apiClient.interceptors.response.use(
 );
 
 export { clearAuth, setAccessToken, getAccessToken };
-
-const extractErrorMsg = (err: AxiosError<ApiErrorPayload>): string =>
-  toHebrewErrorMessage(err);
-
-export const makeRequest = async <TBody = Record<string, never>>(
-  method: Method,
-  url: string,
-  body?: TBody,
-  isLoading?: boolean,
-  afterSuccess?: (res: AxiosResponse) => void,
-  afterError?: (err: AxiosError<ApiErrorPayload>) => void,
-  requestOptions?: AxiosRequestConfig,
-  loadingMessage?: string,
-  successMessage?: string,
-  errorMessage?: string,
-): Promise<AxiosResponse | void> => {
-  const config: AxiosRequestConfig = {
-    method,
-    url,
-    data: body,
-    ...requestOptions,
-  };
-
-  if (isLoading) {
-    return toast
-      .promise(apiClient(config), {
-        loading: loadingMessage ?? "...מבצע פעולה",
-        success: (res) => {
-          if (afterSuccess) afterSuccess(res);
-          return successMessage ?? "הפעולה בוצעה בהצלחה";
-        },
-        error: (err: AxiosError<ApiErrorPayload>) => {
-          if (afterError) afterError(err);
-          return errorMessage ?? extractErrorMsg(err);
-        },
-      })
-      .then((res) => res)
-      .catch(() => undefined);
-  }
-
-  return apiClient(config)
-    .then((res) => {
-      if (afterSuccess) afterSuccess(res);
-      return res;
-    })
-    .catch((err: AxiosError<ApiErrorPayload>) => {
-      if (afterError) afterError(err);
-    });
-};
 
 export const requestWithSchema = async <TResponse>(
   config: AxiosRequestConfig,
@@ -263,6 +212,3 @@ export const requestBlob = async (
   });
   return response.data;
 };
-
-export const getValForFormData = <T>(val: T): T | null =>
-  val === null || val === undefined || String(val) === "" ? null : val;

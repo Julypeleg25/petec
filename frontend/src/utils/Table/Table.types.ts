@@ -1,3 +1,24 @@
+type TableButtonBase = {
+    title?: string;
+    btnClassName?: string;
+    btnText?: React.ReactNode;
+    btnId?: string;
+    hide?: boolean;
+    customBtn?: React.ReactNode;
+    extraBtnStyle?: React.CSSProperties;
+};
+
+export type TableButtonConfig<T> = TableButtonBase & (
+    | {
+        activate: (row: T) => boolean;
+        onClick: (row: T) => void;
+    }
+    | {
+        activate?: undefined;
+        onClick: () => void;
+    }
+);
+
 export interface TableProps<T> {
     tableContainerRef: React.RefObject<HTMLDivElement>;
     tableSectionContainerRef: React.RefObject<HTMLDivElement>;
@@ -5,7 +26,7 @@ export interface TableProps<T> {
     data: T[];
     onRowClicked?: (row: T, e: React.MouseEvent) => void;
     onRowDoubleClicked?: (row: T) => void;
-    btns?: { title?: string; btnClassName?: string; btnText?: React.ReactNode; btnId?: string; onClick: (row: T) => void; hide?: boolean; customBtn?: React.ReactNode; activate?: (row: T) => boolean; extraBtnStyle?: React.CSSProperties }[];
+    btns?: TableButtonConfig<T>[];
     isLoading: boolean;
     extraTableStyling?: React.CSSProperties;
 }

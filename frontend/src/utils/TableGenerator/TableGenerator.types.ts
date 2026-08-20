@@ -28,15 +28,24 @@ export interface QueryObj {
     isManagedTable?: boolean;
 }
 
-export interface TableBtnConfig<T> {
+type TableBtnBase = {
     id: number;
     title?: string;
     btnText: React.ReactNode;
     btnClassName: string;
-    onClick: (rowData: T) => void;
-    activate?: (rowData: T) => boolean;
     hide?: boolean;
-}
+};
+
+export type TableBtnConfig<T> = TableBtnBase & (
+    | {
+        activate: (rowData: T) => boolean;
+        onClick: (rowData: T) => void;
+    }
+    | {
+        activate?: undefined;
+        onClick: () => void;
+    }
+);
 
 export interface TableDataResponse<T> {
     items: T[];

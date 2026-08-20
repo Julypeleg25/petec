@@ -3,6 +3,7 @@ import { Autocomplete, TextField } from "@mui/material";
 import "./FormSelect.css";
 
 import { FormSelectProps } from "./FormSelect.types";
+import { logger } from "../../lib/logger";
 
 function FormSelect({
   elements,
@@ -40,13 +41,20 @@ function FormSelect({
   useEffect(() => {
     let isMounted = true;
     if (getElementsFunc) {
-      getElementsFunc().then((elements) => {
-        if (isMounted) {
-          setSelectElements(elements);
-        }
-      }).catch(() => {
-
-      });
+      getElementsFunc()
+        .then((elements) => {
+          if (isMounted) {
+            setSelectElements(elements);
+          }
+        })
+        .catch((error: unknown) => {
+          logger.error(
+            "Failed to load select options",
+            error instanceof Error
+              ? { name: error.name, message: error.message }
+              : String(error),
+          );
+        });
     }
     return () => {
       isMounted = false;
