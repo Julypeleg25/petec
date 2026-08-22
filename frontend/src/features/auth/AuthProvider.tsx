@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import { jwtDecode } from "jwt-decode";
+import { z } from "zod";
 import {
   HttpStatus,
   roles,
@@ -24,14 +25,17 @@ import { authApi } from "./auth.api";
 import type { AuthContextValue } from "./AuthProvider.types";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-type HttpErrorLike = {
-  response?: {
-    status?: number | null;
-  };
-} | null | undefined;
+const storedAuthUserSchema = z.object({
+  userId: z.string().trim().min(1),
+  role: z.enum(roles),
+  username: z.string().default(""),
+  fullName: z.string().default(""),
+});
+
+const roleValues = new Set<string>(Object.values(roles));
 
 const isRole = (value: string | null | undefined): value is Role =>
-  typeof value === "string" && Object.values(roles).includes(value as Role);
+  typeof value === "string" && roleValues.has(value);
 
 const normalizeAuthUser = (user: AuthUser): AuthUser => {
   const fullName = user.fullName.trim().length > 0 ? user.fullName : user.username;
@@ -40,14 +44,8 @@ const normalizeAuthUser = (user: AuthUser): AuthUser => {
 
 const parseStoredUser = (raw: string): AuthUser | null => {
   try {
-    const parsed = JSON.parse(raw) as Partial<AuthUser>;
-    const userId = typeof parsed.userId === "string" ? parsed.userId.trim() : "";
-    const role = isRole(parsed.role) ? parsed.role : null;
-    if (!userId || !role) return null;
-
-    const username = typeof parsed.username === "string" ? parsed.username : "";
-    const fullName = typeof parsed.fullName === "string" ? parsed.fullName : "";
-    return normalizeAuthUser({ userId, role, username, fullName });
+    const parsed = storedAuthUserSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? normalizeAuthUser(parsed.data) : null;
   } catch {
     return null;
   }
@@ -78,9 +76,15 @@ const writeAuthUserToStorage = (user: AuthUser | null): void => {
   localStorage.setItem(STORAGE_KEYS.USER_ROLE, normalized.role);
 };
 
-const getHttpStatus = (error: HttpErrorLike): number | null => {
-  const status = error?.response?.status;
-  return typeof status === "number" ? status : null;
+const getHttpStatus = (error: unknown): number | null => {
+  if (!error || typeof error !== "object" || !("response" in error)) {
+    return null;
+  }
+  const response = error.response;
+  if (!response || typeof response !== "object" || !("status" in response)) {
+    return null;
+  }
+  return typeof response.status === "number" ? response.status : null;
 };
 
 const buildUserFromToken = (token: string, fallback?: AuthUser | null): AuthUser | null => {
@@ -147,7 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        const status = getHttpStatus(error as HttpErrorLike);
+        const status = getHttpStatus(error);
 
         if (!cancelled) {
           if (

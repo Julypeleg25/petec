@@ -668,7 +668,7 @@ export class PatientService {
     }
 
     if (doc.storageKey.startsWith("http")) {
-      await deleteFromCloudinary(doc.cloudinaryPublicId ?? doc.storageKey);
+      await deleteFromCloudinary(doc.storageKey);
     } else {
       await storageService.delete(doc.storageKey);
     }

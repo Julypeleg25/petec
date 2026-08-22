@@ -9,7 +9,6 @@ import {
   type EditUserFormValues,
   getRoleLabel,
   type UserRowDTO,
-  Role,
   roles,
 } from "@petec/shared";
 import "../SaveUser.css";
@@ -62,7 +61,7 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
           firstName: values.firstName,
           lastName: values.lastName,
           email: values.email,
-          role: values.role as Role,
+          role: values.role,
         },
       },
       { onSuccess: onClose },
@@ -167,10 +166,9 @@ export function EditUserForm({ user, onClose }: EditUserFormProps) {
                 >
                   <option value="">בחר תפקיד</option>
                   {Object.values(roles).map((role) => {
-                    const typedRole = role as Role;
                     return (
-                      <option key={typedRole} value={typedRole}>
-                        {getRoleLabel(typedRole)}
+                      <option key={role} value={role}>
+                        {getRoleLabel(role)}
                       </option>
                     );
                   })}

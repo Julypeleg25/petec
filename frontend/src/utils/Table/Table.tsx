@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import "./Table.css";
 import MyLoader from "../MyLoader/MyLoader";
 
@@ -15,19 +15,18 @@ function Table<T extends object>({
   isLoading,
   extraTableStyling,
 }: TableProps<T>) {
-  const tableBodyRef = useRef(null);
-  const tableRef = useRef(null);
-  const tableHeaderRef = useRef(null);
+  const tableBodyRef = useRef<HTMLTableSectionElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 
   const [selectedRow, setSelectedRow] = useState<T>();
   const visibleBtns = btns?.filter((btn) => btn.hide !== true);
 
-  const isHasData =
-    data && data.length !== 0 && Object.keys(data[0]).length !== 0;
-
-  useEffect(() => {
-    setSelectedRow(undefined);
-  }, [data]);
+  const hasData = data.length > 0;
+  const activeSelectedRow =
+    selectedRow !== undefined && data.includes(selectedRow)
+      ? selectedRow
+      : undefined;
 
   const highlightRowAndActivateBtns = (_event: React.MouseEvent, row: T) => {
     setSelectedRow(row);
@@ -57,7 +56,10 @@ function Table<T extends object>({
               extraBtnStyle,
               title,
             } = btn;
-            const isDisabled = activate !== undefined;
+            const requiresSelection = activate !== undefined;
+            const isDisabled = requiresSelection
+              ? activeSelectedRow === undefined || !activate(activeSelectedRow)
+              : false;
             if (customBtn) {
               return <React.Fragment key={i}>{customBtn}</React.Fragment>;
             } else {
@@ -66,22 +68,16 @@ function Table<T extends object>({
                   key={i}
                   id={btnId || undefined}
                   className={`${btnClassName} ${
-                    !isDisabled || (selectedRow && activate && activate(selectedRow)) ? "btn-active" : ""
+                    !isDisabled ? "btn-active" : ""
                   }`}
-                  disabled={
-                    isDisabled && selectedRow === undefined
-                      ? isDisabled
-                      : activate === undefined
-                      ? false
-                      : !activate(selectedRow!)
-                  }
+                  disabled={isDisabled}
                   onClick={() => {
-                    if (selectedRow !== undefined) {
-                      onClick(selectedRow);
+                    if (activate && activeSelectedRow !== undefined) {
+                      onClick(activeSelectedRow);
                       return;
                     }
-                    if (activate === undefined) {
-                      onClick({} as T);
+                    if (!activate) {
+                      onClick();
                     }
                   }}
                   style={extraBtnStyle === undefined ? {} : extraBtnStyle}
@@ -127,8 +123,17 @@ function Table<T extends object>({
               })}
             </tr>
           </thead>
-          {!isLoading && !isHasData ? (
-            <div className="mtc-no-data-container">אין מידע זמין</div>
+          {!isLoading && !hasData ? (
+            <tbody>
+              <tr>
+                <td
+                  className="mtc-no-data-container"
+                  colSpan={Math.max(columns.length, 1)}
+                >
+                  אין מידע זמין
+                </td>
+              </tr>
+            </tbody>
           ) : (
             <tbody ref={tableBodyRef}>
               {data?.map((row, index: number) => (
@@ -141,7 +146,7 @@ function Table<T extends object>({
                   onDoubleClick={() => {
                     if (onRowDoubleClicked) onRowDoubleClicked(row);
                   }}
-                  className={`mtc-table-body-table-row ${selectedRow === row ? 'highlighted-table-row' : ''}`}
+                  className={`mtc-table-body-table-row ${activeSelectedRow === row ? 'highlighted-table-row' : ''}`}
                   role="row"
                 >
                   {Object.keys(row).map((_key, index) => {

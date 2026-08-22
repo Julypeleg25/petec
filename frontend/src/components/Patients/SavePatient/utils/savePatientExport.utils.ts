@@ -4,8 +4,6 @@ import {
   type ReleasePatientDataResponseDTO,
   type SimpleSystemTypeDTO,
 } from "@petec/shared";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import { getFormattedDateFromDBdate } from "../../../../utils/DateFormattingUtil";
 import {
   getCaseDayPrimaryDataRow,
@@ -787,6 +785,10 @@ export const downloadCaseExportPdf = async (
   const container = createExportContainer(html);
 
   try {
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
     await waitForNextPaint();
 
     const canvas = await html2canvas(container, {

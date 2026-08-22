@@ -38,12 +38,29 @@ describe("security middleware", () => {
       crossOriginResourcePolicy: { policy: "cross-origin" },
     });
     expect(corsMock).toHaveBeenCalledWith({
-      origin: "http://frontend.local",
+      origin: expect.any(Function),
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
     });
     expect(app.use).toHaveBeenNthCalledWith(1, "helmet-middleware");
     expect(app.use).toHaveBeenNthCalledWith(2, "cors-middleware");
+
+    const options = corsMock.mock.calls[0]?.[0] as {
+      origin: (
+        origin: string | undefined,
+        callback: (error: Error | null, allow?: boolean) => void,
+      ) => void;
+    };
+    const callback = jest.fn();
+    options.origin("https://malicious.example", callback);
+    expect(callback.mock.calls[0]?.[0]).toMatchObject({
+      name: "ForbiddenError",
+      statusCode: 403,
+    });
+
+    callback.mockClear();
+    options.origin("http://frontend.local", callback);
+    expect(callback).toHaveBeenCalledWith(null, true);
   });
 });

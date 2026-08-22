@@ -69,7 +69,7 @@ export const LoginResponseSchema = z.object({
     username: z.string(),
     fullName: z.string(),
     email: z.string(),
-    role: z.string(),
+    role: z.enum(roles),
     privileges: z.array(z.string()),
     lastLogin: z.string().optional(),
   }),

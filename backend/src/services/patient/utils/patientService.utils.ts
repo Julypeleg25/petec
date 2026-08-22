@@ -188,7 +188,7 @@ export const deleteCaseDocumentAsset = async (
   document: DeletedCaseDocumentAsset,
 ): Promise<void> => {
   if (document.storageKey.startsWith("http")) {
-    await deleteFromCloudinary(document.cloudinaryPublicId ?? document.storageKey);
+    await deleteFromCloudinary(document.storageKey);
     return;
   }
 

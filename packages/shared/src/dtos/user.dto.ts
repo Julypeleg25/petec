@@ -44,9 +44,9 @@ export const UserResponseDTOSchema = z.object({
   lastName: z.string(),
   fullName: z.string(),
   email: z.string(),
-  role: z.string(),
+  role: z.enum(roles),
   privileges: z.array(z.string()),
-  status: z.string(),
+  status: z.enum(UserStatus),
   lastLogin: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -59,7 +59,7 @@ export const RegisterResponseDTOSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   email: z.string(),
-  role: z.string(),
+  role: z.enum(roles),
 });
 export type RegisterResponseDTO = z.infer<typeof RegisterResponseDTOSchema>;
 

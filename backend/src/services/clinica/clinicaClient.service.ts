@@ -3,11 +3,16 @@ import { ClinicaClientModel } from "../../models/clinicaClient/index.js";
 import type { ClinicaClientDocument } from "../../models/clinicaClient/index.js";
 import {
   acquireClinicaScrapeLock,
+  getClinicaScrapeLockOwner,
   releaseClinicaScrapeLock,
 } from "../../utils/clinicaScrapeLock.js";
 import { ENV } from "../../config/config.js";
 import { logger } from "../../config/logger.js";
-import { BadRequestError, NotFoundError } from "../../constants/error.constants.js";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../../constants/error.constants.js";
 import {
   runClinicaDiffSync,
   runClinicaLatestSync,
@@ -102,12 +107,14 @@ const buildSearchQuery = (
     return {};
   }
 
+  const escapedSearch = cleanSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   return {
     $or: [
-      { externalPatientId: { $regex: cleanSearch, $options: "i" } },
-      { ownerName: { $regex: cleanSearch, $options: "i" } },
-      { ownerPhone: { $regex: cleanSearch, $options: "i" } },
-      { "pets.name": { $regex: cleanSearch, $options: "i" } },
+      { externalPatientId: { $regex: escapedSearch, $options: "i" } },
+      { ownerName: { $regex: escapedSearch, $options: "i" } },
+      { ownerPhone: { $regex: escapedSearch, $options: "i" } },
+      { "pets.name": { $regex: escapedSearch, $options: "i" } },
     ],
   };
 };
@@ -119,16 +126,23 @@ class ClinicaClientService {
       lastSyncError,
       lastSyncResult,
       syncStartedAt,
+      lockOwner: getClinicaScrapeLockOwner(),
     };
   }
 
   private async runGuardedSync<T>(action: () => Promise<T>): Promise<T> {
     if (isSyncRunning) {
-      throw new BadRequestError("סנכרון הקליניקה כבר מתבצע כעת");
+      throw new ConflictError("סנכרון הקליניקה כבר מתבצע כעת");
     }
 
     if (!acquireClinicaScrapeLock("daily-sync")) {
-      throw new BadRequestError(
+      logger.warn("Clinica operation rejected while lock is held", {
+        module: MODULE,
+        event: "clinica_lock_conflict",
+        requested_owner: "daily-sync",
+        current_owner: getClinicaScrapeLockOwner(),
+      });
+      throw new ConflictError(
         "פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים",
       );
     }
@@ -206,7 +220,13 @@ class ClinicaClientService {
     }
     validateClinicaSyncEnv();
     if (!acquireClinicaScrapeLock("single-client-sync")) {
-      throw new BadRequestError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
+      logger.warn("Clinica operation rejected while lock is held", {
+        module: MODULE,
+        event: "clinica_lock_conflict",
+        requested_owner: "single-client-sync",
+        current_owner: getClinicaScrapeLockOwner(),
+      });
+      throw new ConflictError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
     }
     try {
       const result = await runClinicaSingleClientSync(externalPatientId);
@@ -323,7 +343,13 @@ class ClinicaClientService {
     }
 
     if (!acquireClinicaScrapeLock("pet-sessions")) {
-      throw new BadRequestError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
+      logger.warn("Clinica operation rejected while lock is held", {
+        module: MODULE,
+        event: "clinica_lock_conflict",
+        requested_owner: "pet-sessions",
+        current_owner: getClinicaScrapeLockOwner(),
+      });
+      throw new ConflictError("פעולת קליניקה אחרת מתבצעת כעת. יש לנסות שוב בעוד מספר רגעים");
     }
     let visits;
     try {

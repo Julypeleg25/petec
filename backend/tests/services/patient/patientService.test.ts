@@ -709,6 +709,7 @@ describe("PatientService lower-slice", () => {
     toDateInputStringMock.mockImplementation((value: any) =>
       value instanceof Date ? "2026-04-21" : "2026-04-25",
     );
+    shouldPersistManualProcedureUnarchiveMock.mockReturnValue(true);
     caseRepositoryMocks.updateById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
 
@@ -736,6 +737,7 @@ describe("PatientService lower-slice", () => {
       flags: { isProcedure: false },
       dates: { procedureDate: "2026-04-25" },
     });
+    shouldPersistManualProcedureUnarchiveMock.mockReturnValue(false);
     caseRepositoryMocks.updateById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
 
@@ -764,6 +766,7 @@ describe("PatientService lower-slice", () => {
       flags: { isProcedure: true },
       dates: { procedureDate: undefined },
     });
+    shouldPersistManualProcedureUnarchiveMock.mockReturnValue(false);
     toDateInputStringMock.mockReturnValue(undefined);
     caseRepositoryMocks.updateById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
@@ -815,8 +818,9 @@ describe("PatientService lower-slice", () => {
     });
     masterCaseRepositoryMocks.deleteById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
-    deleteFromCloudinaryMock.mockRejectedValue(new Error("cleanup failed"));
-    storageServiceMocks.delete.mockResolvedValue(undefined);
+    deleteCaseDocumentAssetMock
+      .mockRejectedValueOnce(new Error("cleanup failed"))
+      .mockResolvedValueOnce(undefined);
 
     await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
 
@@ -841,10 +845,17 @@ describe("PatientService lower-slice", () => {
       "master-1",
       { session },
     );
-    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith("cloud-1");
-    expect(storageServiceMocks.delete).toHaveBeenCalledWith(
-      "patients/documents/local.pdf",
-    );
+    expect(deleteCaseDocumentAssetMock).toHaveBeenNthCalledWith(1, {
+      _id: "doc-1",
+      cloudinaryPublicId: "cloud-1",
+      fileName: "cloud.pdf",
+      storageKey: "http://cdn.example.com/cloud.pdf",
+    });
+    expect(deleteCaseDocumentAssetMock).toHaveBeenNthCalledWith(2, {
+      _id: "doc-2",
+      fileName: "local.pdf",
+      storageKey: "patients/documents/local.pdf",
+    });
     expect(warnMock).toHaveBeenCalledWith(
       "Case document asset cleanup failed after delete",
       expect.objectContaining({
@@ -877,14 +888,16 @@ describe("PatientService lower-slice", () => {
     patientMedicineRepositoryMocks.deleteMany.mockResolvedValue(undefined);
     caseRepositoryMocks.deleteById.mockResolvedValue(undefined);
     auditLogMock.mockResolvedValue(undefined);
-    deleteFromCloudinaryMock.mockResolvedValue(undefined);
+    deleteCaseDocumentAssetMock.mockResolvedValue(undefined);
 
     await expect(service.deletePatientCase("SER-1", "user-1")).resolves.toBeUndefined();
 
-    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith(
-      "http://cdn.example.com/cloud.pdf",
-    );
-    expect(storageServiceMocks.delete).not.toHaveBeenCalled();
+    expect(deleteCaseDocumentAssetMock).toHaveBeenCalledWith({
+      _id: "doc-1",
+      cloudinaryPublicId: undefined,
+      fileName: "cloud.pdf",
+      storageKey: "http://cdn.example.com/cloud.pdf",
+    });
   });
 
   it("returns mapped case documents", async () => {
@@ -1121,7 +1134,9 @@ describe("PatientService lower-slice", () => {
 
     await expect(service.deleteDocument("doc-1", "user-1")).resolves.toBeUndefined();
 
-    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith("cloud-1");
+    expect(deleteFromCloudinaryMock).toHaveBeenCalledWith(
+      "http://cdn.example.com/doc.pdf",
+    );
     expect(documentRepositoryMocks.deleteById).toHaveBeenCalledWith("doc-1");
     expect(infoMock).toHaveBeenCalledWith("Document deleted", {
       module: "patient",
@@ -1237,6 +1252,9 @@ describe("PatientService lower-slice", () => {
 
   it("loads the calendar month and delegates month response construction", async () => {
     const leanCases = [{ id: "case-1" }];
+    const queryStart = new Date("2026-03-31T00:00:00.000Z");
+    const queryEnd = new Date("2026-05-02T00:00:00.000Z");
+    getCalendarQueryBoundsMock.mockReturnValue({ queryStart, queryEnd });
     caseRepositoryMocks.findManyLean.mockResolvedValue(leanCases);
     buildCalendarMonthResponseMock.mockReturnValue({ year: 2026, month: 4, days: [] });
 
@@ -1249,7 +1267,10 @@ describe("PatientService lower-slice", () => {
     expect(caseRepositoryMocks.findManyLean).toHaveBeenCalledWith(
       expect.objectContaining({
         isDeleted: false,
-        $or: expect.any(Array),
+        $or: [
+          { "dates.procedureDate": { $gte: queryStart, $lt: queryEnd } },
+          { "caseDetailsGrid.dateTime": { $gte: queryStart, $lt: queryEnd } },
+        ],
       }),
       expect.objectContaining({
         sort: {

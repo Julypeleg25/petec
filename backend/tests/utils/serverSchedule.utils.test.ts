@@ -96,9 +96,7 @@ describe("serverSchedule.utils", () => {
     const clinicaCallback = scheduleMock.mock.calls[1][1] as () => Promise<void>;
     await clinicaCallback();
 
-    expect(syncClientsMock).toHaveBeenCalledWith({
-      includeMedicalRecords: true,
-    });
+    expect(syncClientsMock).toHaveBeenCalledWith();
 
     cleanup();
 

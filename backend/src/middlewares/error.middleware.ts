@@ -30,6 +30,15 @@ type MulterLikeError = Error & {
   field?: string;
 };
 
+type MongoDuplicateKeyError = Error & {
+  code?: number;
+};
+
+const isMongoDuplicateKeyError = (
+  value: Error,
+): value is MongoDuplicateKeyError =>
+  (value as MongoDuplicateKeyError).code === 11000;
+
 const isPayloadTooLargeError = (
   value: Error,
 ): value is PayloadTooLargeLikeError => {
@@ -101,41 +110,49 @@ export const errorHandler: ErrorRequestHandler = (
     !isAppError(error) && isMulterFileSizeError(error);
   const multerUnexpectedFileError =
     !isAppError(error) && isMulterUnexpectedFileError(error);
+  const mongoDuplicateKeyError =
+    !isAppError(error) && isMongoDuplicateKeyError(error);
   const requestId = req.requestId;
   const path = req.originalUrl.split("?")[0] || req.originalUrl;
   const method = req.method;
   const route = `${method} ${path}`;
   const statusCode = isAppError(error)
     ? error.statusCode
-    : invalidJsonBody
-      ? HttpStatus.BAD_REQUEST
-      : multerFileSizeError || payloadTooLarge
-        ? HttpStatus.PAYLOAD_TOO_LARGE
-        : multerUnexpectedFileError
-          ? HttpStatus.BAD_REQUEST
-          : HttpStatus.INTERNAL_SERVER_ERROR;
+    : mongoDuplicateKeyError
+      ? HttpStatus.CONFLICT
+      : invalidJsonBody
+        ? HttpStatus.BAD_REQUEST
+        : multerFileSizeError || payloadTooLarge
+          ? HttpStatus.PAYLOAD_TOO_LARGE
+          : multerUnexpectedFileError
+            ? HttpStatus.BAD_REQUEST
+            : HttpStatus.INTERNAL_SERVER_ERROR;
   const message = isAppError(error)
     ? error.message
-    : invalidJsonBody
-      ? "Invalid JSON body"
-      : multerFileSizeError
-        ? "File is too large"
-        : multerUnexpectedFileError
-          ? "Invalid file field"
-          : payloadTooLarge
-            ? "Payload too large"
-            : "Internal Server Error";
+    : mongoDuplicateKeyError
+      ? "Resource already exists"
+      : invalidJsonBody
+        ? "Invalid JSON body"
+        : multerFileSizeError
+          ? "File is too large"
+          : multerUnexpectedFileError
+            ? "Invalid file field"
+            : payloadTooLarge
+              ? "Payload too large"
+              : "Internal Server Error";
   const errorCode = isAppError(error)
     ? toAppErrorCode(error)
-    : invalidJsonBody
-      ? "INVALID_JSON_BODY"
-      : multerFileSizeError
-        ? "FILE_TOO_LARGE"
-        : multerUnexpectedFileError
-          ? "INVALID_FILE_FIELD"
-          : payloadTooLarge
-            ? "PAYLOAD_TOO_LARGE"
-            : "UNKNOWN_ERROR";
+    : mongoDuplicateKeyError
+      ? "CONFLICT"
+      : invalidJsonBody
+        ? "INVALID_JSON_BODY"
+        : multerFileSizeError
+          ? "FILE_TOO_LARGE"
+          : multerUnexpectedFileError
+            ? "INVALID_FILE_FIELD"
+            : payloadTooLarge
+              ? "PAYLOAD_TOO_LARGE"
+              : "UNKNOWN_ERROR";
   const details =
     error instanceof ValidationError
       ? error.details

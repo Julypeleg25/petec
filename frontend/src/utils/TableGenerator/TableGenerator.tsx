@@ -102,35 +102,6 @@ function TableGenerator<T extends RowData = RowData>({
     );
   };
 
-  const onRowClicked = (_event: React.MouseEvent, row: T) => {
-    if (btns !== undefined) {
-      const tableContainer = tableSectionContainerRef.current;
-      if (tableContainer) {
-        const tableBtns = tableContainer.querySelectorAll(
-          ".table-btn, .table-btn-no-style",
-        );
-
-        for (let i = 0; i < btns.length; i++) {
-          if (btns[i].hide !== undefined && btns[i].hide) btns.splice(i, 1);
-        }
-
-        if (!tableBtns) return;
-        for (let i = 0; i < tableBtns.length; i++) {
-          if (btns[i]?.activate) {
-            const tableBtn = tableBtns[i] as HTMLButtonElement;
-            if (btns[i].activate!(row)) {
-              tableBtn.disabled = false;
-              tableBtn.classList.add("btn-active");
-            } else {
-              tableBtn.disabled = true;
-              tableBtn.classList.remove("btn-active");
-            }
-          }
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     if (paginationPerPage !== undefined) setRowsPerPage(paginationPerPage);
     void getData();
@@ -198,18 +169,14 @@ function TableGenerator<T extends RowData = RowData>({
             setLoading,
             setOrderBy,
           )}
-          data={tableData?.length === 0 ? [{} as T] : tableData}
+          data={tableData}
           btns={btns}
           onRowClicked={(row: T, event: React.MouseEvent) => {
-            if (Object.keys(row).length !== 0) {
-              if (setOnRowClicked !== undefined) setOnRowClicked(row);
-              onRowClicked(event, row);
-            }
+            void event;
+            setOnRowClicked?.(row);
           }}
           onRowDoubleClicked={(row: T) => {
-            if (Object.keys(row).length !== 0) {
-              setOnDoubleRowClicked !== undefined && setOnDoubleRowClicked(row);
-            }
+            setOnDoubleRowClicked?.(row);
           }}
           isLoading={loading}
           extraTableStyling={extraTableStyling}

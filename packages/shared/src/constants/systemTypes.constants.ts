@@ -1,9 +1,4 @@
 
-const toNonEmptyConstValues = <T extends Record<string, string>>(
-  values: T,
-): readonly [T[keyof T], ...T[keyof T][]] =>
-  Object.values(values) as unknown as readonly [T[keyof T], ...T[keyof T][]];
-
 export const SYSTEM_TYPE_NAMES = {
   ANIMAL_TYPES: "animal_types",
   RACE_TYPES: "race_types",
@@ -30,7 +25,7 @@ export type SystemTypeName =
   (typeof SYSTEM_TYPE_NAMES)[keyof typeof SYSTEM_TYPE_NAMES];
 
 export const SYSTEM_TYPE_NAMES_VALUES =
-  toNonEmptyConstValues(SYSTEM_TYPE_NAMES);
+  Object.values(SYSTEM_TYPE_NAMES);
 
 export const MEDICINE_CATEGORY_TYPES = {
   MEDICINE: "medicine",
@@ -42,4 +37,4 @@ export type MedicineCategoryType =
   (typeof MEDICINE_CATEGORY_TYPES)[keyof typeof MEDICINE_CATEGORY_TYPES];
 
 export const MEDICINE_CATEGORY_TYPE_VALUES =
-  toNonEmptyConstValues(MEDICINE_CATEGORY_TYPES);
+  Object.values(MEDICINE_CATEGORY_TYPES);

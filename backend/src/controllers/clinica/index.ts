@@ -3,6 +3,20 @@ import { HttpStatus } from "@petec/shared";
 import { clinicaClientService } from "../../services/clinica/clinicaClient.service.js";
 import { ENV } from "../../config/config.js";
 import { logger } from "../../config/logger.js";
+import {
+  getValidatedBody,
+  getValidatedParams,
+  getValidatedQuery,
+} from "../../utils/request.utils.js";
+import type {
+  ClinicaCaseMatchQuery,
+  ClinicaCaseVisitsBody,
+  ClinicaClientParams,
+  ClinicaClientsQuery,
+  ClinicaExternalPatientParams,
+  ClinicaPetQuery,
+  ClinicaPetVisitsBody,
+} from "../../routes/clinica/clinica.validation.js";
 
 const getClients = async (
   req: Request,
@@ -10,11 +24,8 @@ const getClients = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const result = await clinicaClientService.getClients({
-      search: req.query.search as string | undefined,
-      page: Number(req.query.page ?? 1),
-      limit: Number(req.query.limit ?? 20),
-    });
+    const query = getValidatedQuery<ClinicaClientsQuery>(req);
+    const result = await clinicaClientService.getClients(query);
 
     res.status(HttpStatus.OK).json({
       success: true,
@@ -31,9 +42,11 @@ const getClientByExternalPatientId = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const { externalPatientId } =
+      getValidatedParams<ClinicaExternalPatientParams>(req);
     const result =
       await clinicaClientService.getClientByExternalPatientId(
-        String(req.params.externalPatientId),
+        externalPatientId,
       );
 
     res.status(HttpStatus.OK).json({
@@ -66,7 +79,7 @@ const syncClients = async (
       result,
     });
 
-    res.status(202).json({
+    res.status(HttpStatus.OK).json({
       success: true,
       data: result,
     });
@@ -92,7 +105,8 @@ const syncClient = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const externalPatientId = String(req.params.externalPatientId);
+    const { externalPatientId } =
+      getValidatedParams<ClinicaExternalPatientParams>(req);
 
     logger.info("Single client Clinica sync started", {
       module: "clinica",
@@ -147,9 +161,11 @@ const getCachedPet = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const { clientId } = getValidatedParams<ClinicaClientParams>(req);
+    const { petName } = getValidatedQuery<ClinicaPetQuery>(req);
     const result = await clinicaClientService.getCachedPet(
-      String(req.params.clientId),
-      String(req.query.petName ?? ""),
+      clientId,
+      petName,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {
@@ -163,9 +179,11 @@ const fetchPetVisits = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const { clientId } = getValidatedParams<ClinicaClientParams>(req);
+    const { petName } = getValidatedBody<ClinicaPetVisitsBody>(req);
     const result = await clinicaClientService.fetchMissingVisitDetails(
-      String(req.params.clientId),
-      String(req.body?.petName ?? ""),
+      clientId,
+      petName,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {
@@ -179,10 +197,12 @@ const fetchCaseVisits = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const { casePrefix, petName, ownerPhone } =
+      getValidatedBody<ClinicaCaseVisitsBody>(req);
     const result = await clinicaClientService.fetchVisitsForExistingCase(
-      String(req.body?.casePrefix ?? ""),
-      String(req.body?.petName ?? ""),
-      String(req.body?.ownerPhone ?? ""),
+      casePrefix,
+      petName,
+      ownerPhone,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {
@@ -196,10 +216,12 @@ const getClientByCasePrefix = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const { casePrefix, petName, ownerPhone } =
+      getValidatedQuery<ClinicaCaseMatchQuery>(req);
     const result = await clinicaClientService.findClientForCasePrefix(
-      String(req.query.casePrefix ?? ""),
-      String(req.query.petName ?? ""),
-      String(req.query.ownerPhone ?? ""),
+      casePrefix,
+      petName,
+      ownerPhone,
     );
     res.status(HttpStatus.OK).json({ success: true, data: result });
   } catch (error) {

@@ -5,7 +5,6 @@ import { useUserApi } from "../../../../features/system-management";
 import {
   CreateUserFormSchema,
   type CreateUserFormValues,
-  type Role,
   roleLabels,
   roles,
 } from "@petec/shared";
@@ -177,10 +176,9 @@ export function CreateUserForm({ onClose }: CreateUserFormProps) {
                 >
                   <option value="">בחר תפקיד</option>
                   {Object.values(roles).map((role) => {
-                    const typedRole = role as Role;
                     return (
-                    <option key={typedRole} value={typedRole}>
-                      {roleLabels[typedRole]}
+                    <option key={role} value={role}>
+                      {roleLabels[role]}
                     </option>
                     );
                   })}

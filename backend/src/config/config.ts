@@ -13,7 +13,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().min(1),
   NODE_ENV: z.enum(NODE_ENV_VALUES).default("development"),
-  FRONTEND_URL: z.string().min(1),
+  FRONTEND_URL: z.url(),
   MAIL_ADMIN: z.email().optional(),
 
   JWT_ACCESS_SECRET: z.string().min(10),
@@ -44,7 +44,9 @@ const envSchema = z.object({
 
 type ParsedEnv = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse({ ...process.env, ...configFile });
+// The checked-in file supplies local defaults. Runtime configuration must win
+// so platforms such as Railway can inject PORT and production settings.
+const parsed = envSchema.safeParse({ ...configFile, ...process.env });
 
 if (!parsed.success) {
   const formatted = z.treeifyError(parsed.error);
